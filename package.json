@@ -1,5 +1,5 @@
 {
-  "name": "finex-market-maker",
+  "name": "market-maker",
   "version": "1.0.0",
   "main": "index.js",
   "repository": "https://github.com/kleros/finex-market-maker.git",
