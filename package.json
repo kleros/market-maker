@@ -1,0 +1,36 @@
+{
+  "name": "finex-market-maker",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/kleros/finex-market-maker.git",
+  "author": "Kleros",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "commander": "^2.20.0",
+    "node-fetch": "^2.6.0",
+    "ws": "^7.0.1"
+  },
+  "devDependencies": {
+    "@kleros/kathari": "^0.23.0",
+    "husky": "^3.0.0",
+    "react": "^16.8.6"
+  },
+  "scripts": {
+    "prettify": "kathari prettify",
+    "lint:js": "kathari lint:js --no-root",
+    "lint": " yarn run lint:js",
+    "cz": "kathari cz"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "kathari precommit",
+      "commit-msg": "kathari commitmsg"
+    }
+  }
+}
