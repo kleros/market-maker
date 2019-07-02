@@ -6,13 +6,10 @@ const WS = require('ws')
 let stepsValue
 let spreadValue
 
-program
-  .version('0.1.0')
-  .arguments('<steps> <spread>')
-  .action(function(steps, spread) {
-    stepsValue = steps
-    spreadValue = spread
-  })
+program.arguments('<steps> <spread>').action(function(steps, spread) {
+  stepsValue = steps
+  spreadValue = spread
+})
 
 program.parse(process.argv)
 
