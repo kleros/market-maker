@@ -1,8 +1,8 @@
 {
-  "name": "market-maker",
+  "name": "@kleros/market-maker",
   "version": "1.0.0",
   "main": "index.js",
-  "repository": "https://github.com/kleros/finex-market-maker.git",
+  "repository": "https://github.com/kleros/market-maker.git",
   "author": "Kleros",
   "license": "MIT",
   "private": false,
