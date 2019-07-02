@@ -4,19 +4,33 @@ const program = require('commander')
 const WS = require('ws')
 
 let stepsValue
+let sizeValue
 let spreadValue
 
-program.arguments('<steps> <spread>').action(function(steps, spread) {
-  stepsValue = steps
-  spreadValue = spread
-})
+program
+  .arguments('<steps> <size_in_pnk> <spread>')
+  .action(function(steps, size, spread) {
+    stepsValue = steps
+    sizeValue = size
+    spreadValue = spread
+  })
 
 program.parse(process.argv)
 
 if (typeof stepsValue === 'undefined' || typeof spreadValue === 'undefined')
   program.help()
 
+if (
+  typeof process.env.ETHFINEX_KEY === 'undefined' ||
+  typeof process.env.ETHFINEX_SECRET === 'undefined'
+) {
+  console.log(
+    'Please export ETHFINEX_KEY and ETHFINEX_SECRET environment variables.'
+  )
+  process.exit(2)
+}
 console.log('Number of steps for each sides:', stepsValue)
+console.log('Size in PNK: ', sizeValue)
 console.log('Spread:', spreadValue)
 
 program.parse(process.argv)
@@ -29,6 +43,7 @@ let channelID
 
 w.on('message', msg => {
   const parsed = JSON.parse(msg)
+  console.log(parsed)
 
   if (parsed.event === 'subscribed') channelID = parsed.chanId
 
@@ -43,6 +58,7 @@ w.on('message', msg => {
     w.send(
       staircaseOrders(
         parseInt(stepsValue),
+        parseInt(sizeValue),
         parseFloat(parsed[1][6]),
         parseFloat(spreadValue)
       )
@@ -90,33 +106,42 @@ const newExchangeLimitOrder = function(amount, price) {
   ])
 }
 
-const staircaseOrders = function(stepsOnOneSide, lastTrade, spread) {
+const staircaseOrders = function(stepsOnOneSide, size, lastTrade, spread) {
   const orders = []
   console.log(lastTrade)
 
   const step = lastTrade * spread
   assert(typeof stepsOnOneSide === 'number')
+  assert(typeof size === 'number')
   assert(typeof lastTrade === 'number')
   assert(typeof spread === 'number')
   assert(stepsOnOneSide > 0)
+  assert(size > 0)
   assert(lastTrade > 0)
   assert(spread > 0 && spread < 1)
   assert(stepsOnOneSide * spread < 1)
 
   assert(typeof step === 'number')
   assert(step > 0)
-
+  console.log('sizee')
+  console.log(size)
   for (let i = 1; i <= stepsOnOneSide; i++)
     orders.push(
       JSON.parse(
-        newExchangeLimitOrder('442', (lastTrade - i * step).toString())
+        newExchangeLimitOrder(
+          size.toString(),
+          (lastTrade - i * step).toString()
+        )
       )
     )
 
   for (let i = 1; i <= stepsOnOneSide; i++)
     orders.push(
       JSON.parse(
-        newExchangeLimitOrder('-442', (lastTrade + i * step).toString())
+        newExchangeLimitOrder(
+          (-size).toString(),
+          (lastTrade + i * step).toString()
+        )
       )
     )
 
