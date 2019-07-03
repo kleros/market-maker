@@ -3,158 +3,136 @@ const crypto = require('crypto')
 const program = require('commander')
 const WS = require('ws')
 
-let stepsValue
-let sizeValue
-let spreadValue
-
-program
-  .arguments('<steps> <size_in_pnk> <spread>')
-  .action(function(steps, size, spread) {
-    stepsValue = steps
-    sizeValue = size
-    spreadValue = spread
-  })
-
-program.parse(process.argv)
-
-if (typeof stepsValue === 'undefined' || typeof spreadValue === 'undefined')
-  program.help()
-
-if (
-  typeof process.env.ETHFINEX_KEY === 'undefined' ||
-  typeof process.env.ETHFINEX_SECRET === 'undefined'
-) {
-  console.log(
-    'Please export ETHFINEX_KEY and ETHFINEX_SECRET environment variables.'
-  )
-  process.exit(2)
-}
-console.log('Number of steps for each sides:', stepsValue)
-console.log('Size in PNK: ', sizeValue)
-console.log('Spread:', spreadValue)
-
-program.parse(process.argv)
-
-let counter = new Date().getTime()
-
-const w = new WS('wss://api.ethfinex.com/ws/2/')
-
-let channelID
-
-w.on('message', msg => {
-  const parsed = JSON.parse(msg)
-  console.log(parsed)
-
-  if (parsed.event === 'subscribed') channelID = parsed.chanId
-
+module.exports = async (steps, size, spread) => {
   if (
-    channelID !== undefined &&
-    Array.isArray(parsed) &&
-    parsed[0] === channelID &&
-    Array.isArray(parsed[1]) &&
-    parsed[1].length === 10
+    typeof process.env.ETHFINEX_KEY === 'undefined' ||
+    typeof process.env.ETHFINEX_SECRET === 'undefined'
   ) {
-    w.send(CANCEL_ALL_ORDERS)
-    w.send(
-      staircaseOrders(
-        parseInt(stepsValue),
-        parseInt(sizeValue),
-        parseFloat(parsed[1][6]),
-        parseFloat(spreadValue)
-      )
+    console.log(
+      'Please export ETHFINEX_KEY and ETHFINEX_SECRET environment variables.'
     )
+    process.exit(2)
   }
-})
 
-const authenticationPayload = function() {
-  const nonce = Date.now() * 1000
-  const payload = `AUTH${nonce}`
-  const signature = crypto
-    .createHmac('SHA384', process.env.ETHFINEX_SECRET)
-    .update(payload)
-    .digest('hex')
+  let counter = new Date().getTime()
 
-  return JSON.stringify({
-    apiKey: process.env.ETHFINEX_KEY,
-    authNonce: nonce,
-    authPayload: payload,
-    authSig: signature,
-    dms: 4,
-    event: 'auth'
+  const w = new WS('wss://api.ethfinex.com/ws/2/')
+
+  let channelID
+
+  w.on('message', msg => {
+    const parsed = JSON.parse(msg)
+    console.log(parsed)
+
+    if (parsed.event === 'subscribed') channelID = parsed.chanId
+
+    if (
+      channelID !== undefined &&
+      Array.isArray(parsed) &&
+      parsed[0] === channelID &&
+      Array.isArray(parsed[1]) &&
+      parsed[1].length === 10
+    ) {
+      w.send(CANCEL_ALL_ORDERS)
+      w.send(
+        staircaseOrders(
+          parseInt(steps),
+          parseInt(size),
+          parseFloat(parsed[1][6]),
+          parseFloat(spread)
+        )
+      )
+    }
   })
-}
 
-const CANCEL_ALL_ORDERS = JSON.stringify([
-  0,
-  'oc_multi',
-  null,
-  {
-    all: 1
+  const authenticationPayload = function() {
+    const nonce = Date.now() * 1000
+    const payload = `AUTH${nonce}`
+    const signature = crypto
+      .createHmac('SHA384', process.env.ETHFINEX_SECRET)
+      .update(payload)
+      .digest('hex')
+
+    return JSON.stringify({
+      apiKey: process.env.ETHFINEX_KEY,
+      authNonce: nonce,
+      authPayload: payload,
+      authSig: signature,
+      dms: 4,
+      event: 'auth'
+    })
   }
-])
 
-const newExchangeLimitOrder = function(amount, price) {
-  return JSON.stringify([
-    'on',
+  const CANCEL_ALL_ORDERS = JSON.stringify([
+    0,
+    'oc_multi',
+    null,
     {
-      amount,
-      cid: counter++,
-      price,
-      symbol: 'tPNKETH',
-      type: 'EXCHANGE LIMIT'
+      all: 1
     }
   ])
-}
 
-const staircaseOrders = function(stepsOnOneSide, size, lastTrade, spread) {
-  const orders = []
-  console.log(lastTrade)
+  const newExchangeLimitOrder = function(amount, price) {
+    return JSON.stringify([
+      'on',
+      {
+        amount,
+        cid: counter++,
+        price,
+        symbol: 'tPNKETH',
+        type: 'EXCHANGE LIMIT'
+      }
+    ])
+  }
 
-  const step = lastTrade * spread
-  assert(typeof stepsOnOneSide === 'number')
-  assert(typeof size === 'number')
-  assert(typeof lastTrade === 'number')
-  assert(typeof spread === 'number')
-  assert(stepsOnOneSide > 0)
-  assert(size > 0)
-  assert(lastTrade > 0)
-  assert(spread > 0 && spread < 1)
-  assert(stepsOnOneSide * spread < 1)
+  const staircaseOrders = function(stepsOnOneSide, size, lastTrade, spread) {
+    const orders = []
 
-  assert(typeof step === 'number')
-  assert(step > 0)
-  console.log('sizee')
-  console.log(size)
-  for (let i = 1; i <= stepsOnOneSide; i++)
-    orders.push(
-      JSON.parse(
-        newExchangeLimitOrder(
-          size.toString(),
-          (lastTrade - i * step).toString()
+    const step = lastTrade * spread
+    assert(typeof stepsOnOneSide === 'number')
+    assert(typeof size === 'number')
+    assert(typeof lastTrade === 'number')
+    assert(typeof spread === 'number')
+    assert(stepsOnOneSide > 0)
+    assert(size > 0)
+    assert(lastTrade > 0)
+    assert(spread > 0 && spread < 1)
+    assert(stepsOnOneSide * spread < 1)
+
+    assert(typeof step === 'number')
+    assert(step > 0)
+
+    for (let i = 1; i <= stepsOnOneSide; i++)
+      orders.push(
+        JSON.parse(
+          newExchangeLimitOrder(
+            size.toString(),
+            (lastTrade - i * step).toString()
+          )
         )
       )
-    )
 
-  for (let i = 1; i <= stepsOnOneSide; i++)
-    orders.push(
-      JSON.parse(
-        newExchangeLimitOrder(
-          (-size).toString(),
-          (lastTrade + i * step).toString()
+    for (let i = 1; i <= stepsOnOneSide; i++)
+      orders.push(
+        JSON.parse(
+          newExchangeLimitOrder(
+            (-size).toString(),
+            (lastTrade + i * step).toString()
+          )
         )
       )
-    )
 
-  return JSON.stringify([0, 'ox_multi', null, orders])
+    return JSON.stringify([0, 'ox_multi', null, orders])
+  }
+
+  const SUBSCRIBE = JSON.stringify({
+    channel: 'ticker',
+    event: 'subscribe',
+    symbol: 'tPNKETH'
+  })
+
+  w.on('open', () => {
+    w.send(authenticationPayload())
+    w.send(SUBSCRIBE)
+  })
 }
-
-const SUBSCRIBE = JSON.stringify({
-  channel: 'ticker',
-  event: 'subscribe',
-  symbol: 'tPNKETH'
-})
-
-w.on('open', () => {
-  w.send(authenticationPayload())
-  w.send(SUBSCRIBE)
-})
