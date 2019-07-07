@@ -2,6 +2,7 @@
 const commander = require('commander')
 
 const ethfinexMarketMaker = require('./src/ethfinex-market-maker')
+const idexMarketMaker = require('./src/idex-market-maker')
 
 // Globals
 commander.version(require('./package.json').version)
@@ -9,6 +10,12 @@ commander.version(require('./package.json').version)
 commander
   .command('ethfinex-market-maker <steps> <size> <spread>')
   .action((steps, size, spread) => ethfinexMarketMaker(steps, size, spread))
+
+commander
+  .command('idex-market-maker <address> <private_key> <steps> <size> <spread>')
+  .action((address, privateKey, steps, size, spread) =>
+    idexMarketMaker(address, privateKey, steps, size, spread)
+  )
 
 // Handle unknown commands
 commander.on('command:*', () => {
