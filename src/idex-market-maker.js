@@ -17,10 +17,10 @@ const {
 const { mapValues } = require('lodash')
 
 let web3
-
+const orders = []
+const flag = false
 module.exports = async (address, privateKey, steps, size, spread) => {
-  console.log(privateKey)
-  w.on('message', msg => {
+  w.on('message', async msg => {
     web3 = new Web3(
       new Web3.providers.HttpProvider(process.env.ETHEREUM_PROVIDER)
     )
@@ -31,50 +31,80 @@ module.exports = async (address, privateKey, steps, size, spread) => {
         JSON.stringify({
           sid: parsed.sid,
           request: 'subscribeToMarkets',
-          payload:
-            '{"topics": ["ETH_QNT"], "events": ["market_trades", "market_orders"] }'
+          payload: '{"topics": ["ETH_QNT"], "events": ["market_trades"] }'
         })
       )
 
-    if (parsed.event === 'market_trades' || parsed.event === 'market_orders')
+    if (parsed.event === 'market_trades') {
       // console.log(JSON.parse(parsed.payload).trades[0].price)
+      console.log('')
+      for (let i = 0; i < steps; i++)
+        orders.push({
+          tokenBuy: '0x0000000000000000000000000000000000000000',
+          amountBuy: '150000000000000000',
+          tokenSell: '0x93ED3FBe21207Ec2E8f2d3c3de6e058Cb73Bc04d',
+          amountSell: '1000000000000000000000'
+        })
 
-      fetch('https://api.idex.market/returnNextNonce', {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        method: 'POST',
-        body: JSON.stringify({
-          address: address
-        })
-      })
-        .then(function(response) {
-          return response.json()
-        })
-        .then(function(result) {
-          const buyOrder = {
-            tokenBuy: '0x0000000000000000000000000000000000000000',
-            amountBuy: '150000000000000000',
-            tokenSell: PINAKION,
-            amountSell: '1000000000000000000000',
-            address: address,
-            nonce: result.nonce,
-            expires: 100000 // HAS NO EFFECT
-          }
-
-          fetch('https://api.idex.market/order', {
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            method: 'POST',
-            body: JSON.stringify(signMessage(buyOrder), null, 2)
-          })
-            .then(function(response) {
-              return response.json()
-            })
-            .then(console.log)
-        })
+      for (let i = 0; i < steps; i++) await sendOrder(orders[i])
+    }
   })
+
+  function fetchUserDetails(arr) {
+    return arr.reduce(function(promise, order) {
+      return promise.then(function() {
+        return sendOrder(order)
+          .done(function(res) {
+            logger.log(res)
+          })
+          .catch(function(error) {
+            console.log(error)
+          })
+      })
+    }, Promise.resolve())
+  }
+
+  const sendOrder = async order => {
+    console.log('sending')
+    await fetch('https://api.idex.market/returnNextNonce', {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      method: 'POST',
+      body: JSON.stringify({
+        address: address
+      })
+    })
+      .then(function(response) {
+        return response.json()
+      })
+      .then(async function(result) {
+        const buyOrder = {
+          tokenBuy: order.tokenBuy,
+          amountBuy: order.amountBuy,
+          tokenSell: order.tokenSell,
+          amountSell: order.amountSell,
+          address: address,
+          nonce: result.nonce,
+          expires: 100000 // HAS NO EFFECT
+        }
+
+        await fetch('https://api.idex.market/order', {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          method: 'POST',
+          body: JSON.stringify(signMessage(buyOrder), null, 2)
+        })
+          .catch(function(error) {
+            console.log(error)
+          })
+          .then(function(response) {
+            return response.json()
+          })
+          .then(console.log)
+      })
+  }
 
   function signMessage(args) {
     const raw = web3.utils.soliditySha3(
