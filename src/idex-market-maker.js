@@ -38,29 +38,42 @@ module.exports = async (address, privateKey, steps, size, spread) => {
 
     if (parsed.event === 'market_trades' || parsed.event === 'market_orders')
       // console.log(JSON.parse(parsed.payload).trades[0].price)
-      web3.eth.getTransactionCount(address).then(function(nonce) {
-        const buyOrder = {
-          tokenBuy: '0x0000000000000000000000000000000000000000',
-          amountBuy: '150000000000000000',
-          tokenSell: PINAKION,
-          amountSell: '1000000000000000000000',
-          address: address,
-          nonce: nonce,
-          expires: 100000 // HAS NO EFFECT
-        }
 
-        fetch('https://api.idex.market/order', {
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          method: 'POST',
-          body: JSON.stringify(signMessage(buyOrder, privateKey), null, 2)
+      fetch('https://api.idex.market/returnNextNonce', {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        method: 'POST',
+        body: JSON.stringify({
+          address: address
         })
-          .then(function(response) {
-            return response.json()
-          })
-          .then(console.log)
       })
+        .then(function(response) {
+          return response.json()
+        })
+        .then(function(result) {
+          const buyOrder = {
+            tokenBuy: '0x0000000000000000000000000000000000000000',
+            amountBuy: '150000000000000000',
+            tokenSell: PINAKION,
+            amountSell: '1000000000000000000000',
+            address: address,
+            nonce: result.nonce,
+            expires: 100000 // HAS NO EFFECT
+          }
+
+          fetch('https://api.idex.market/order', {
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            method: 'POST',
+            body: JSON.stringify(signMessage(buyOrder, privateKey), null, 2)
+          })
+            .then(function(response) {
+              return response.json()
+            })
+            .then(console.log)
+        })
   })
 
   function signMessage(args, privateKey) {
