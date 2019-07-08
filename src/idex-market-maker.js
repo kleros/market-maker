@@ -111,8 +111,6 @@ module.exports = async (address, privateKey, steps, size, spread) => {
         v: args.address
       }
     )
-    const raw2 = `\u0019Ethereum Signed Message:\n32${raw}`
-    const raw3 = web3.utils.soliditySha3(raw2)
 
     const salted = hashPersonalMessage(toBuffer(raw))
     const vrs = mapValues(ecsign(salted, toBuffer(privateKey)), (value, key) =>
