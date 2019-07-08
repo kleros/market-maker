@@ -67,7 +67,7 @@ module.exports = async (address, privateKey, steps, size, spread) => {
               'Content-Type': 'application/json'
             },
             method: 'POST',
-            body: JSON.stringify(signMessage(buyOrder, privateKey), null, 2)
+            body: JSON.stringify(signMessage(buyOrder), null, 2)
           })
             .then(function(response) {
               return response.json()
@@ -76,7 +76,7 @@ module.exports = async (address, privateKey, steps, size, spread) => {
         })
   })
 
-  function signMessage(args, privateKey) {
+  function signMessage(args) {
     const raw = web3.utils.soliditySha3(
       {
         t: 'address',
