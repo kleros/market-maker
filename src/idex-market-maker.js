@@ -62,10 +62,10 @@ module.exports = async (address, privateKey, steps, size, spread) => {
         },
         method: 'POST',
         body: prepareOrder(
-          orders[0].tokenBuy,
-          orders[0].amountBuy,
-          orders[0].tokenSell,
-          orders[0].amountSell
+          PINAKION,
+          '1000000000000000000000000',
+          '0x0000000000000000000000000000000000000000',
+          '1000000000000000000'
         )
       })
         .then(function(response) {
@@ -156,17 +156,17 @@ module.exports = async (address, privateKey, steps, size, spread) => {
     for (let i = 1; i <= stepsOnOneSide; i++)
       orders.push({
         tokenBuy: PINAKION,
-        amountBuy: size.toString(),
+        amountBuy: '1000000000000000000000000',
         tokenSell: '0x0000000000000000000000000000000000000000',
-        amountSell: (lastTrade - i * step).toString()
+        amountSell: '1000000000000000000'
       })
 
     for (let i = 1; i <= stepsOnOneSide; i++)
       orders.push({
         tokenBuy: '0x0000000000000000000000000000000000000000',
-        amountBuy: (lastTrade + i * step).toString(),
+        amountBuy: '100000000000000000000',
         tokenSell: PINAKION,
-        amountSell: size.toString()
+        amountSell: '1000000000000000000'
       })
 
     return orders
@@ -242,7 +242,7 @@ module.exports = async (address, privateKey, steps, size, spread) => {
           (value, key) => (key === 'v' ? value : bufferToHex(value))
         )
         console.log(Object.assign(args, vrs))
-        return JSON.stringify(Object.assign(args, vrs), null, 2)
+        return JSON.stringify(Object.assign(args, vrs), null, 1)
       })
   }
 
@@ -263,7 +263,7 @@ module.exports = async (address, privateKey, steps, size, spread) => {
 
   var timerID = 0
   function keepAlive() {
-    var timeout = 20000
+    var timeout = 10000
     if (w.readyState == WS.OPEN) w.send('')
 
     timerId = setTimeout(keepAlive, timeout)
