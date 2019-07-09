@@ -46,11 +46,11 @@ module.exports = async (address, privateKey, steps, size, spread) => {
         ) / PRECISION
 
       console.log(lastTrade)
-      for (let i = 0; i < steps; i++) {
+      for (let i = 1; i <= steps; i++) {
         orders.push({
           tokenBuy: ETHER,
           amountBuy: (
-            (1 + parseFloat(spread)) *
+            (1 + parseFloat(spread) * i) *
             parseFloat(lastTrade) *
             size *
             10 ** 18
@@ -69,7 +69,7 @@ module.exports = async (address, privateKey, steps, size, spread) => {
             .toString(),
           tokenSell: ETHER,
           amountSell: (
-            (1 - parseFloat(spread)) *
+            (1 - parseFloat(spread) * i) *
             parseFloat(lastTrade) *
             size *
             10 ** 18
