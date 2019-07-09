@@ -7,6 +7,7 @@ const fetch = require('node-fetch')
 const API_KEY = '17paIsICur8sA0OBqG6dH5G1rmrHNMwt4oNk4iX9'
 const w = new WS('wss://datastream.idex.market')
 const PINAKION = '0x93ED3FBe21207Ec2E8f2d3c3de6e058Cb73Bc04d'
+const ETHER = '0x0000000000000000000000000000000000000000'
 
 const {
   hashPersonalMessage,
@@ -16,14 +17,16 @@ const {
 } = require('ethereumjs-util')
 const { mapValues } = require('lodash')
 
-let web3
+const web3 = new Web3(
+  new Web3.providers.HttpProvider(process.env.ETHEREUM_PROVIDER)
+)
+
+const decimals = web3.utils.toBN('10').pow(web3.utils.toBN('18'))
+
 const orders = []
 const flag = false
 module.exports = async (address, privateKey, steps, size, spread) => {
   w.on('message', async msg => {
-    web3 = new Web3(
-      new Web3.providers.HttpProvider(process.env.ETHEREUM_PROVIDER)
-    )
     const parsed = JSON.parse(msg)
     console.log(parsed)
     if (parsed.request === 'handshake' && parsed.result === 'success')
@@ -31,41 +34,58 @@ module.exports = async (address, privateKey, steps, size, spread) => {
         JSON.stringify({
           sid: parsed.sid,
           request: 'subscribeToMarkets',
-          payload: '{"topics": ["ETH_QNT"], "events": ["market_trades"] }'
+          payload: '{"topics": ["ETH_PNK"], "events": ["market_trades"] }'
         })
       )
 
     if (parsed.event === 'market_trades') {
-      // console.log(JSON.parse(parsed.payload).trades[0].price)
-      console.log('')
-      for (let i = 0; i < steps; i++)
-        orders.push({
-          tokenBuy: '0x0000000000000000000000000000000000000000',
-          amountBuy: '150000000000000000',
-          tokenSell: '0x93ED3FBe21207Ec2E8f2d3c3de6e058Cb73Bc04d',
-          amountSell: '1000000000000000000000'
-        })
+      const PRECISION = 1000000
+      const lastTrade =
+        parseInt(
+          parseFloat(JSON.parse(parsed.payload).trades[0].price) * PRECISION
+        ) / PRECISION
 
-      for (let i = 0; i < steps; i++) await sendOrder(orders[i])
+      console.log(lastTrade)
+      for (let i = 0; i < steps; i++) {
+        orders.push({
+          tokenBuy: ETHER,
+          amountBuy: (
+            (1 + parseFloat(spread)) *
+            parseFloat(lastTrade) *
+            size *
+            10 ** 18
+          ).toString(),
+          tokenSell: PINAKION,
+          amountSell: web3.utils
+            .toBN(parseInt(size))
+            .mul(decimals)
+            .toString()
+        })
+        orders.push({
+          tokenBuy: PINAKION,
+          amountBuy: web3.utils
+            .toBN(parseInt(size))
+            .mul(decimals)
+            .toString(),
+          tokenSell: ETHER,
+          amountSell: (
+            (1 - parseFloat(spread)) *
+            parseFloat(lastTrade) *
+            size *
+            10 ** 18
+          ).toString()
+        })
+      }
+
+      console.log(`ORDERS: ${orders.length}`)
+      console.log(orders)
+
+      for (let i = 0; i < orders.length; i++) await sendOrder(orders[i])
     }
   })
 
-  function fetchUserDetails(arr) {
-    return arr.reduce(function(promise, order) {
-      return promise.then(function() {
-        return sendOrder(order)
-          .done(function(res) {
-            logger.log(res)
-          })
-          .catch(function(error) {
-            console.log(error)
-          })
-      })
-    }, Promise.resolve())
-  }
-
   const sendOrder = async order => {
-    console.log('sending')
+    console.log('SENDING')
     await fetch('https://api.idex.market/returnNextNonce', {
       headers: {
         'Content-Type': 'application/json'
