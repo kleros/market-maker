@@ -34,11 +34,29 @@ module.exports = async (address, privateKey, steps, size, spread) => {
         JSON.stringify({
           sid: parsed.sid,
           request: 'subscribeToMarkets',
-          payload: '{"topics": ["ETH_PNK"], "events": ["market_trades"] }'
+          payload:
+            '{"topics": ["ETH_QNT"], "events": ["market_trades", "market_orders"] }'
         })
       )
 
-    if (parsed.event === 'market_trades') {
+    if (parsed.event === 'market_trades' || parsed.event === 'market_orders') {
+      const openOrders = await fetch(
+        'https://api.idex.market/returnOpenOrders',
+        {
+          headers: { 'Content-Type': 'application/json' },
+          method: 'POST',
+          body: JSON.stringify({ address: address })
+        }
+      ).then(function(response) {
+        return response.json()
+      })
+
+      console.log(openOrders.map(x => x.orderHash))
+      for (let i = 0; i < openOrders.length; i++)
+        await cancelOrder(openOrders[i].orderHash)
+
+      process.exit(1)
+
       const PRECISION = 1000000
       const lastTrade =
         parseInt(
@@ -80,9 +98,70 @@ module.exports = async (address, privateKey, steps, size, spread) => {
       console.log(`ORDERS: ${orders.length}`)
       console.log(orders)
 
-      for (let i = 0; i < orders.length; i++) await sendOrder(orders[i])
+      // for (let i = 0; i < orders.length; i++) await sendOrder(orders[i])
     }
   })
+
+  const cancelOrder = async orderHash => {
+    console.log('CANCELING')
+    await fetch('https://api.idex.market/returnNextNonce', {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      method: 'POST',
+      body: JSON.stringify({
+        address: address
+      })
+    })
+      .then(function(response) {
+        return response.json()
+      })
+      .then(async function(result) {
+        await fetch('https://api.idex.market/cancel', {
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          method: 'POST',
+          body: JSON.stringify(
+            signCancel({
+              orderHash: orderHash,
+              address: address,
+              nonce: result.nonce
+            })
+          )
+        })
+          .catch(function(error) {
+            console.log(error)
+          })
+          .then(function(response) {
+            return response.json()
+          })
+          .then(console.log)
+      })
+  }
+
+  function signCancel(args) {
+    console.log('SIGNING CANCEL')
+    const raw = web3.utils.soliditySha3(
+      {
+        t: 'uint256',
+        v: args.orderHash
+      },
+
+      {
+        t: 'uint256',
+        v: args.nonce
+      }
+    )
+
+    const salted = hashPersonalMessage(toBuffer(raw))
+    const vrs = mapValues(ecsign(salted, toBuffer(privateKey)), (value, key) =>
+      key === 'v' ? value : bufferToHex(value)
+    )
+    console.log(Object.assign(args, vrs))
+    console.log('SIGNED CANCEL')
+    return Object.assign(args, vrs)
+  }
 
   const sendOrder = async order => {
     console.log('SENDING')
