@@ -8,8 +8,6 @@
   "license": "MIT",
   "private": false,
   "dependencies": {
-    "@auroradao/datastream-client": "^1.6.9",
-    "@auroradao/datastream-connector-uws": "^1.6.9",
     "commander": "^2.20.0",
     "ethereumjs-util": "^6.1.0",
     "node-fetch": "^2.6.0",

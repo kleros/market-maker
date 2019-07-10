@@ -2,47 +2,6 @@
 # yarn lockfile v1
 
 
-"@auroradao/datastream-client@^1.6.9":
-  version "1.6.9"
-  resolved "https://registry.yarnpkg.com/@auroradao/datastream-client/-/datastream-client-1.6.9.tgz#ffa414d52f7f9acb408d4bce46c0c7c1c648c227"
-  integrity sha512-aNJf/y5ll8E/lANvt+x7YUbFh3lKPkr9waR2EP4kpWp8WStHkKypMO3Fhx6P6y5W/o9jhUB1Al2prGEWwp894g==
-  dependencies:
-    "@auroradao/datastream-connection" "^1.6.9"
-    "@auroradao/datastream-connector-web" "^1.6.9"
-    "@auroradao/datastream-types" "^1.6.9"
-    shortid "^2.2.14"
-    task-handler "^2.12.0"
-
-"@auroradao/datastream-connection@^1.6.9":
-  version "1.6.9"
-  resolved "https://registry.yarnpkg.com/@auroradao/datastream-connection/-/datastream-connection-1.6.9.tgz#b15bcd76ea852dee2d8c58524f51b76500687097"
-  integrity sha512-sG361m0yZX8Td48YxFLHNktj+kqOre3hydkQ/NB4RTPPl/1ZY86GxI3CYdr4F3Qy5vmuRmGBzxDZaSp66ShIYg==
-  dependencies:
-    "@auroradao/datastream-types" "^1.6.9"
-    task-handler "^2.12.0"
-
-"@auroradao/datastream-connector-uws@^1.6.9":
-  version "1.6.9"
-  resolved "https://registry.yarnpkg.com/@auroradao/datastream-connector-uws/-/datastream-connector-uws-1.6.9.tgz#8b7f036d2c138817eb67b71efd310e62a098e39a"
-  integrity sha512-1341xqBn9JHzxMLWwoVIwXfCJIoc9LSrsrgNorhdDywcgnG36ptZzQebZo3Vhj6REio0ETht9Fl7vqeR6YnxsQ==
-  dependencies:
-    "@auroradao/datastream-types" "^1.6.9"
-    uws "10.148.1"
-
-"@auroradao/datastream-connector-web@^1.6.9":
-  version "1.6.9"
-  resolved "https://registry.yarnpkg.com/@auroradao/datastream-connector-web/-/datastream-connector-web-1.6.9.tgz#02345e6334d797f96c44dc5ba14cec611446aeb4"
-  integrity sha512-RP+vfj0e/zoZnGXATklohxag8iLHlYhryjV3Z95MLwbMexy7EWC/yoUEZERm4AOwHJ/vxV2LGCGIY5QlWEIIog==
-  dependencies:
-    "@auroradao/datastream-types" "^1.6.9"
-
-"@auroradao/datastream-types@^1.6.9":
-  version "1.6.9"
-  resolved "https://registry.yarnpkg.com/@auroradao/datastream-types/-/datastream-types-1.6.9.tgz#ddb5a64535ed76d396defc8ee2bf0f104baf400a"
-  integrity sha512-xeVNnB8CuOi+mE+oAXm9G89+f3oWZi16Uz29OhA8dryTIdW+yXynsGv2CVPhH/j1AUYZOR8sblbIWhVL+2EUeQ==
-  dependencies:
-    task-handler "^2.12.0"
-
 "@babel/code-frame@^7.0.0":
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/@babel/code-frame/-/code-frame-7.0.0.tgz#06e2ab19bdb535385559aabb5ba59729482800f8"
@@ -131,13 +90,6 @@
   version "7.4.5"
   resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.4.5.tgz#582bb531f5f9dc67d2fcb682979894f75e253f12"
   integrity sha512-TuI4qpWZP6lGOGIuGWtp9sPluqYICmbk8T/1vpSysqJxRPkudh/ofFWyqdcMsDf2s7KvDL4/YHgKyvcS3g9CJQ==
-  dependencies:
-    regenerator-runtime "^0.13.2"
-
-"@babel/runtime@^7.4.2":
-  version "7.5.1"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.5.1.tgz#51b56e216e87103ab3f7d6040b464c538e242888"
-  integrity sha512-g+hmPKs16iewFSmW57NkH9xpPkuYD1RV3UE2BCkXx9j+nhhRb9hsiSxPmEa67j35IecTQdn4iyMtHMbt5VoREg==
   dependencies:
     regenerator-runtime "^0.13.2"
 
@@ -1447,11 +1399,6 @@ core-js@^2.4.0, core-js@^2.5.0:
   version "2.6.9"
   resolved "https://registry.yarnpkg.com/core-js/-/core-js-2.6.9.tgz#6b4b214620c834152e179323727fc19741b084f2"
   integrity sha512-HOpZf6eXmnl7la+cUdMnLvUxKNqLUzJvgIziQ0DiF3JwSImNphIqdGqzj6hIKyX04MmV0poclQ7+wjWvxQyR2A==
-
-core-js@^3.0.0:
-  version "3.1.4"
-  resolved "https://registry.yarnpkg.com/core-js/-/core-js-3.1.4.tgz#3a2837fc48e582e1ae25907afcd6cf03b0cc7a07"
-  integrity sha512-YNZN8lt82XIMLnLirj9MhKDFZHalwzzrL9YLt6eb0T5D0EDl4IQ90IGkua8mHbnxNrkj1d8hbdizMc0Qmg1WnQ==
 
 core-util-is@1.0.2, core-util-is@~1.0.0:
   version "1.0.2"
@@ -4700,11 +4647,6 @@ nano-json-stream-parser@^0.1.2:
   resolved "https://registry.yarnpkg.com/nano-json-stream-parser/-/nano-json-stream-parser-0.1.2.tgz#0cc8f6d0e2b622b479c40d499c46d64b755c6f5f"
   integrity sha1-DMj20OK2IrR5xA1JnEbWS3Vcb18=
 
-nanoid@^2.0.0:
-  version "2.0.3"
-  resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-2.0.3.tgz#dde999e173bc9d7bd2ee2746b89909ade98e075e"
-  integrity sha512-NbaoqdhIYmY6FXDRB4eYtDVC9Z9eCbn8TyaiC16LNKtpPv/aqa0tOPD8y6gNE4yUNnaZ7LLhYtXOev/6+cBtfw==
-
 nanomatch@^1.2.9:
   version "1.2.13"
   resolved "https://registry.yarnpkg.com/nanomatch/-/nanomatch-1.2.13.tgz#b87a8aa4fc0de8fe6be88895b38983ff265bd119"
@@ -6162,13 +6104,6 @@ shelljs@0.7.6:
     interpret "^1.0.0"
     rechoir "^0.6.2"
 
-shortid@^2.2.14:
-  version "2.2.14"
-  resolved "https://registry.yarnpkg.com/shortid/-/shortid-2.2.14.tgz#80db6aafcbc3e3a46850b3c88d39e051b84c8d18"
-  integrity sha512-4UnZgr9gDdA1kaKj/38IiudfC3KHKhDc1zi/HSxd9FQDR0VLwH3/y79tZJLsVYPsJgIjeHjqIWaWVRJUj9qZOQ==
-  dependencies:
-    nanoid "^2.0.0"
-
 signal-exit@^3.0.0, signal-exit@^3.0.2:
   version "3.0.2"
   resolved "https://registry.yarnpkg.com/signal-exit/-/signal-exit-3.0.2.tgz#b5fdc08f1287ea1178628e415e25132b73646c6d"
@@ -6819,14 +6754,6 @@ tar@^4, tar@^4.0.2:
     safe-buffer "^5.1.2"
     yallist "^3.0.3"
 
-task-handler@^2.12.0:
-  version "2.12.0"
-  resolved "https://registry.yarnpkg.com/task-handler/-/task-handler-2.12.0.tgz#5862ac430544c403b055bab05ba9ab219447c45d"
-  integrity sha512-IAn30vAk2HUcFwalO4iuXWNa/jhzrVa9H1RKTigKKfkKcKnDAbz851CLIIvPjPuLB6/dxtRJFKSc47x+if+G/A==
-  dependencies:
-    "@babel/runtime" "^7.4.2"
-    core-js "^3.0.0"
-
 text-extensions@^1.0.0:
   version "1.9.0"
   resolved "https://registry.yarnpkg.com/text-extensions/-/text-extensions-1.9.0.tgz#1853e45fee39c945ce6f6c36b2d659b5aabc2a26"
@@ -7168,11 +7095,6 @@ uuid@3.3.2, uuid@^3.3.2:
   version "3.3.2"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-3.3.2.tgz#1b4af4955eb3077c501c23872fc6513811587131"
   integrity sha512-yXJmeNaw3DnnKAOKJE51sL/ZaYfWJRl1pK9dr19YFCu0ObS231AB1/LbqTKRAQ5kw8A90rA6fr4riOUpTZvQZA==
-
-uws@10.148.1:
-  version "10.148.1"
-  resolved "https://registry.yarnpkg.com/uws/-/uws-10.148.1.tgz#fd1a79cf6118a388e0a1bed8a1397030d2c4fd2c"
-  integrity sha1-/Rp5z2EYo4jgob7YoTlwMNLE/Sw=
 
 validate-npm-package-license@^3.0.1:
   version "3.0.4"
