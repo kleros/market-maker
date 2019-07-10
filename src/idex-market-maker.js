@@ -1,5 +1,6 @@
 const WS = require('ws')
 const Web3 = require('web3')
+const assert = require('assert')
 
 const API_KEY = '17paIsICur8sA0OBqG6dH5G1rmrHNMwt4oNk4iX9'
 const API_VERSION = '1.0.0'
@@ -15,6 +16,20 @@ const web3 = new Web3(
 const decimals = web3.utils.toBN('10').pow(web3.utils.toBN('18'))
 
 const getStaircaseOrders = (steps, size, lastTrade, spread) => {
+  assert(typeof steps === 'number')
+  assert(typeof size === 'number')
+  assert(typeof lastTrade === 'number')
+  assert(typeof spread === 'number')
+  assert(steps > 0)
+  assert(size > 0)
+  assert(lastTrade > 0)
+  assert(spread > 0 && spread < 1)
+  assert(steps * spread < 1)
+
+  const step = lastTrade * spread
+  assert(typeof step === 'number')
+  assert(step > 0)
+
   const orders = []
   for (let i = 1; i <= steps; i++) {
     orders.push({
@@ -77,7 +92,12 @@ const clearOrdersAndSendStaircaseOrders = async (
 
   console.log(lastTrade)
 
-  var orders = getStaircaseOrders(steps, size, lastTrade, spread)
+  var orders = getStaircaseOrders(
+    parseInt(steps),
+    parseInt(size),
+    parseFloat(lastTrade),
+    parseFloat(spread)
+  )
   for (let i = 0; i < orders.length; i++)
     await idexWrapper.sendOrder(
       web3,
