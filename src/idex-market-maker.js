@@ -34,8 +34,7 @@ module.exports = async (address, privateKey, steps, size, spread) => {
         JSON.stringify({
           sid: parsed.sid,
           request: 'subscribeToMarkets',
-          payload:
-            '{"topics": ["ETH_QNT"], "events": ["market_trades", "market_orders"] }'
+          payload: '{"topics": ["ETH_PNK"], "events": ["market_trades"] }'
         })
       )
 
@@ -54,8 +53,6 @@ module.exports = async (address, privateKey, steps, size, spread) => {
       console.log(openOrders.map(x => x.orderHash))
       for (let i = 0; i < openOrders.length; i++)
         await cancelOrder(openOrders[i].orderHash)
-
-      process.exit(1)
 
       const PRECISION = 1000000
       const lastTrade =
@@ -98,7 +95,7 @@ module.exports = async (address, privateKey, steps, size, spread) => {
       console.log(`ORDERS: ${orders.length}`)
       console.log(orders)
 
-      // for (let i = 0; i < orders.length; i++) await sendOrder(orders[i])
+      for (let i = 0; i < orders.length; i++) await sendOrder(orders[i])
     }
   })
 
