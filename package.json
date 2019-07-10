@@ -8,6 +8,7 @@
   "license": "MIT",
   "private": false,
   "dependencies": {
+    "@babel/runtime": "^7.5.4",
     "commander": "^2.20.0",
     "ethereumjs-util": "^6.1.0",
     "node-fetch": "^2.6.0",
