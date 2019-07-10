@@ -107,7 +107,7 @@ module.exports = async (steps, size, spread) => {
         JSON.parse(
           newExchangeLimitOrder(
             size.toString(),
-            (lastTrade - i * step).toString()
+            (lastTrade * (1 - i * spread)).toString()
           )
         )
       )
@@ -117,11 +117,11 @@ module.exports = async (steps, size, spread) => {
         JSON.parse(
           newExchangeLimitOrder(
             (-size).toString(),
-            (lastTrade + i * step).toString()
+            (lastTrade * (1 + i * spread)).toString()
           )
         )
       )
-
+    console.log(orders)
     return JSON.stringify([0, 'ox_multi', null, orders])
   }
 
