@@ -80,7 +80,9 @@ module.exports = {
 
     w.on('message', msg => {
       const parsed = JSON.parse(msg)
-      console.log(parsed)
+      if (!(Array.isArray(parsed) && parsed.length == 2 && parsed[1] == 'hb'))
+        // Don't log heartbeat
+        console.log(parsed)
 
       if (parsed.event === 'subscribed') channelID = parsed.chanId
 
