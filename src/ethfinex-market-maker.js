@@ -94,7 +94,7 @@ module.exports = {
         w.send(CANCEL_ALL_ORDERS)
         w.send(
           JSON.stringify(
-            this.getStaircaseOrders(
+            module.exports.getStaircaseOrders(
               parseInt(steps),
               parseInt(size),
               parseFloat(parsed[1][6]),
