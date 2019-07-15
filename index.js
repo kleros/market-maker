@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 const commander = require('commander')
 
-const ethfinexMarketMaker = require('./src/ethfinex-market-maker')
-const autoMarketMake = require('./src/idex-market-maker').autoMarketMake
+const ethfinexAutoMarketMake = require('./src/ethfinex-market-maker')
+  .autoMarketMake
+const idexAutoMarketMake = require('./src/idex-market-maker').autoMarketMake
 
 // Globals
 commander.version(require('./package.json').version)
 
 commander
   .command('ethfinex-market-maker <steps> <size> <spread>')
-  .action((steps, size, spread) => ethfinexMarketMaker(steps, size, spread))
+  .action((steps, size, spread) => ethfinexAutoMarketMake(steps, size, spread))
 
 commander
   .command('idex-market-maker <address> <private_key> <steps> <size> <spread>')
