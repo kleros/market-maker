@@ -52,8 +52,6 @@ module.exports = {
   },
 
   cancelOrder: async function(web3, address, privateKey, orderHash, nextNonce) {
-    console.log('CANCELING')
-
     await fetch(`${HTTPS_API}/cancel`, {
       headers: {
         'Content-Type': 'application/json'
@@ -68,7 +66,7 @@ module.exports = {
       )
     })
       .catch(function(error) {
-        console.log(error)
+        console.error(error)
       })
       .then(function(response) {
         return response.json()
@@ -77,7 +75,6 @@ module.exports = {
   },
 
   signCancel: (web3, privateKey, args) => {
-    console.log('SIGNING CANCEL')
     const raw = web3.utils.soliditySha3(
       {
         t: 'uint256',
@@ -95,13 +92,10 @@ module.exports = {
       key === 'v' ? value : bufferToHex(value)
     )
     console.log(Object.assign(args, vrs))
-    console.log('SIGNED CANCEL')
     return Object.assign(args, vrs)
   },
 
   sendOrder: async function(web3, address, privateKey, order, nextNonce) {
-    console.log('SENDING')
-
     await fetch(`${HTTPS_API}/order`, {
       headers: {
         'Content-Type': 'application/json'
@@ -122,7 +116,7 @@ module.exports = {
       )
     })
       .catch(function(error) {
-        console.log(error)
+        console.error(error)
       })
       .then(function(response) {
         return response.json()
