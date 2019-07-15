@@ -15,7 +15,7 @@ commander
 commander
   .command('idex-market-maker <address> <private_key> <steps> <size> <spread>')
   .action((address, privateKey, steps, size, spread) =>
-    autoMarketMake(address, privateKey, steps, size, spread)
+    idexAutoMarketMake(address, privateKey, steps, size, spread)
   )
 
 // Handle unknown commands
