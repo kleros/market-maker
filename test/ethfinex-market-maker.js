@@ -2,9 +2,18 @@ const assert = require('chai').assert
 const getStaircaseOrders = require('../src/ethfinex-market-maker.js')
   .getStaircaseOrders
 
+const BigNumber = require('bignumber.js')
+
+BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
+
 const testCases = [
   {
-    args: { steps: 2, size: 10000, lastTrade: 0.00004, spread: 0.01 },
+    args: {
+      steps: 2,
+      size: new BigNumber(10000),
+      lastTrade: new BigNumber(0.00004),
+      spread: new BigNumber(0.01)
+    },
     expected: [
       0,
       'ox_multi',

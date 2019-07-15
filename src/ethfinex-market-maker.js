@@ -23,30 +23,25 @@ module.exports = {
 
     const orders = []
 
-    const step = lastTrade * spread
+    const step = lastTrade.times(spread)
     assert(typeof stepsOnOneSide === 'number')
-    assert(typeof size === 'number')
-    assert(typeof lastTrade === 'number')
-    assert(typeof spread === 'number')
+    assert(typeof size === 'object')
+    assert(typeof lastTrade === 'object')
+    assert(typeof spread === 'object')
     assert(stepsOnOneSide > 0)
-    assert(size > 0)
-    assert(lastTrade > 0)
-    assert(spread > 0 && spread < 1)
+    assert(size.gt(0))
+    assert(lastTrade.gt(0) && lastTrade.lt(1))
+    assert(spread.gt(0) && spread.lt(1))
     assert(stepsOnOneSide * spread < 1)
 
-    assert(typeof step === 'number')
-    assert(step > 0)
-
-    const bnSize = new BigNumber(size)
-    const bnLastTrade = new BigNumber(lastTrade)
-    const bnSpread = new BigNumber(spread)
+    assert(step.gt(0))
 
     for (let i = 1; i <= stepsOnOneSide; i++)
       orders.push(
         newExchangeLimitOrder(
-          bnSize.toString(),
-          bnLastTrade
-            .times(new BigNumber(1).minus(new BigNumber(i).times(bnSpread)))
+          size.toString(),
+          lastTrade
+            .times(new BigNumber(1).minus(new BigNumber(i).times(spread)))
             .toString()
         )
       )
@@ -54,9 +49,9 @@ module.exports = {
     for (let i = 1; i <= stepsOnOneSide; i++)
       orders.push(
         newExchangeLimitOrder(
-          bnSize.times(new BigNumber('-1')).toString(),
-          bnLastTrade
-            .times(new BigNumber(1).plus(new BigNumber(i).times(bnSpread)))
+          size.times(new BigNumber('-1')).toString(),
+          lastTrade
+            .times(new BigNumber(1).plus(new BigNumber(i).times(spread)))
             .toString()
         )
       )
@@ -99,9 +94,9 @@ module.exports = {
           JSON.stringify(
             module.exports.getStaircaseOrders(
               parseInt(steps),
-              parseInt(size),
-              parseFloat(parsed[1][6]),
-              parseFloat(spread)
+              new BigNumber(size),
+              new BigNumber(parsed[1][0][3]),
+              new BigNumber(spread)
             )
           )
         )
@@ -120,9 +115,9 @@ module.exports = {
           JSON.stringify(
             module.exports.getStaircaseOrders(
               parseInt(steps),
-              parseInt(size),
-              parseFloat(parsed[1][6]),
-              parseFloat(spread)
+              new BigNumber(size),
+              new BigNumber(parsed[1][6]),
+              new BigNumber(spread)
             )
           )
         )

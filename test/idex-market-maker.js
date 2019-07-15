@@ -2,9 +2,18 @@ const assert = require('chai').assert
 const getStaircaseOrders = require('../src/idex-market-maker.js')
   .getStaircaseOrders
 
+const BigNumber = require('bignumber.js')
+
+BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
+
 const testCases = [
   {
-    args: { steps: 2, size: 10000, lastTrade: 0.00004, spread: 0.01 },
+    args: {
+      steps: 2,
+      size: 10000,
+      lastTrade: new BigNumber(0.00004),
+      spread: 0.01
+    },
     expected: [
       {
         tokenBuy: '0x0000000000000000000000000000000000000000',
@@ -33,7 +42,12 @@ const testCases = [
     ]
   },
   {
-    args: { steps: 2, size: 10000, lastTrade: 0.00004, spread: 0.001 },
+    args: {
+      steps: 2,
+      size: 10000,
+      lastTrade: new BigNumber(0.00004),
+      spread: 0.001
+    },
     expected: [
       {
         tokenBuy: '0x0000000000000000000000000000000000000000',
@@ -62,7 +76,12 @@ const testCases = [
     ]
   },
   {
-    args: { steps: 2, size: 100000, lastTrade: 0.00004, spread: 0.001 },
+    args: {
+      steps: 2,
+      size: 100000,
+      lastTrade: new BigNumber(0.00004),
+      spread: 0.001
+    },
     expected: [
       {
         tokenBuy: '0x0000000000000000000000000000000000000000',
