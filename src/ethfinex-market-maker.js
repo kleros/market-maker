@@ -80,18 +80,40 @@ module.exports = {
 
     w.on('message', msg => {
       const parsed = JSON.parse(msg)
-      if (!(Array.isArray(parsed) && parsed.length == 2 && parsed[1] == 'hb'))
-        // Don't log heartbeat
+      if (!((Array.isArray(parsed) && parsed[1] == 'tu') || parsed[1] == 'hb'))
+        // Don't log heartbeat or trade execution updates
         console.log(parsed)
 
-      if (parsed.event === 'subscribed') channelID = parsed.chanId
+      if (parsed.event === 'subscribed') {
+        channelID = parsed.chanId
+      }
+
+      if (
+        channelID !== undefined &&
+        Array.isArray(parsed) &&
+        Array.isArray(parsed[1]) &&
+        Array.isArray(parsed[1][0])
+      ) {
+        w.send(CANCEL_ALL_ORDERS)
+        w.send(
+          JSON.stringify(
+            module.exports.getStaircaseOrders(
+              parseInt(steps),
+              parseInt(size),
+              parseFloat(parsed[1][6]),
+              parseFloat(spread)
+            )
+          )
+        )
+      }
 
       if (
         channelID !== undefined &&
         Array.isArray(parsed) &&
         parsed[0] === channelID &&
-        Array.isArray(parsed[1]) &&
-        parsed[1].length === 10
+        parsed[1] === 'te' &&
+        Array.isArray(parsed[2]) &&
+        parsed[2].length === 4
       ) {
         w.send(CANCEL_ALL_ORDERS)
         w.send(
@@ -135,7 +157,7 @@ module.exports = {
     ])
 
     const SUBSCRIBE = JSON.stringify({
-      channel: 'ticker',
+      channel: 'trades',
       event: 'subscribe',
       symbol: 'tPNKETH'
     })
