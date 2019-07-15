@@ -23,11 +23,12 @@ module.exports = {
   getStaircaseOrders: function(steps, size, lastTrade, spread) {
     assert(typeof steps === 'number')
     assert(typeof size === 'number')
-    assert(typeof lastTrade === 'number')
+    assert(typeof lastTrade === 'object')
     assert(typeof spread === 'number')
     assert(steps > 0)
     assert(size > 0)
-    assert(lastTrade > 0 && lastTrade < 1)
+    console.log(lastTrade.toString())
+    assert(lastTrade.gt(0) && lastTrade.lt(1))
     assert(spread > 0 && spread < 1)
     assert(steps * spread < 1)
 
@@ -87,18 +88,14 @@ module.exports = {
         await idexWrapper.getNextNonce(address)
       )
 
-    const PRECISION = 1000000
-    const lastTrade =
-      parseInt(
-        parseFloat((await idexWrapper.getTicker('ETH_PNK')).last) * PRECISION
-      ) / PRECISION
-
-    console.log(lastTrade)
+    const lastTrade = new BigNumber(
+      (await idexWrapper.getTicker('ETH_PNK')).last
+    )
 
     var orders = module.exports.getStaircaseOrders(
       parseInt(steps),
       parseInt(size),
-      parseFloat(lastTrade),
+      lastTrade,
       parseFloat(spread)
     )
     for (let i = 0; i < orders.length; i++)
