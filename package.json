@@ -17,7 +17,6 @@
     "ws": "^7.0.1"
   },
   "devDependencies": {
-    "@kleros/kathari": "^0.23.0",
     "chai": "^4.2.0",
     "mocha": "^6.1.4"
   },
