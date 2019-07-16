@@ -30,7 +30,7 @@ module.exports = {
     assert(typeof spread === 'object')
     assert(stepsOnOneSide > 0)
     assert(size.gt(0))
-    assert(lastTrade.gt(0) && lastTrade.lt(1))
+    assert(lastTrade.gt(0) && lastTrade.lt(1), lastTrade.toString())
     assert(spread.gt(0) && spread.lt(1))
     assert(stepsOnOneSide * spread < 1)
 
@@ -116,7 +116,7 @@ module.exports = {
             module.exports.getStaircaseOrders(
               parseInt(steps),
               new BigNumber(size),
-              new BigNumber(parsed[1][6]),
+              new BigNumber(parsed[2][4]),
               new BigNumber(spread)
             )
           )

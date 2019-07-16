@@ -28,7 +28,7 @@ module.exports = {
     assert(steps > 0)
     assert(size > 0)
     console.log(lastTrade.toString())
-    assert(lastTrade.gt(0) && lastTrade.lt(1))
+    assert(lastTrade.gt(0) && lastTrade.lt(1), lastTrade.toString())
     assert(spread > 0 && spread < 1)
     assert(steps * spread < 1)
 
