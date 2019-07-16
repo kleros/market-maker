@@ -10,7 +10,7 @@ const API_VERSION = '1.0.0'
 const w = new WS('wss://datastream.idex.market')
 const PINAKION = '0x93ED3FBe21207Ec2E8f2d3c3de6e058Cb73Bc04d'
 const ETHER = '0x0000000000000000000000000000000000000000'
-
+const MARKET = 'ETH_PNK'
 const idexWrapper = require('./idex-https-api-wrapper')
 
 const web3 = new Web3(
@@ -22,32 +22,34 @@ const decimals = new BigNumber('10').pow(new BigNumber('18'))
 module.exports = {
   getStaircaseOrders: function(steps, size, lastTrade, spread) {
     assert(typeof steps === 'number')
-    assert(typeof size === 'number')
+    assert(typeof size === 'object')
     assert(typeof lastTrade === 'object')
-    assert(typeof spread === 'number')
+    assert(typeof spread === 'object')
     assert(steps > 0)
-    assert(size > 0)
+    assert(size.gt(new BigNumber(0)))
     console.log(lastTrade.toString())
-    assert(lastTrade.gt(0) && lastTrade.lt(1), lastTrade.toString())
-    assert(spread > 0 && spread < 1)
-    assert(steps * spread < 1)
+    assert(
+      lastTrade.gt(new BigNumber(0.000001)) &&
+        lastTrade.lt(new BigNumber(0.001)),
+      lastTrade.toString()
+    )
+    assert(
+      spread.gt(new BigNumber(0.001)) && spread.lt(new BigNumber(0.1)),
+      spread.toString()
+    )
+    assert(new BigNumber(steps).times(spread).lt(new BigNumber(1)))
 
-    const step = lastTrade * spread
-    assert(typeof step === 'number')
-    assert(step > 0)
-
-    const bnSize = new BigNumber(size)
-    const bnLastTrade = new BigNumber(lastTrade)
-    const bnSpread = new BigNumber(spread)
+    const step = lastTrade.times(spread)
+    assert(step.gt(new BigNumber(0)))
 
     const orders = []
     for (let i = 1; i <= steps; i++) {
       orders.push({
         tokenBuy: ETHER,
         amountBuy: new BigNumber(1)
-          .plus(bnSpread.times(new BigNumber(i)))
-          .times(bnLastTrade)
-          .times(bnSize)
+          .plus(spread.times(new BigNumber(i)))
+          .times(lastTrade)
+          .times(size)
           .times(decimals)
           .toString(),
         tokenSell: PINAKION,
@@ -58,9 +60,9 @@ module.exports = {
         amountBuy: new BigNumber(size).times(decimals).toString(),
         tokenSell: ETHER,
         amountSell: new BigNumber(1)
-          .minus(bnSpread.times(new BigNumber(i)))
-          .times(bnLastTrade)
-          .times(bnSize)
+          .minus(spread.times(new BigNumber(i)))
+          .times(lastTrade)
+          .times(size)
           .times(decimals)
           .toString()
       })
@@ -73,6 +75,7 @@ module.exports = {
     privateKey,
     steps,
     size,
+    lastTrade,
     spread
   ) {
     const openOrders = await idexWrapper.getOpenOrders(address)
@@ -88,15 +91,11 @@ module.exports = {
         await idexWrapper.getNextNonce(address)
       )
 
-    const lastTrade = new BigNumber(
-      (await idexWrapper.getTicker('ETH_PNK')).last
-    )
-
     var orders = module.exports.getStaircaseOrders(
-      parseInt(steps),
-      parseInt(size),
+      steps,
+      size,
       lastTrade,
-      parseFloat(spread)
+      spread
     )
     for (let i = 0; i < orders.length; i++)
       await idexWrapper.sendOrder(
@@ -116,26 +115,35 @@ module.exports = {
           JSON.stringify({
             sid: parsed.sid,
             request: 'subscribeToMarkets',
-            payload: '{"topics": ["ETH_PNK"], "events": ["market_trades"] }'
+            payload: `{"topics": ["${MARKET}"], "events": ["market_trades"] }`
           })
+        )
+        const lastTrade = new BigNumber(
+          (await idexWrapper.getTicker(MARKET)).last
         )
         await module.exports.clearOrdersAndSendStaircaseOrders(
           address,
           privateKey,
-          steps,
-          size,
-          spread
+          parseInt(steps),
+          new BigNumber(size),
+          new BigNumber(lastTrade),
+          new BigNumber(spread)
         )
       }
 
-      if (parsed.event === 'market_trades')
+      if (parsed.event === 'market_trades') {
+        const payload = JSON.parse(parsed.payload)
+        assert(payload.market === MARKET)
+        const lastTrade = new BigNumber(payload.trades[0].price)
         await module.exports.clearOrdersAndSendStaircaseOrders(
           address,
           privateKey,
-          steps,
-          size,
-          spread
+          parseInt(steps),
+          new BigNumber(size),
+          new BigNumber(lastTrade),
+          new BigNumber(spread)
         )
+      }
     })
 
     w.on('open', () => {
