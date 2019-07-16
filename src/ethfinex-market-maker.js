@@ -8,35 +8,44 @@ const ETHFINEX_WEBSOCKET_API = 'wss://api.ethfinex.com/ws/2/'
 
 BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
+const SYMBOL = 'tBTCUSD'
+
 module.exports = {
-  getStaircaseOrders: function(stepsOnOneSide, size, lastTrade, spread) {
+  getStaircaseOrders: function(steps, size, lastTrade, spread) {
+    console.log(lastTrade.toString())
     const newExchangeLimitOrder = (amount, price) => [
       'on',
       {
         amount,
         cid: Math.floor(Math.random() * 2 ** 45),
         price,
-        symbol: 'tPNKETH',
+        symbol: SYMBOL,
         type: 'EXCHANGE LIMIT'
       }
     ]
 
     const orders = []
 
-    const step = lastTrade.times(spread)
-    assert(typeof stepsOnOneSide === 'number')
+    assert(typeof steps === 'number')
     assert(typeof size === 'object')
     assert(typeof lastTrade === 'object')
     assert(typeof spread === 'object')
-    assert(stepsOnOneSide > 0)
+    assert(steps > 0)
     assert(size.gt(0))
-    assert(lastTrade.gt(0) && lastTrade.lt(1), lastTrade.toString())
-    assert(spread.gt(0) && spread.lt(1))
-    assert(stepsOnOneSide * spread < 1)
+    // assert(
+    //   lastTrade.gt(new BigNumber(0)) && lastTrade.lt(new BigNumber(1)),
+    //   lastTrade.toString()
+    // )
+    assert(
+      spread.gt(new BigNumber(0.001)) && spread.lt(new BigNumber(0.1)),
+      spread.toString()
+    )
+    assert(new BigNumber(steps).times(spread).lt(new BigNumber(1)))
 
+    const step = lastTrade.times(spread)
     assert(step.gt(0))
 
-    for (let i = 1; i <= stepsOnOneSide; i++)
+    for (let i = 1; i <= steps; i++)
       orders.push(
         newExchangeLimitOrder(
           size.toString(),
@@ -46,7 +55,7 @@ module.exports = {
         )
       )
 
-    for (let i = 1; i <= stepsOnOneSide; i++)
+    for (let i = 1; i <= steps; i++)
       orders.push(
         newExchangeLimitOrder(
           size.times(new BigNumber('-1')).toString(),
@@ -116,7 +125,7 @@ module.exports = {
             module.exports.getStaircaseOrders(
               parseInt(steps),
               new BigNumber(size),
-              new BigNumber(parsed[2][4]),
+              new BigNumber(parsed[2][3]),
               new BigNumber(spread)
             )
           )
@@ -154,7 +163,7 @@ module.exports = {
     const SUBSCRIBE = JSON.stringify({
       channel: 'trades',
       event: 'subscribe',
-      symbol: 'tPNKETH'
+      symbol: SYMBOL
     })
 
     w.on('open', () => {
