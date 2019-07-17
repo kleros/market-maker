@@ -162,7 +162,7 @@ module.exports = {
 
     var timerID = 0
     function keepAlive() {
-      var timeout = 20000
+      var timeout = 10000
       if (w.readyState == WS.OPEN) w.send('')
 
       timerId = setTimeout(keepAlive, timeout)
