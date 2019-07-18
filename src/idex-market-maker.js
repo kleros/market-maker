@@ -169,7 +169,8 @@ module.exports = {
         const payload = JSON.parse(parsed.payload)
         assert(payload.trades[0].market === MARKET)
         const lastTrade = new BigNumber(payload.trades[0].price)
-        if (steps * 2 > (await idexWrapper.getOpenOrders(address)).length)
+        if (steps * 2 > (await idexWrapper.getOpenOrders(address)).length) {
+          console.log('--- ORDER FILLED WHOLLY ---')
           await module.exports.clearOrdersAndSendStaircaseOrders(
             checksumAddress,
             privateKey,
@@ -178,7 +179,7 @@ module.exports = {
             new BigNumber(lastTrade),
             new BigNumber(spread)
           )
-        else {
+        } else {
           console.log('--- ORDER FILLED PARTIALLY ---')
         }
       }
