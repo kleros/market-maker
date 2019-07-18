@@ -118,6 +118,13 @@ module.exports = {
             payload: `{"topics": ["${MARKET}"], "events": ["market_trades"] }`
           })
         )
+        w.send(
+          JSON.stringify({
+            sid: parsed.sid,
+            request: 'subscribeToAccounts',
+            payload: `{"topics": ["${address}"], "events": ["account_trades"] }`
+          })
+        )
         const lastTrade = new BigNumber(
           (await idexWrapper.getTicker(MARKET)).last
         )
@@ -132,6 +139,7 @@ module.exports = {
       }
 
       if (parsed.event === 'account_trades') {
+        console.log('My account did a trade.')
         const payload = JSON.parse(parsed.payload)
         assert(payload.market === MARKET)
         const lastTrade = new BigNumber(payload.trades[0].price)
