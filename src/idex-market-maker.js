@@ -34,7 +34,7 @@ module.exports = {
       lastTrade.toString()
     )
     assert(
-      spread.gt(new BigNumber(0.001)) && spread.lt(new BigNumber(0.1)),
+      spread.gte(new BigNumber(0.001)) && spread.lt(new BigNumber(0.1)),
       spread.toString()
     )
     assert(new BigNumber(steps).times(spread).lt(new BigNumber(1)))
@@ -131,18 +131,23 @@ module.exports = {
         )
       }
 
-      if (parsed.event === 'market_trades') {
+      if (parsed.event === 'account_trades') {
         const payload = JSON.parse(parsed.payload)
         assert(payload.market === MARKET)
         const lastTrade = new BigNumber(payload.trades[0].price)
-        await module.exports.clearOrdersAndSendStaircaseOrders(
-          address,
-          privateKey,
-          parseInt(steps),
-          new BigNumber(size),
-          new BigNumber(lastTrade),
-          new BigNumber(spread)
+        if (
+          new BigNumber(payload.trades[0].total)
+            .times(decimals)
+            .eq(new BigNumber(payload.trades[0].amountWei))
         )
+          await module.exports.clearOrdersAndSendStaircaseOrders(
+            address,
+            privateKey,
+            parseInt(steps),
+            new BigNumber(size),
+            new BigNumber(lastTrade),
+            new BigNumber(spread)
+          )
       }
     })
 

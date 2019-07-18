@@ -10,9 +10,9 @@ const testCases = [
   {
     args: {
       steps: 2,
-      size: 10000,
+      size: new BigNumber(10000),
       lastTrade: new BigNumber(0.00004),
-      spread: 0.01
+      spread: new BigNumber(0.01)
     },
     expected: [
       {
@@ -44,9 +44,9 @@ const testCases = [
   {
     args: {
       steps: 2,
-      size: 10000,
+      size: new BigNumber(10000),
       lastTrade: new BigNumber(0.00004),
-      spread: 0.001
+      spread: new BigNumber(0.001)
     },
     expected: [
       {
@@ -78,9 +78,9 @@ const testCases = [
   {
     args: {
       steps: 2,
-      size: 100000,
+      size: new BigNumber(100000),
       lastTrade: new BigNumber(0.00004),
-      spread: 0.001
+      spread: new BigNumber(0.001)
     },
     expected: [
       {
