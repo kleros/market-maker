@@ -37,7 +37,7 @@ module.exports = {
       lastTrade.toString()
     )
     assert(
-      spread.gt(new BigNumber(0.0001)) && spread.lt(new BigNumber(0.1)),
+      spread.gte(new BigNumber(0.001)) && spread.lt(new BigNumber(0.1)),
       spread.toString()
     )
     assert(new BigNumber(steps).times(spread).lt(new BigNumber(1)))
