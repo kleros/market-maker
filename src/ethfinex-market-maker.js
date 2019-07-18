@@ -117,7 +117,7 @@ module.exports = {
         channelID !== undefined &&
         Array.isArray(parsed) &&
         parsed[0] == 0 &&
-        parsed[1] === 'ou' &&
+        parsed[1] === 'oc' &&
         Array.isArray(parsed[2]) &&
         parsed[2][6] == 0 // Updated amount, if equals to zero means the orders was fully filled.
       ) {
