@@ -146,7 +146,7 @@ module.exports = {
         assert(payload.trades[0].market === MARKET)
         const lastTrade = new BigNumber(payload.trades[0].price)
         if (
-          new BigNumber(payload.trades[0].total)
+          new BigNumber(payload.trades[0].amount)
             .times(decimals)
             .eq(new BigNumber(payload.trades[0].amountWei))
         )
