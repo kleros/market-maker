@@ -71,12 +71,18 @@ module.exports = {
       assert(
         new BigNumber(sellOrder.amountBuy)
           .div(new BigNumber(sellOrder.amountSell))
-          .gt(lastTrade)
+          .gt(lastTrade),
+        new BigNumber(sellOrder.amountBuy)
+          .div(new BigNumber(sellOrder.amountSell))
+          .toString()
       )
       assert(
         new BigNumber(buyOrder.amountBuy)
           .div(new BigNumber(buyOrder.amountSell))
-          .lt(lastTrade)
+          .lt(lastTrade),
+        new BigNumber(buyOrder.amountBuy)
+          .div(new BigNumber(buyOrder.amountSell))
+          .toString()
       )
 
       orders.push(sellOrder)
