@@ -128,7 +128,7 @@ module.exports = {
             module.exports.getStaircaseOrders(
               parseInt(steps),
               new BigNumber(size),
-              new BigNumber(parsed[2][3]),
+              new BigNumber(parsed[2][16]),
               new BigNumber(spread)
             )
           )
