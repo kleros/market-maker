@@ -78,6 +78,7 @@ module.exports = {
     lastTrade,
     spread
   ) {
+    assert(web3.utils.checkAddressChecksum(address))
     const openOrders = await idexWrapper.getOpenOrders(address)
     assert(Array.isArray(openOrders))
 
@@ -107,6 +108,7 @@ module.exports = {
       )
   },
   autoMarketMake: function(address, privateKey, steps, size, spread) {
+    const checksumAddress = web3.utils.toChecksumAddress(address)
     w.on('message', async msg => {
       const parsed = JSON.parse(msg)
       console.log(parsed)
@@ -122,14 +124,14 @@ module.exports = {
           JSON.stringify({
             sid: parsed.sid,
             request: 'subscribeToAccounts',
-            payload: `{"topics": ["${address}"], "events": ["account_trades"] }`
+            payload: `{"topics": ["${checksumAddress}"], "events": ["account_trades"] }`
           })
         )
         const lastTrade = new BigNumber(
           (await idexWrapper.getTicker(MARKET)).last
         )
         await module.exports.clearOrdersAndSendStaircaseOrders(
-          address,
+          checksumAddress,
           privateKey,
           parseInt(steps),
           new BigNumber(size),
@@ -149,7 +151,7 @@ module.exports = {
             .eq(new BigNumber(payload.trades[0].amountWei))
         )
           await module.exports.clearOrdersAndSendStaircaseOrders(
-            address,
+            checksumAddress,
             privateKey,
             parseInt(steps),
             new BigNumber(size),
