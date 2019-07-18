@@ -113,13 +113,13 @@ module.exports = {
       const parsed = JSON.parse(msg)
       console.log(parsed)
       if (parsed.request === 'handshake' && parsed.result === 'success') {
-        w.send(
-          JSON.stringify({
-            sid: parsed.sid,
-            request: 'subscribeToMarkets',
-            payload: `{"topics": ["${MARKET}"], "events": ["market_trades"] }`
-          })
-        )
+        // w.send(
+        //   JSON.stringify({
+        //     sid: parsed.sid,
+        //     request: 'subscribeToMarkets',
+        //     payload: `{"topics": ["${MARKET}"], "events": ["market_trades"] }`
+        //   })
+        // )
         w.send(
           JSON.stringify({
             sid: parsed.sid,
