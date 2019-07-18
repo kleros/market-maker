@@ -172,6 +172,9 @@ module.exports = {
         if (
           new BigNumber(payload.trades[0].amount)
             .times(decimals)
+            .eq(new BigNumber(payload.trades[0].amountWei)) ||
+          new BigNumber(payload.trades[0].total)
+            .times(decimals)
             .eq(new BigNumber(payload.trades[0].amountWei))
         )
           await module.exports.clearOrdersAndSendStaircaseOrders(
@@ -182,6 +185,9 @@ module.exports = {
             new BigNumber(lastTrade),
             new BigNumber(spread)
           )
+        else {
+          console.log('')
+        }
       }
     })
 
