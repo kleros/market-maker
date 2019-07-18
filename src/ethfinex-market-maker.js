@@ -32,10 +32,10 @@ module.exports = {
     assert(typeof spread === 'object')
     assert(steps > 0)
     assert(size.gt(0))
-    // assert(
-    //   lastTrade.gt(new BigNumber(0)) && lastTrade.lt(new BigNumber(1)),
-    //   lastTrade.toString()
-    // )
+    assert(
+      lastTrade.gt(new BigNumber(0)) && lastTrade.lt(new BigNumber(1)),
+      lastTrade.toString()
+    )
     assert(
       spread.gt(new BigNumber(0.0001)) && spread.lt(new BigNumber(0.1)),
       spread.toString()
@@ -72,7 +72,7 @@ module.exports = {
       typeof process.env.ETHFINEX_KEY === 'undefined' ||
       typeof process.env.ETHFINEX_SECRET === 'undefined'
     ) {
-      console.log(
+      console.error(
         'Please export ETHFINEX_KEY and ETHFINEX_SECRET environment variables.'
       )
       process.exit(2)
@@ -121,9 +121,8 @@ module.exports = {
         Array.isArray(parsed[2]) &&
         parsed[2][6] == 0 // Updated amount, if equals to zero means the orders was fully filled.
       ) {
-        console.log('An order is fully filled.')
+        console.log('--- ORDER FULLY FILLED ---')
         w.send(CANCEL_ALL_ORDERS)
-        process.exit(123)
         w.send(
           JSON.stringify(
             module.exports.getStaircaseOrders(
