@@ -44,7 +44,7 @@ module.exports = {
 
     const orders = []
     for (let i = 1; i <= steps; i++) {
-      orders.push({
+      const sellOrder = {
         tokenBuy: ETHER,
         amountBuy: new BigNumber(1)
           .plus(spread.times(new BigNumber(i)))
@@ -54,8 +54,9 @@ module.exports = {
           .toString(),
         tokenSell: PINAKION,
         amountSell: new BigNumber(size).times(decimals).toString()
-      })
-      orders.push({
+      }
+
+      const buyOrder = {
         tokenBuy: PINAKION,
         amountBuy: new BigNumber(size).times(decimals).toString(),
         tokenSell: ETHER,
@@ -65,7 +66,21 @@ module.exports = {
           .times(size)
           .times(decimals)
           .toString()
-      })
+      }
+
+      assert(
+        new BigNumber(sellOrder.amountBuy)
+          .div(new BigNumber(sellOrder.amountSell))
+          .gt(lastTrade)
+      )
+      assert(
+        new BigNumber(buyOrder.amountBuy)
+          .div(new BigNumber(buyOrder.amountSell))
+          .lt(lastTrade)
+      )
+
+      orders.push(sellOrder)
+      orders.push(buyOrder)
     }
 
     return orders
@@ -113,13 +128,6 @@ module.exports = {
       const parsed = JSON.parse(msg)
       console.log(parsed)
       if (parsed.request === 'handshake' && parsed.result === 'success') {
-        // w.send(
-        //   JSON.stringify({
-        //     sid: parsed.sid,
-        //     request: 'subscribeToMarkets',
-        //     payload: `{"topics": ["${MARKET}"], "events": ["market_trades"] }`
-        //   })
-        // )
         w.send(
           JSON.stringify({
             sid: parsed.sid,
