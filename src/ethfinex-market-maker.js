@@ -37,7 +37,7 @@ module.exports = {
     //   lastTrade.toString()
     // )
     assert(
-      spread.gt(new BigNumber(0.001)) && spread.lt(new BigNumber(0.1)),
+      spread.gt(new BigNumber(0.0001)) && spread.lt(new BigNumber(0.1)),
       spread.toString()
     )
     assert(new BigNumber(steps).times(spread).lt(new BigNumber(1)))
@@ -93,6 +93,7 @@ module.exports = {
       }
 
       if (
+        // Initial
         channelID !== undefined &&
         Array.isArray(parsed) &&
         Array.isArray(parsed[1]) &&
@@ -112,14 +113,17 @@ module.exports = {
       }
 
       if (
+        // Order fully filled
         channelID !== undefined &&
         Array.isArray(parsed) &&
-        parsed[0] === channelID &&
-        parsed[1] === 'te' &&
+        parsed[0] == 0 &&
+        parsed[1] === 'ou' &&
         Array.isArray(parsed[2]) &&
-        parsed[2].length === 4
+        parsed[2][6] == 0 // Updated amount, if equals to zero means the orders was fully filled.
       ) {
+        console.log('An order is fully filled.')
         w.send(CANCEL_ALL_ORDERS)
+        process.exit(123)
         w.send(
           JSON.stringify(
             module.exports.getStaircaseOrders(
