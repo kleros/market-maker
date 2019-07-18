@@ -143,7 +143,7 @@ module.exports = {
       if (parsed.event === 'account_trades') {
         console.log('My account did a trade.')
         const payload = JSON.parse(parsed.payload)
-        assert(payload.market === MARKET)
+        assert(payload.trades[0].market === MARKET)
         const lastTrade = new BigNumber(payload.trades[0].price)
         if (
           new BigNumber(payload.trades[0].total)
