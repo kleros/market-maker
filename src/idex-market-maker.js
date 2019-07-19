@@ -139,8 +139,8 @@ module.exports = {
       )
   },
   autoMarketMake: function(address, privateKey, steps, size, spread) {
-    const buyTotal = new BigNumber(0)
-    const sellTotal = new BigNumber(0)
+    let buyTotal = new BigNumber(0)
+    let sellTotal = new BigNumber(0)
 
     const checksumAddress = web3.utils.toChecksumAddress(address)
     w.on('message', async msg => {
