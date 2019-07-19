@@ -5,7 +5,6 @@ const BigNumber = require('bignumber.js')
 
 BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 BigNumber.DEBUG = true
-BigNumber.config({ ROUNDING_MODE: BigNumber.ROUND_CEIL })
 
 const API_KEY = '17paIsICur8sA0OBqG6dH5G1rmrHNMwt4oNk4iX9'
 const API_VERSION = '1.0.0'
