@@ -178,6 +178,8 @@ module.exports = {
         if (trade.type == 'buy') buyTotal = buyTotal.plus(trade.amount)
         else if (trade.type == 'sell') sellTotal = sellTotal.plus(trade.amount)
         else assert(false)
+        console.log(`buyTotal: ${buyTotal}`)
+        console.log(`sellTotal: ${sellTotal}`)
 
         if (buyTotal.eq(size) || sellTotal.eq(size)) {
           console.log('--- ORDER FILLED WHOLLY ---')
