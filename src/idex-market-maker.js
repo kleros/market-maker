@@ -139,6 +139,9 @@ module.exports = {
       )
   },
   autoMarketMake: function(address, privateKey, steps, size, spread) {
+    const buyTotal = new BigNumber(0)
+    const sellTotal = new BigNumber(0)
+
     const checksumAddress = web3.utils.toChecksumAddress(address)
     w.on('message', async msg => {
       const parsed = JSON.parse(msg)
@@ -167,10 +170,19 @@ module.exports = {
       if (parsed.event === 'account_trades') {
         console.log('My account did a trade.')
         const payload = JSON.parse(parsed.payload)
-        assert(payload.trades[0].market === MARKET)
-        const lastTrade = new BigNumber(payload.trades[0].price)
-        if (new BigNumber(payload.trades[0].amount).eq(size)) {
+        const trade = payload.trades[0]
+        assert(trade.market === MARKET)
+
+        const lastTrade = new BigNumber(trade.price)
+
+        if (trade.type == 'buy') buyTotal = buyTotal.plus(trade.amount)
+        else if (trade.type == 'sell') sellTotal = sellTotal.plus(trade.amount)
+        else assert(false)
+
+        if (buyTotal.eq(size) || sellTotal.eq(size)) {
           console.log('--- ORDER FILLED WHOLLY ---')
+          buyTotal = new BigNumber(0)
+          sellTotal = new BigNumber(0)
           await module.exports.clearOrdersAndSendStaircaseOrders(
             checksumAddress,
             privateKey,
