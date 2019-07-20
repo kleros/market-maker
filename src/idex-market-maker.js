@@ -20,6 +20,19 @@ const ORDER_INTERVAL = 0.0005
 
 const decimals = new BigNumber('10').pow(new BigNumber('18'))
 
+const promiseTimeout = function(ms, promise) {
+  // Create a promise that rejects in <ms> milliseconds
+  let timeout = new Promise((resolve, reject) => {
+    let id = setTimeout(() => {
+      clearTimeout(id)
+      reject('Timed out in ' + ms + 'ms.')
+    }, ms)
+  })
+
+  // Returns a race between our timeout and the passed in promise
+  return Promise.race([promise, timeout])
+}
+
 module.exports = {
   getStaircaseOrders: function(steps, size, lastTrade, spread) {
     assert(typeof steps === 'number')
@@ -118,17 +131,22 @@ module.exports = {
 
     console.log(openOrders.map(x => x.orderHash))
 
-    const promises = openOrders.map(async order =>
-      idexWrapper.cancelOrder(
-        web3,
-        address,
-        privateKey,
-        order.orderHash,
-        await idexWrapper.getNextNonce(address)
+    while ((await idexWrapper.getOpenOrders(address)).length != 0) {
+      const promises = openOrders.map(async order =>
+        promiseTimeout(
+          5000,
+          idexWrapper.cancelOrder(
+            web3,
+            address,
+            privateKey,
+            order.orderHash,
+            await idexWrapper.getNextNonce(address)
+          )
+        )
       )
-    )
 
-    await Promise.all(promises)
+      await Promise.all(promises)
+    }
 
     assert((await idexWrapper.getOpenOrders(address)).length == 0)
 
