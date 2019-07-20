@@ -16,7 +16,7 @@ const idexWrapper = require('./idex-https-api-wrapper')
 const web3 = new Web3(
   new Web3.providers.HttpProvider(process.env.ETHEREUM_PROVIDER)
 )
-const ORDER_INTERVAL = 0.001
+const ORDER_INTERVAL = 0.0005
 
 const decimals = new BigNumber('10').pow(new BigNumber('18'))
 
