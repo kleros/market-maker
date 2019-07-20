@@ -123,7 +123,7 @@ module.exports = {
         web3,
         address,
         privateKey,
-        openOrders[i].orderHash,
+        order.orderHash,
         await idexWrapper.getNextNonce(address)
       )
     )
