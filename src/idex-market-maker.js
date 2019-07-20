@@ -132,6 +132,7 @@ module.exports = {
     console.log(openOrders.map(x => x.orderHash))
 
     while ((await idexWrapper.getOpenOrders(address)).length != 0) {
+      console.log((await idexWrapper.getOpenOrders(address)).length)
       const promises = openOrders.map(async order =>
         promiseTimeout(
           5000,
