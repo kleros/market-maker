@@ -141,7 +141,7 @@ module.exports = {
             address,
             privateKey,
             order.orderHash,
-            await idexWrapper.getNextNonce(address)
+            await promiseTimeout(5000, idexWrapper.getNextNonce(address))
           )
         ).catch(alert)
       )
