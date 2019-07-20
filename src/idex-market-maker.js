@@ -118,7 +118,7 @@ module.exports = {
 
     console.log(openOrders.map(x => x.orderHash))
 
-    const promises = openOrders.map(order =>
+    const promises = openOrders.map(async order =>
       idexWrapper.cancelOrder(
         web3,
         address,
