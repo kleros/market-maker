@@ -16,6 +16,7 @@ const idexWrapper = require('./idex-https-api-wrapper')
 const web3 = new Web3(
   new Web3.providers.HttpProvider(process.env.ETHEREUM_PROVIDER)
 )
+const ORDER_INTERVAL = 0.001
 
 const decimals = new BigNumber('10').pow(new BigNumber('18'))
 
@@ -43,11 +44,12 @@ module.exports = {
     assert(step.gt(new BigNumber(0)))
 
     const orders = []
-    for (let i = 1; i <= steps; i++) {
+    for (let i = 0; i < steps; i++) {
       const sellOrder = {
         tokenBuy: ETHER,
         amountBuy: new BigNumber(1)
-          .plus(spread.times(new BigNumber(i)))
+          .plus(spread)
+          .plus(new BigNumber(ORDER_INTERVAL).times(new BigNumber(i)))
           .times(lastTrade)
           .times(size)
           .times(decimals)
@@ -61,7 +63,8 @@ module.exports = {
         amountBuy: new BigNumber(size).times(decimals).toString(),
         tokenSell: ETHER,
         amountSell: new BigNumber(1)
-          .minus(spread.times(new BigNumber(i)))
+          .minus(spread)
+          .minus(new BigNumber(ORDER_INTERVAL).times(new BigNumber(i)))
           .times(lastTrade)
           .times(size)
           .times(decimals)

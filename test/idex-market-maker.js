@@ -29,7 +29,7 @@ const testCases = [
       },
       {
         tokenBuy: '0x0000000000000000000000000000000000000000',
-        amountBuy: '408000000000000000',
+        amountBuy: '404400000000000000',
         tokenSell: '0x93ED3FBe21207Ec2E8f2d3c3de6e058Cb73Bc04d',
         amountSell: '10000000000000000000000'
       },
@@ -37,7 +37,7 @@ const testCases = [
         tokenBuy: '0x93ED3FBe21207Ec2E8f2d3c3de6e058Cb73Bc04d',
         amountBuy: '10000000000000000000000',
         tokenSell: '0x0000000000000000000000000000000000000000',
-        amountSell: '392000000000000000'
+        amountSell: '395600000000000000'
       }
     ]
   },
