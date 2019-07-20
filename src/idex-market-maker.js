@@ -126,6 +126,8 @@ module.exports = {
         await idexWrapper.getNextNonce(address)
       )
 
+    assert((await idexWrapper.getOpenOrders(address)).length == 0)
+
     var orders = module.exports.getStaircaseOrders(
       steps,
       size,
