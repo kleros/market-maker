@@ -142,7 +142,7 @@ module.exports = {
             order.orderHash,
             await idexWrapper.getNextNonce(address)
           )
-        )
+        ).catch(alert)
       )
 
       await Promise.all(promises)
