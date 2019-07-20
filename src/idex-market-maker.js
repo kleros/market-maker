@@ -117,14 +117,18 @@ module.exports = {
     assert(Array.isArray(openOrders))
 
     console.log(openOrders.map(x => x.orderHash))
-    for (let i = 0; i < openOrders.length; i++)
-      await idexWrapper.cancelOrder(
+
+    const promises = openOrders.map(order =>
+      idexWrapper.cancelOrder(
         web3,
         address,
         privateKey,
         openOrders[i].orderHash,
         await idexWrapper.getNextNonce(address)
       )
+    )
+
+    await Promise.all(promises)
 
     assert((await idexWrapper.getOpenOrders(address)).length == 0)
 
