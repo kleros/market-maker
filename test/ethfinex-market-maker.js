@@ -34,7 +34,7 @@ const testCases = [
           {
             amount: '10000',
             cid: null,
-            price: '0.0000392',
+            price: '0.00003956',
             symbol: 'tPNKETH',
             type: 'EXCHANGE LIMIT'
           }
@@ -54,7 +54,7 @@ const testCases = [
           {
             amount: '-10000',
             cid: null,
-            price: '0.0000408',
+            price: '0.00004044',
             symbol: 'tPNKETH',
             type: 'EXCHANGE LIMIT'
           }

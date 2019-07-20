@@ -9,6 +9,7 @@ const ETHFINEX_WEBSOCKET_API = 'wss://api.ethfinex.com/ws/2/'
 BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
 const SYMBOL = 'tPNKETH'
+const ORDER_INTERVAL = 0.001
 
 module.exports = {
   getStaircaseOrders: function(steps, size, lastTrade, spread) {
@@ -45,22 +46,30 @@ module.exports = {
     const step = lastTrade.times(spread)
     assert(step.gt(0))
 
-    for (let i = 1; i <= steps; i++)
+    for (let i = 0; i < steps; i++)
       orders.push(
         newExchangeLimitOrder(
           size.toString(),
           lastTrade
-            .times(new BigNumber(1).minus(new BigNumber(i).times(spread)))
+            .times(
+              new BigNumber(1)
+                .minus(spread)
+                .minus(new BigNumber(i).times(new BigNumber(ORDER_INTERVAL)))
+            )
             .toString()
         )
       )
 
-    for (let i = 1; i <= steps; i++)
+    for (let i = 0; i < steps; i++)
       orders.push(
         newExchangeLimitOrder(
           size.times(new BigNumber('-1')).toString(),
           lastTrade
-            .times(new BigNumber(1).plus(new BigNumber(i).times(spread)))
+            .times(
+              new BigNumber(1)
+                .plus(spread)
+                .plus(new BigNumber(i).times(new BigNumber(ORDER_INTERVAL)))
+            )
             .toString()
         )
       )
