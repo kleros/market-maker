@@ -66,6 +66,7 @@ module.exports = {
           .times(lastTrade)
           .times(size)
           .times(decimals)
+          .toFixed(0, BigNumber.ROUND_UP)
           .toString(),
         tokenSell: PINAKION,
         amountSell: new BigNumber(size).times(decimals).toString()
@@ -81,6 +82,7 @@ module.exports = {
           .times(lastTrade)
           .times(size)
           .times(decimals)
+          .toFixed(0, BigNumber.ROUND_DOWN)
           .toString()
       }
 
