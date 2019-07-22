@@ -11,13 +11,13 @@ const { mapValues } = require('lodash')
 const IDEX_CONTRACT = '0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208'
 
 module.exports = {
-  getOpenOrders: async function(address) {
+  getOpenOrders: async function(address, count = 100, cursor = 0) {
     return await fetch(`${HTTPS_API}/returnOpenOrders`, {
       headers: {
         'Content-Type': 'application/json'
       },
       method: 'POST',
-      body: JSON.stringify({ address: address })
+      body: JSON.stringify({ address: address, count: count, cursor: cursor })
     }).then(function(response) {
       return response.json()
     })

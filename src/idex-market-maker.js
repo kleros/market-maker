@@ -41,7 +41,7 @@ module.exports = {
     assert(typeof spread === 'object')
     assert(steps > 0)
     assert(size.gt(new BigNumber(0)))
-    console.log(lastTrade.toString())
+    console.log(`lastTrade: ${lastTrade.toString()}`)
     assert(
       lastTrade.gt(new BigNumber(0.000001)) &&
         lastTrade.lt(new BigNumber(0.001)),
@@ -101,14 +101,14 @@ module.exports = {
           .toString()
       )
       console.log(
-        new BigNumber(sellOrder.amountBuy)
+        `Sell order at: ${new BigNumber(sellOrder.amountBuy)
           .div(new BigNumber(sellOrder.amountSell))
-          .toString()
+          .toString()}`
       )
       console.log(
-        new BigNumber(buyOrder.amountSell)
+        `Buy order at: ${new BigNumber(buyOrder.amountSell)
           .div(new BigNumber(buyOrder.amountBuy))
-          .toString()
+          .toString()}`
       )
 
       orders.push(sellOrder)
@@ -139,10 +139,7 @@ module.exports = {
         privateKey,
         openOrders[i].orderHash,
         nonce
-
       )
-    }
-
     }
 
     assert((await idexWrapper.getOpenOrders(address)).length == 0)
