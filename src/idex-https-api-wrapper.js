@@ -51,20 +51,31 @@ module.exports = {
     })
   },
 
-  cancelOrder: async function(web3, address, privateKey, orderHash, nextNonce) {
-    await fetch(`${HTTPS_API}/cancel`, {
-      headers: {
-        'Content-Type': 'application/json'
+  cancelOrder: async function(
+    web3,
+    address,
+    privateKey,
+    orderHash,
+    nextNonce,
+    tryFor
+  ) {
+    await fetch_retry(
+      `${HTTPS_API}/cancel`,
+      {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        method: 'POST',
+        body: JSON.stringify(
+          this.signCancel(web3, privateKey, {
+            orderHash: orderHash,
+            address: address,
+            nonce: nextNonce.nonce
+          })
+        )
       },
-      method: 'POST',
-      body: JSON.stringify(
-        this.signCancel(web3, privateKey, {
-          orderHash: orderHash,
-          address: address,
-          nonce: nextNonce.nonce
-        })
-      )
-    })
+      3
+    )
       .catch(function(error) {
         console.error(error)
       })
@@ -166,5 +177,11 @@ module.exports = {
     )
     console.log(Object.assign(args, vrs))
     return Object.assign(args, vrs)
-  }
+  },
+
+  fetch_retry: (url, options, n) =>
+    fetch(url, options).catch(function(error) {
+      if (n === 1) throw error
+      return fetch_retry(url, options, n - 1)
+    })
 }

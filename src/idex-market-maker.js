@@ -131,22 +131,18 @@ module.exports = {
 
     console.log(openOrders.map(x => x.orderHash))
 
-    while ((await idexWrapper.getOpenOrders(address)).length != 0) {
-      console.log((await idexWrapper.getOpenOrders(address)).length)
-      const promises = openOrders.map(async order =>
-        promiseTimeout(
-          5000,
-          idexWrapper.cancelOrder(
-            web3,
-            address,
-            privateKey,
-            order.orderHash,
-            await promiseTimeout(5000, idexWrapper.getNextNonce(address))
-          )
-        ).catch(alert)
-      )
+    for (let i = 0; i < openOrders.length; i++) {
+      const nonce = await idexWrapper.getNextNonce(address)
+      await idexWrapper.cancelOrder(
+        web3,
+        address,
+        privateKey,
+        openOrders[i].orderHash,
+        nonce
 
-      await Promise.all(promises)
+      )
+    }
+
     }
 
     assert((await idexWrapper.getOpenOrders(address)).length == 0)
