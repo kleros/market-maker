@@ -8,6 +8,13 @@ const idexAutoMarketMake = require('./src/idex-market-maker').autoMarketMake
 // Globals
 commander.version(require('./package.json').version)
 
+console.log(`_  _ _    ____ ____ ____ ____    _  _ ____ ____ _  _ ____ ___    _  _ ____ _  _ ____ ____
+|_/  |    |___ |__/ |  | [__     |\\/| |__| |__/ |_/  |___  |     |\\/| |__| |_/  |___ |__/
+| \\_ |___ |___ |  \\ |__| ___]    |  | |  | |  \\ | \\_ |___  |     |  | |  | | \\_ |___ |  \\`)
+
+console.log(`v ${require('./package.json').version}`)
+console.log('\n')
+
 commander
   .command('ethfinex-market-maker <steps> <size> <spread>')
   .action((steps, size, spread) => ethfinexAutoMarketMake(steps, size, spread))
