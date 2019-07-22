@@ -126,20 +126,23 @@ module.exports = {
     spread
   ) {
     assert(web3.utils.checkAddressChecksum(address))
-    const openOrders = await idexWrapper.getOpenOrders(address)
-    assert(Array.isArray(openOrders))
 
-    console.log(openOrders.map(x => x.orderHash))
+    while (true) {
+      const openOrders = await idexWrapper.getOpenOrders(address)
+      if (openOrders.length == 0) break
 
-    for (let i = 0; i < openOrders.length; i++) {
-      const nonce = await idexWrapper.getNextNonce(address)
-      await idexWrapper.cancelOrder(
-        web3,
-        address,
-        privateKey,
-        openOrders[i].orderHash,
-        nonce
-      )
+      console.log(`Open orders: ${openOrders.map(x => x.orderHash)}`)
+
+      for (let i = 0; i < openOrders.length; i++) {
+        const nonce = await idexWrapper.getNextNonce(address)
+        await idexWrapper.cancelOrder(
+          web3,
+          address,
+          privateKey,
+          openOrders[i].orderHash,
+          nonce
+        )
+      }
     }
 
     assert((await idexWrapper.getOpenOrders(address)).length == 0)
