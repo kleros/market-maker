@@ -59,7 +59,7 @@ module.exports = {
     nextNonce,
     tryFor
   ) {
-    await fetch_retry(
+    await fetch(
       `${HTTPS_API}/cancel`,
       {
         headers: {
