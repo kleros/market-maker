@@ -51,6 +51,20 @@ module.exports = {
     })
   },
 
+  getOrderBook: async function(address, count = 100) {
+    return await fetch(`${HTTPS_API}/returnOrderBook`, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      method: 'POST',
+      body: JSON.stringify({
+        count: count
+      })
+    }).then(function(response) {
+      return response.json()
+    })
+  },
+
   cancelOrder: async function(
     web3,
     address,
