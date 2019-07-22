@@ -211,7 +211,7 @@ module.exports = {
         console.log(`buyTotal: ${buyTotal}`)
         console.log(`sellTotal: ${sellTotal}`)
 
-        if (buyTotal.eq(size) || sellTotal.eq(size)) {
+        if (buyTotal.gte(size) || sellTotal.gte(size)) {
           console.log('--- ORDER FILLED WHOLLY ---')
           buyTotal = new BigNumber(0)
           sellTotal = new BigNumber(0)
