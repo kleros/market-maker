@@ -117,14 +117,16 @@ module.exports = {
     assert(Array.isArray(openOrders))
 
     console.log(openOrders.map(x => x.orderHash))
-    for (let i = 0; i < openOrders.length; i++)
+    for (let i = 0; i < openOrders.length; i++) {
+      const nonce = await idexWrapper.getNextNonce(address)
       await idexWrapper.cancelOrder(
         web3,
         address,
         privateKey,
         openOrders[i].orderHash,
-        await idexWrapper.getNextNonce(address)
+        nonce
       )
+    }
 
     var orders = module.exports.getStaircaseOrders(
       steps,
