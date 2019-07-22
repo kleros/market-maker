@@ -129,7 +129,10 @@ module.exports = {
 
     while (true) {
       const openOrders = await idexWrapper.getOpenOrders(address)
-      if (openOrders.length == 0) break
+      if (Array.isArray(openOrders) && openOrders.length == 0) {
+        console.log('No open order left.')
+        break
+      }
 
       console.log(`Open orders: ${openOrders.map(x => x.orderHash)}`)
 
