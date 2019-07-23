@@ -45,7 +45,7 @@ module.exports = {
     assert(typeof spread === 'object', spread.toString())
     assert(steps > 0)
     assert(size.gt(new BigNumber(0)))
-    console.log(`highestBid: ${highestBid.toString()}`)
+
     assert(
       highestBid.gt(new BigNumber(0.000001)) &&
         highestBid.lt(new BigNumber(0.001)),
@@ -135,15 +135,7 @@ module.exports = {
 
     return orders
   },
-  clearOrdersAndSendStaircaseOrders: async function(
-    address,
-    privateKey,
-    steps,
-    size,
-    highestBid,
-    lowestAsk,
-    spread
-  ) {
+  clearOrders: async function(address, privateKey) {
     assert(web3.utils.checkAddressChecksum(address))
 
     while (true) {
@@ -174,7 +166,16 @@ module.exports = {
     }
 
     assert((await idexWrapper.getOpenOrders(address)).length == 0)
-
+  },
+  placeStaircaseOrders: async function(
+    address,
+    privateKey,
+    steps,
+    size,
+    highestBid,
+    lowestAsk,
+    spread
+  ) {
     var orders = module.exports.getStaircaseOrders(
       steps,
       size,
@@ -191,6 +192,7 @@ module.exports = {
         await idexWrapper.getNextNonce(address)
       )
   },
+
   autoMarketMake: async function(address, privateKey, steps, size, spread) {
     const date = new Date()
     let buyTotal = new BigNumber(0)
@@ -202,14 +204,16 @@ module.exports = {
       console.log(
         `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
       )
+      await module.exports.clearOrders(checksumAddress, privateKey)
       const ticker = await idexWrapper.getTicker(MARKET)
 
       const highestBid = new BigNumber(ticker.highestBid)
       const lowestAsk = new BigNumber(ticker.lowestAsk)
-
       const currentSpread = lowestAsk.minus(highestBid).div(lowestAsk)
+      console.log(`highestBid: ${highestBid.toString()}`)
+      console.log(`lowestAsk: ${lowestAsk.toString()}`)
 
-      await module.exports.clearOrdersAndSendStaircaseOrders(
+      await module.exports.placeStaircaseOrders(
         checksumAddress,
         privateKey,
         parseInt(steps),
@@ -219,7 +223,7 @@ module.exports = {
         new BigNumber(spread)
       )
 
-      await sleep(300)
+      await sleep(15000)
     }
 
     w.on('message', msg => {
