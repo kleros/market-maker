@@ -19,7 +19,9 @@ const web3 = new Web3(
 const ORDER_INTERVAL = 0.0005
 
 const decimals = new BigNumber('10').pow(new BigNumber('18'))
-
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
 const promiseTimeout = function(ms, promise) {
   // Create a promise that rejects in <ms> milliseconds
   let timeout = new Promise((resolve, reject) => {
@@ -202,7 +204,7 @@ module.exports = {
         )
       }
 
-      if (parsed.event == 'market_orders' || parsed.event == 'market_cancels') {
+      while (true) {
         const ticker = await idexWrapper.getTicker(MARKET)
 
         const highestBid = new BigNumber(ticker.highestBid)
@@ -210,13 +212,9 @@ module.exports = {
 
         const currentSpread = lowestAsk.minus(highestBid).div(lowestAsk)
 
-        const payload = JSON.parse(parsed.payload)
-        console.log(placingOrders)
-        console.log(payload.user)
         if (
           currentSpread.gt(new BigNumber(spread).times(new BigNumber(1.05))) &&
-          !placingOrders &&
-          payload.user != address
+          !placingOrders
         ) {
           console.log(
             `SPREAD IS HIGHER THAN DESIRED: ${currentSpread.toString()}`
@@ -232,7 +230,10 @@ module.exports = {
             new BigNumber(spread)
           )
           placingOrders = false
+        } else {
+          console.log('Spread is OK.')
         }
+        await sleep(10000)
       }
     })
 
