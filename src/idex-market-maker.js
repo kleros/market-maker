@@ -161,7 +161,7 @@ module.exports = {
       for (let i = 0; i < openOrders.length; i++) {
         const nonce = await idexWrapper.getNextNonce(address)
         assert(typeof nonce.nonce === 'number')
-        assert(typeof openOrders[i].orderHash === 'number')
+        assert(typeof openOrders[i].orderHash === 'string')
 
         await idexWrapper.cancelOrder(
           web3,
