@@ -69,7 +69,6 @@ module.exports = {
                 new BigNumber(ORDER_INTERVAL).times(new BigNumber(i))
               )
             )
-
             .toString()
         )
       )
@@ -84,7 +83,6 @@ module.exports = {
                 new BigNumber(ORDER_INTERVAL).times(new BigNumber(i))
               )
             )
-
             .toString()
         )
       )

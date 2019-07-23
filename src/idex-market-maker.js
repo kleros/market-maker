@@ -37,10 +37,10 @@ module.exports = {
   getStaircaseOrders: function(steps, size, highestBid, lowestAsk, spread) {
     assert(typeof steps === 'number')
     assert(typeof size === 'object')
-    assert(typeof highestBid === 'object')
+    assert(typeof highestBid === 'object', highestBid.toString())
     assert(typeof lowestAsk === 'object')
 
-    assert(typeof spread === 'object')
+    assert(typeof spread === 'object', spread.toString())
     assert(steps > 0)
     assert(size.gt(new BigNumber(0)))
     console.log(`highestBid: ${highestBid.toString()}`)
@@ -60,18 +60,22 @@ module.exports = {
     )
     assert(new BigNumber(steps).times(spread).lt(new BigNumber(1)))
 
-    const middlePoint = lowestAsk.plus(highestBid).div(new BigNumber(2))
-    assert(middlePoint.lt(lowestAsk))
-    assert(middlePoint.gt(highestBid))
+    const newAsk = lowestAsk
+      .plus(highestBid)
+      .div(new BigNumber(2).minus(spread))
+
+    const newBid = newAsk.times(new BigNumber(1).minus(spread))
 
     const orders = []
     for (let i = 0; i < steps; i++) {
       const sellOrder = {
         tokenBuy: ETHER,
-        amountBuy: new BigNumber(1)
-          .plus(spread.div(new BigNumber(2)))
-          .plus(new BigNumber(ORDER_INTERVAL).times(new BigNumber(i)))
-          .times(middlePoint)
+        amountBuy: newAsk
+          .times(
+            new BigNumber(1).plus(
+              new BigNumber(ORDER_INTERVAL).times(new BigNumber(i))
+            )
+          )
           .times(size)
           .times(decimals)
           .toFixed(0, BigNumber.ROUND_UP)
@@ -84,10 +88,12 @@ module.exports = {
         tokenBuy: PINAKION,
         amountBuy: new BigNumber(size).times(decimals).toString(),
         tokenSell: ETHER,
-        amountSell: new BigNumber(1)
-          .minus(spread.div(new BigNumber(2)))
-          .minus(new BigNumber(ORDER_INTERVAL).times(new BigNumber(i)))
-          .times(middlePoint)
+        amountSell: newBid
+          .times(
+            new BigNumber(1).minus(
+              new BigNumber(ORDER_INTERVAL).times(new BigNumber(i))
+            )
+          )
           .times(size)
           .times(decimals)
           .toFixed(0, BigNumber.ROUND_DOWN)
@@ -203,7 +209,9 @@ module.exports = {
 
         const currentSpread = lowestAsk.minus(highestBid).div(lowestAsk)
 
-        if (currentSpread.gt(new BigNumber(spread))) {
+        if (
+          currentSpread.gt(new BigNumber(spread).times(new BigNumber(1.05)))
+        ) {
           console.log(
             `SPREAD IS HIGHER THAN DESIRED: ${currentSpread.toString()}`
           )
