@@ -11,9 +11,13 @@ BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 const SYMBOL = 'tPNKETH'
 const ORDER_INTERVAL = 0.0005
 
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 module.exports = {
-  getStaircaseOrders: function(steps, size, lastTrade, spread) {
-    console.log(lastTrade.toString())
+  getStaircaseOrders: function(steps, size, highestBid, lowestAsk, spread) {
+    console.log(`Highest bid: ${highestBid.toString()}`)
     const newExchangeLimitOrder = (amount, price) => [
       'on',
       {
@@ -29,31 +33,37 @@ module.exports = {
 
     assert(typeof steps === 'number')
     assert(typeof size === 'object')
-    assert(typeof lastTrade === 'object')
+    assert(typeof highestBid === 'object')
+    assert(typeof lowestAsk === 'object')
     assert(typeof spread === 'object')
     assert(steps > 0)
     assert(size.gt(0))
     assert(
-      lastTrade.gt(new BigNumber(0)) && lastTrade.lt(new BigNumber(1)),
-      lastTrade.toString()
+      highestBid.gt(new BigNumber(0)) && highestBid.lt(new BigNumber(1)),
+      `Highest bid out of bounds: ${highestBid.toString()}`
+    )
+    assert(
+      lowestAsk.gt(new BigNumber(0)) && lowestAsk.lt(new BigNumber(1)),
+      `Lowest ask out of bounds: ${lowestAsk.toString()}`
     )
     assert(
       spread.gte(new BigNumber(0.001)) && spread.lt(new BigNumber(0.1)),
-      spread.toString()
+      `Spread out of bounds: ${spread.toString()}`
     )
     assert(new BigNumber(steps).times(spread).lt(new BigNumber(1)))
 
-    const step = lastTrade.times(spread)
-    assert(step.gt(0))
+    const middlePoint = lowestAsk.plus(highestBid).div(new BigNumber(2))
+    assert(middlePoint.lt(lowestAsk))
+    assert(middlePoint.gt(highestBid))
 
     for (let i = 0; i < steps; i++)
       orders.push(
         newExchangeLimitOrder(
           size.toString(),
-          lastTrade
+          middlePoint
             .times(
               new BigNumber(1)
-                .minus(spread)
+                .minus(spread.div(new BigNumber(2)))
                 .minus(new BigNumber(i).times(new BigNumber(ORDER_INTERVAL)))
             )
             .toString()
@@ -64,10 +74,10 @@ module.exports = {
       orders.push(
         newExchangeLimitOrder(
           size.times(new BigNumber('-1')).toString(),
-          lastTrade
+          middlePoint
             .times(
               new BigNumber(1)
-                .plus(spread)
+                .plus(spread.div(new BigNumber(2)))
                 .plus(new BigNumber(i).times(new BigNumber(ORDER_INTERVAL)))
             )
             .toString()
@@ -93,15 +103,16 @@ module.exports = {
 
     w.on('message', msg => {
       const parsed = JSON.parse(msg)
-      if (
-        !// Don't log ...
-        (
-          (Array.isArray(parsed) && parsed[1] == 'tu') || // ... trade execution updates, ...
-          parsed[1] == 'hb' || // ... heartbeats,
-          parsed[1] == 'bu'
-        ) // ... and balance updates.
-      )
-        console.log(parsed)
+      // if (
+      //   !// Don't log ...
+      //   (
+      //     Array.isArray(parsed) &&
+      //     (parsed[1] == 'tu' || // ... trade execution updates, ...
+      //     parsed[1] == 'hb' || // ... heartbeats,
+      //       parsed[1] == 'bu')
+      //   ) // ... and balance updates.
+      // )
+      console.log(parsed)
 
       if (parsed.event === 'subscribed') {
         channelID = parsed.chanId
@@ -111,43 +122,32 @@ module.exports = {
         // Initial
         channelID !== undefined &&
         Array.isArray(parsed) &&
+        parsed[0] == channelID &&
         Array.isArray(parsed[1]) &&
-        Array.isArray(parsed[1][0])
+        parsed[1].length == 10
       ) {
-        w.send(CANCEL_ALL_ORDERS)
-        w.send(
-          JSON.stringify(
-            module.exports.getStaircaseOrders(
-              parseInt(steps),
-              new BigNumber(size),
-              new BigNumber(parsed[1][0][3]),
-              new BigNumber(spread)
-            )
-          )
-        )
-      }
+        console.log('TICKER UPDATE!')
 
-      if (
-        // Order fully filled
-        channelID !== undefined &&
-        Array.isArray(parsed) &&
-        parsed[0] == 0 &&
-        parsed[1] === 'oc' &&
-        Array.isArray(parsed[2]) &&
-        parsed[2][6] == 0 // Updated amount, if equals to zero means the orders was fully filled.
-      ) {
-        console.log('--- ORDER FULLY FILLED ---')
-        w.send(CANCEL_ALL_ORDERS)
-        w.send(
-          JSON.stringify(
-            module.exports.getStaircaseOrders(
-              parseInt(steps),
-              new BigNumber(size),
-              new BigNumber(parsed[2][16]),
-              new BigNumber(spread)
+        const highestBid = new BigNumber(parsed[1][0])
+        const lowestAsk = new BigNumber(parsed[1][2])
+        const currentSpread = lowestAsk.minus(highestBid).div(lowestAsk)
+        console.log(currentSpread.toString())
+        console.log(spread)
+        if (currentSpread.gt(new BigNumber(spread))) {
+          console.log('SPREAD IS HIGHER THAN DESIRED.')
+          w.send(CANCEL_ALL_ORDERS)
+          w.send(
+            JSON.stringify(
+              module.exports.getStaircaseOrders(
+                parseInt(steps),
+                new BigNumber(size),
+                highestBid,
+                lowestAsk,
+                new BigNumber(spread)
+              )
             )
           )
-        )
+        }
       }
     })
 
@@ -178,15 +178,21 @@ module.exports = {
       }
     ])
 
-    const SUBSCRIBE = JSON.stringify({
+    const SUBSCRIBE_TRADES = JSON.stringify({
       channel: 'trades',
+      event: 'subscribe',
+      symbol: SYMBOL
+    })
+
+    const SUBSCRIBE_TICKER = JSON.stringify({
+      channel: 'ticker',
       event: 'subscribe',
       symbol: SYMBOL
     })
 
     w.on('open', () => {
       w.send(authenticationPayload())
-      w.send(SUBSCRIBE)
+      w.send(SUBSCRIBE_TICKER)
     })
   }
 }
