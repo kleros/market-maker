@@ -17,7 +17,8 @@ function sleep(ms) {
 
 module.exports = {
   getStaircaseOrders: function(steps, size, highestBid, lowestAsk, spread) {
-    console.log(`Highest bid: ${highestBid.toString()}`)
+    console.log(`Lowest ask: ${highestBid.toString()}`)
+    console.log(`Highest bid: ${lowestAsk.toString()}`)
     const newExchangeLimitOrder = (amount, price) => [
       'on',
       {
@@ -52,20 +53,23 @@ module.exports = {
     )
     assert(new BigNumber(steps).times(spread).lt(new BigNumber(1)))
 
-    const middlePoint = lowestAsk.plus(highestBid).div(new BigNumber(2))
-    assert(middlePoint.lt(lowestAsk))
-    assert(middlePoint.gt(highestBid))
+    const newAsk = lowestAsk
+      .plus(highestBid)
+      .div(new BigNumber(2).minus(spread))
+
+    const newBid = newAsk.times(new BigNumber(1).minus(spread))
 
     for (let i = 0; i < steps; i++)
       orders.push(
         newExchangeLimitOrder(
           size.toString(),
-          middlePoint
+          newBid
             .times(
-              new BigNumber(1)
-                .minus(spread.div(new BigNumber(2)))
-                .minus(new BigNumber(i).times(new BigNumber(ORDER_INTERVAL)))
+              new BigNumber(1).minus(
+                new BigNumber(ORDER_INTERVAL).times(new BigNumber(i))
+              )
             )
+
             .toString()
         )
       )
@@ -74,12 +78,13 @@ module.exports = {
       orders.push(
         newExchangeLimitOrder(
           size.times(new BigNumber('-1')).toString(),
-          middlePoint
+          newAsk
             .times(
-              new BigNumber(1)
-                .plus(spread.div(new BigNumber(2)))
-                .plus(new BigNumber(i).times(new BigNumber(ORDER_INTERVAL)))
+              new BigNumber(1).plus(
+                new BigNumber(ORDER_INTERVAL).times(new BigNumber(i))
+              )
             )
+
             .toString()
         )
       )
@@ -133,7 +138,9 @@ module.exports = {
         const currentSpread = lowestAsk.minus(highestBid).div(lowestAsk)
         console.log(currentSpread.toString())
         console.log(spread)
-        if (currentSpread.gt(new BigNumber(spread))) {
+        if (
+          currentSpread.gt(new BigNumber(spread).times(new BigNumber(1.05)))
+        ) {
           console.log('SPREAD IS HIGHER THAN DESIRED.')
           w.send(CANCEL_ALL_ORDERS)
           w.send(

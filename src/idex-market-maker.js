@@ -34,18 +34,25 @@ const promiseTimeout = function(ms, promise) {
 }
 
 module.exports = {
-  getStaircaseOrders: function(steps, size, lastTrade, spread) {
+  getStaircaseOrders: function(steps, size, highestBid, lowestAsk, spread) {
     assert(typeof steps === 'number')
     assert(typeof size === 'object')
-    assert(typeof lastTrade === 'object')
+    assert(typeof highestBid === 'object')
+    assert(typeof lowestAsk === 'object')
+
     assert(typeof spread === 'object')
     assert(steps > 0)
     assert(size.gt(new BigNumber(0)))
-    console.log(`lastTrade: ${lastTrade.toString()}`)
+    console.log(`highestBid: ${highestBid.toString()}`)
     assert(
-      lastTrade.gt(new BigNumber(0.000001)) &&
-        lastTrade.lt(new BigNumber(0.001)),
-      lastTrade.toString()
+      highestBid.gt(new BigNumber(0.000001)) &&
+        highestBid.lt(new BigNumber(0.001)),
+      highestBid.toString()
+    )
+    assert(
+      lowestAsk.gt(new BigNumber(0.000001)) &&
+        lowestAsk.lt(new BigNumber(0.001)),
+      lowestAsk.toString()
     )
     assert(
       spread.gte(new BigNumber(0.001)) && spread.lt(new BigNumber(0.1)),
@@ -53,17 +60,18 @@ module.exports = {
     )
     assert(new BigNumber(steps).times(spread).lt(new BigNumber(1)))
 
-    const step = lastTrade.times(spread)
-    assert(step.gt(new BigNumber(0)))
+    const middlePoint = lowestAsk.plus(highestBid).div(new BigNumber(2))
+    assert(middlePoint.lt(lowestAsk))
+    assert(middlePoint.gt(highestBid))
 
     const orders = []
     for (let i = 0; i < steps; i++) {
       const sellOrder = {
         tokenBuy: ETHER,
         amountBuy: new BigNumber(1)
-          .plus(spread)
+          .plus(spread.div(new BigNumber(2)))
           .plus(new BigNumber(ORDER_INTERVAL).times(new BigNumber(i)))
-          .times(lastTrade)
+          .times(middlePoint)
           .times(size)
           .times(decimals)
           .toFixed(0, BigNumber.ROUND_UP)
@@ -77,9 +85,9 @@ module.exports = {
         amountBuy: new BigNumber(size).times(decimals).toString(),
         tokenSell: ETHER,
         amountSell: new BigNumber(1)
-          .minus(spread)
+          .minus(spread.div(new BigNumber(2)))
           .minus(new BigNumber(ORDER_INTERVAL).times(new BigNumber(i)))
-          .times(lastTrade)
+          .times(middlePoint)
           .times(size)
           .times(decimals)
           .toFixed(0, BigNumber.ROUND_DOWN)
@@ -89,7 +97,7 @@ module.exports = {
       assert(
         new BigNumber(sellOrder.amountBuy)
           .div(new BigNumber(sellOrder.amountSell))
-          .gt(lastTrade),
+          .gt(highestBid),
         new BigNumber(sellOrder.amountBuy)
           .div(new BigNumber(sellOrder.amountSell))
           .toString()
@@ -97,7 +105,7 @@ module.exports = {
       assert(
         new BigNumber(buyOrder.amountSell)
           .div(new BigNumber(buyOrder.amountBuy))
-          .lt(lastTrade),
+          .lt(lowestAsk),
         new BigNumber(buyOrder.amountBuy)
           .div(new BigNumber(buyOrder.amountSell))
           .toString()
@@ -124,7 +132,8 @@ module.exports = {
     privateKey,
     steps,
     size,
-    lastTrade,
+    highestBid,
+    lowestAsk,
     spread
   ) {
     assert(web3.utils.checkAddressChecksum(address))
@@ -156,7 +165,8 @@ module.exports = {
     var orders = module.exports.getStaircaseOrders(
       steps,
       size,
-      lastTrade,
+      highestBid,
+      lowestAsk,
       spread
     )
     for (let i = 0; i < orders.length; i++)
@@ -171,7 +181,6 @@ module.exports = {
   autoMarketMake: function(address, privateKey, steps, size, spread) {
     let buyTotal = new BigNumber(0)
     let sellTotal = new BigNumber(0)
-
     const checksumAddress = web3.utils.toChecksumAddress(address)
     w.on('message', async msg => {
       const parsed = JSON.parse(msg)
@@ -180,51 +189,33 @@ module.exports = {
         w.send(
           JSON.stringify({
             sid: parsed.sid,
-            request: 'subscribeToAccounts',
-            payload: `{"topics": ["${checksumAddress}"], "events": ["account_trades"] }`
+            request: 'subscribeToMarkets',
+            payload: `{"topics": ["${MARKET}"], "events": ["market_orders", "market_cancels"] }`
           })
-        )
-        const lastTrade = new BigNumber(
-          (await idexWrapper.getTicker(MARKET)).last
-        )
-        await module.exports.clearOrdersAndSendStaircaseOrders(
-          checksumAddress,
-          privateKey,
-          parseInt(steps),
-          new BigNumber(size),
-          new BigNumber(lastTrade),
-          new BigNumber(spread)
         )
       }
 
-      if (parsed.event === 'account_trades') {
-        console.log('My account did a trade.')
-        const payload = JSON.parse(parsed.payload)
-        const trade = payload.trades[0]
-        assert(trade.market === MARKET)
+      if (parsed.event == 'market_orders' || parsed.event == 'market_cancels') {
+        const ticker = await idexWrapper.getTicker(MARKET)
 
-        const lastTrade = new BigNumber(trade.price)
+        const highestBid = new BigNumber(ticker.highestBid)
+        const lowestAsk = new BigNumber(ticker.lowestAsk)
 
-        if (trade.type == 'buy') buyTotal = buyTotal.plus(trade.amount)
-        else if (trade.type == 'sell') sellTotal = sellTotal.plus(trade.amount)
-        else assert(false)
-        console.log(`buyTotal: ${buyTotal}`)
-        console.log(`sellTotal: ${sellTotal}`)
+        const currentSpread = lowestAsk.minus(highestBid).div(lowestAsk)
 
-        if (buyTotal.gte(size) || sellTotal.gte(size)) {
-          console.log('--- ORDER FILLED WHOLLY ---')
-          buyTotal = new BigNumber(0)
-          sellTotal = new BigNumber(0)
+        if (currentSpread.gt(new BigNumber(spread))) {
+          console.log(
+            `SPREAD IS HIGHER THAN DESIRED: ${currentSpread.toString()}`
+          )
           await module.exports.clearOrdersAndSendStaircaseOrders(
             checksumAddress,
             privateKey,
             parseInt(steps),
             new BigNumber(size),
-            new BigNumber(lastTrade),
+            highestBid,
+            lowestAsk,
             new BigNumber(spread)
           )
-        } else {
-          console.log('--- ORDER FILLED PARTIALLY ---')
         }
       }
     })

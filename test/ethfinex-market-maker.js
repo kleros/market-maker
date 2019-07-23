@@ -11,7 +11,8 @@ const testCases = [
     args: {
       steps: 2,
       size: new BigNumber(10000),
-      lastTrade: new BigNumber(0.00004),
+      highestBid: new BigNumber(0.00004),
+      lowestAsk: new BigNumber(0.00005),
       spread: new BigNumber(0.01)
     },
     expected: [
@@ -24,7 +25,7 @@ const testCases = [
           {
             amount: '10000',
             cid: null,
-            price: '0.0000396',
+            price: '0.0000447738693467336667',
             symbol: 'tPNKETH',
             type: 'EXCHANGE LIMIT'
           }
@@ -34,7 +35,7 @@ const testCases = [
           {
             amount: '10000',
             cid: null,
-            price: '0.00003956',
+            price: '0.00004475148241206029986665',
             symbol: 'tPNKETH',
             type: 'EXCHANGE LIMIT'
           }
@@ -44,7 +45,7 @@ const testCases = [
           {
             amount: '-10000',
             cid: null,
-            price: '0.0000404',
+            price: '0.00004522613065326633',
             symbol: 'tPNKETH',
             type: 'EXCHANGE LIMIT'
           }
@@ -54,7 +55,7 @@ const testCases = [
           {
             amount: '-10000',
             cid: null,
-            price: '0.00004044',
+            price: '0.000045248743718592963165',
             symbol: 'tPNKETH',
             type: 'EXCHANGE LIMIT'
           }
@@ -72,7 +73,8 @@ for (const testCase of testCases)
       const actual = getStaircaseOrders(
         testCase.args.steps,
         testCase.args.size,
-        testCase.args.lastTrade,
+        testCase.args.highestBid,
+        testCase.args.lowestAsk,
         testCase.args.spread
       )
 
