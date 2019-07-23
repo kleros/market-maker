@@ -147,7 +147,9 @@ module.exports = {
     assert(web3.utils.checkAddressChecksum(address))
 
     while (true) {
+      console.log('Clearing previous orders...')
       const openOrders = await idexWrapper.getOpenOrders(address)
+      console.log(openOrders)
       if (Array.isArray(openOrders) && openOrders.length == 0) {
         console.log('No open order left.')
         break
@@ -186,12 +188,13 @@ module.exports = {
         await idexWrapper.getNextNonce(address)
       )
   },
-  autoMarketMake: function(address, privateKey, steps, size, spread) {
+  autoMarketMake: async function(address, privateKey, steps, size, spread) {
+    const date = new Date()
     let placingOrders = false
     let buyTotal = new BigNumber(0)
     let sellTotal = new BigNumber(0)
     const checksumAddress = web3.utils.toChecksumAddress(address)
-    w.on('message', async msg => {
+    await w.on('message', async msg => {
       const parsed = JSON.parse(msg)
       console.log(parsed)
       if (parsed.request === 'handshake' && parsed.result === 'success') {
@@ -205,6 +208,10 @@ module.exports = {
       }
 
       while (true) {
+        const date = new Date()
+        console.log(
+          `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+        )
         const ticker = await idexWrapper.getTicker(MARKET)
 
         const highestBid = new BigNumber(ticker.highestBid)
@@ -230,10 +237,12 @@ module.exports = {
             new BigNumber(spread)
           )
           placingOrders = false
+        } else if (placingOrders) {
+          console.log('Placing orders in progress...')
         } else {
           console.log('Spread is OK.')
         }
-        await sleep(10000)
+        await sleep(20000)
       }
     })
 
