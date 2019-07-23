@@ -239,7 +239,7 @@ module.exports = {
         new BigNumber(spread)
       )
 
-      await sleep(3000)
+      await sleep(30000)
     }
 
     w.on('message', msg => {
