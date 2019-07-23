@@ -209,9 +209,10 @@ module.exports = {
         const lowestAsk = new BigNumber(ticker.lowestAsk)
 
         const currentSpread = lowestAsk.minus(highestBid).div(lowestAsk)
-        console.log(placingOrders)
 
         const payload = JSON.parse(parsed.payload)
+        console.log(placingOrders)
+        console.log(payload.user)
         if (
           currentSpread.gt(new BigNumber(spread).times(new BigNumber(1.05))) &&
           !placingOrders &&
