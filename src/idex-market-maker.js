@@ -183,14 +183,16 @@ module.exports = {
       lowestAsk,
       spread
     )
-    for (let i = 0; i < orders.length; i++)
+    for (let i = 0; i < orders.length; i++) {
+      const nonceObject = await idexWrapper.getNextNonce(address)
       await idexWrapper.sendOrder(
         web3,
         address,
         privateKey,
         orders[i],
-        await idexWrapper.getNextNonce(address)
+        nonceObject
       )
+    }
   },
 
   autoMarketMake: async function(address, privateKey, steps, size, spread) {
