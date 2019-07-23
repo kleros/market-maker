@@ -210,9 +210,12 @@ module.exports = {
 
         const currentSpread = lowestAsk.minus(highestBid).div(lowestAsk)
         console.log(placingOrders)
+
+        const payload = JSON.parse(parsed.payload)
         if (
           currentSpread.gt(new BigNumber(spread).times(new BigNumber(1.05))) &&
-          !placingOrders
+          !placingOrders &&
+          payload.user != address
         ) {
           console.log(
             `SPREAD IS HIGHER THAN DESIRED: ${currentSpread.toString()}`
