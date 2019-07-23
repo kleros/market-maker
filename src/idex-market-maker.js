@@ -207,29 +207,16 @@ module.exports = {
 
       const currentSpread = lowestAsk.minus(highestBid).div(lowestAsk)
 
-      if (
-        currentSpread.gt(new BigNumber(spread).times(new BigNumber(1.1))) &&
-        !placingOrders
-      ) {
-        console.log(
-          `SPREAD IS HIGHER THAN DESIRED: ${currentSpread.toString()}`
-        )
-        placingOrders = true
-        await module.exports.clearOrdersAndSendStaircaseOrders(
-          checksumAddress,
-          privateKey,
-          parseInt(steps),
-          new BigNumber(size),
-          highestBid,
-          lowestAsk,
-          new BigNumber(spread)
-        )
-        placingOrders = false
-      } else if (placingOrders) {
-        console.log('Placing orders in progress...')
-      } else {
-        console.log('Spread is OK.')
-      }
+      await module.exports.clearOrdersAndSendStaircaseOrders(
+        checksumAddress,
+        privateKey,
+        parseInt(steps),
+        new BigNumber(size),
+        highestBid,
+        lowestAsk,
+        new BigNumber(spread)
+      )
+
       await sleep(20000)
     }
 
