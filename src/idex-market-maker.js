@@ -190,7 +190,6 @@ module.exports = {
   },
   autoMarketMake: async function(address, privateKey, steps, size, spread) {
     const date = new Date()
-    let placingOrders = false
     let buyTotal = new BigNumber(0)
     let sellTotal = new BigNumber(0)
     const checksumAddress = web3.utils.toChecksumAddress(address)
@@ -217,7 +216,7 @@ module.exports = {
         new BigNumber(spread)
       )
 
-      await sleep(20000)
+      await sleep(30000)
     }
 
     w.on('message', msg => {

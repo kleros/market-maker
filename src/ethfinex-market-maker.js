@@ -134,23 +134,18 @@ module.exports = {
         const highestBid = new BigNumber(parsed[1][0])
         const lowestAsk = new BigNumber(parsed[1][2])
         const currentSpread = lowestAsk.minus(highestBid).div(lowestAsk)
-        console.log(currentSpread.toString())
-        console.log(spread)
-        if (currentSpread.gt(new BigNumber(spread).times(new BigNumber(1.1)))) {
-          console.log('SPREAD IS HIGHER THAN DESIRED.')
-          w.send(CANCEL_ALL_ORDERS)
-          w.send(
-            JSON.stringify(
-              module.exports.getStaircaseOrders(
-                parseInt(steps),
-                new BigNumber(size),
-                highestBid,
-                lowestAsk,
-                new BigNumber(spread)
-              )
+        w.send(CANCEL_ALL_ORDERS)
+        w.send(
+          JSON.stringify(
+            module.exports.getStaircaseOrders(
+              parseInt(steps),
+              new BigNumber(size),
+              highestBid,
+              lowestAsk,
+              new BigNumber(spread)
             )
           )
-        }
+        )
       }
     })
 
