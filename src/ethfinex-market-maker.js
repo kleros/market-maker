@@ -103,16 +103,16 @@ module.exports = {
 
     w.on('message', msg => {
       const parsed = JSON.parse(msg)
-      // if (
-      //   !// Don't log ...
-      //   (
-      //     Array.isArray(parsed) &&
-      //     (parsed[1] == 'tu' || // ... trade execution updates, ...
-      //     parsed[1] == 'hb' || // ... heartbeats,
-      //       parsed[1] == 'bu')
-      //   ) // ... and balance updates.
-      // )
-      console.log(parsed)
+      if (
+        !// Don't log ...
+        (
+          Array.isArray(parsed) &&
+          (parsed[1] == 'tu' || // ... trade execution updates, ...
+          parsed[1] == 'hb' || // ... heartbeats,
+            parsed[1] == 'bu')
+        ) // ... and balance updates.
+      )
+        console.log(parsed)
 
       if (parsed.event === 'subscribed') {
         channelID = parsed.chanId
