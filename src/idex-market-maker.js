@@ -208,7 +208,7 @@ module.exports = {
       const currentSpread = lowestAsk.minus(highestBid).div(lowestAsk)
 
       if (
-        currentSpread.gt(new BigNumber(spread).times(new BigNumber(1.05))) &&
+        currentSpread.gt(new BigNumber(spread).times(new BigNumber(1.1))) &&
         !placingOrders
       ) {
         console.log(
