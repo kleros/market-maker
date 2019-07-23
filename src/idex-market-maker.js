@@ -194,7 +194,46 @@ module.exports = {
     let buyTotal = new BigNumber(0)
     let sellTotal = new BigNumber(0)
     const checksumAddress = web3.utils.toChecksumAddress(address)
-    await w.on('message', async msg => {
+
+    while (true) {
+      const date = new Date()
+      console.log(
+        `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+      )
+      const ticker = await idexWrapper.getTicker(MARKET)
+
+      const highestBid = new BigNumber(ticker.highestBid)
+      const lowestAsk = new BigNumber(ticker.lowestAsk)
+
+      const currentSpread = lowestAsk.minus(highestBid).div(lowestAsk)
+
+      if (
+        currentSpread.gt(new BigNumber(spread).times(new BigNumber(1.05))) &&
+        !placingOrders
+      ) {
+        console.log(
+          `SPREAD IS HIGHER THAN DESIRED: ${currentSpread.toString()}`
+        )
+        placingOrders = true
+        await module.exports.clearOrdersAndSendStaircaseOrders(
+          checksumAddress,
+          privateKey,
+          parseInt(steps),
+          new BigNumber(size),
+          highestBid,
+          lowestAsk,
+          new BigNumber(spread)
+        )
+        placingOrders = false
+      } else if (placingOrders) {
+        console.log('Placing orders in progress...')
+      } else {
+        console.log('Spread is OK.')
+      }
+      await sleep(20000)
+    }
+
+    w.on('message', msg => {
       const parsed = JSON.parse(msg)
       console.log(parsed)
       if (parsed.request === 'handshake' && parsed.result === 'success') {
@@ -205,44 +244,6 @@ module.exports = {
             payload: `{"topics": ["${MARKET}"], "events": ["market_orders", "market_cancels"] }`
           })
         )
-      }
-
-      while (true) {
-        const date = new Date()
-        console.log(
-          `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
-        )
-        const ticker = await idexWrapper.getTicker(MARKET)
-
-        const highestBid = new BigNumber(ticker.highestBid)
-        const lowestAsk = new BigNumber(ticker.lowestAsk)
-
-        const currentSpread = lowestAsk.minus(highestBid).div(lowestAsk)
-
-        if (
-          currentSpread.gt(new BigNumber(spread).times(new BigNumber(1.05))) &&
-          !placingOrders
-        ) {
-          console.log(
-            `SPREAD IS HIGHER THAN DESIRED: ${currentSpread.toString()}`
-          )
-          placingOrders = true
-          await module.exports.clearOrdersAndSendStaircaseOrders(
-            checksumAddress,
-            privateKey,
-            parseInt(steps),
-            new BigNumber(size),
-            highestBid,
-            lowestAsk,
-            new BigNumber(spread)
-          )
-          placingOrders = false
-        } else if (placingOrders) {
-          console.log('Placing orders in progress...')
-        } else {
-          console.log('Spread is OK.')
-        }
-        await sleep(20000)
       }
     })
 
