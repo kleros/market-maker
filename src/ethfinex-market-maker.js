@@ -48,7 +48,7 @@ module.exports = {
       `Lowest ask out of bounds: ${lowestAsk.toString()}`
     )
     assert(
-      spread.gte(new BigNumber(0.001)) && spread.lt(new BigNumber(0.1)),
+      spread.gte(new BigNumber(0.001)) && spread.lte(new BigNumber(0.2)),
       `Spread out of bounds: ${spread.toString()}`
     )
     assert(new BigNumber(steps).times(spread).lt(new BigNumber(1)))
