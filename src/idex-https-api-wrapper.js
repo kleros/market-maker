@@ -51,14 +51,7 @@ module.exports = {
     })
   },
 
-  cancelOrder: async function(
-    web3,
-    address,
-    privateKey,
-    orderHash,
-    nextNonce,
-    tryFor
-  ) {
+  cancelOrder: async function(web3, address, privateKey, orderHash, nextNonce) {
     await fetch(
       `${HTTPS_API}/cancel`,
       {
