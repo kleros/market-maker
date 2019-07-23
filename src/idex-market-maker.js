@@ -140,32 +140,35 @@ module.exports = {
 
     while (true) {
       console.log('Clearing previous orders...')
-      const openOrders = await idexWrapper.getOpenOrders(address)
-      console.log(openOrders)
-      if (Array.isArray(openOrders) && openOrders.length == 0) {
-        console.log('No open order left.')
-        break
-      }
+      try {
+        const openOrders = await idexWrapper.getOpenOrders(address)
 
-      console.log('Open orders:')
-      console.log(openOrders.map(x => x.orderHash))
+        console.log(openOrders)
+        if (Array.isArray(openOrders) && openOrders.length == 0) {
+          console.log('No open order left.')
+          break
+        }
 
-      for (let i = 0; i < openOrders.length; i++) {
-        const nonce = await idexWrapper.getNextNonce(address)
-        assert(typeof nonce.nonce === 'number')
-        assert(typeof openOrders[i].orderHash === 'string')
+        console.log('Open orders:')
+        console.log(openOrders.map(x => x.orderHash))
 
-        await idexWrapper.cancelOrder(
-          web3,
-          address,
-          privateKey,
-          openOrders[i].orderHash,
-          nonce
-        )
+        for (let i = 0; i < openOrders.length; i++) {
+          const nonce = await idexWrapper.getNextNonce(address)
+          assert(typeof nonce.nonce === 'number')
+          assert(typeof openOrders[i].orderHash === 'string')
+
+          await idexWrapper.cancelOrder(
+            web3,
+            address,
+            privateKey,
+            openOrders[i].orderHash,
+            nonce
+          )
+        }
+      } catch (e) {
+        console.log(e)
       }
     }
-
-    assert((await idexWrapper.getOpenOrders(address)).length == 0)
   },
   placeStaircaseOrders: async function(
     address,
@@ -176,21 +179,32 @@ module.exports = {
     lowestAsk,
     spread
   ) {
-    var orders = module.exports.getStaircaseOrders(
-      steps,
-      size,
-      highestBid,
-      lowestAsk,
-      spread
-    )
-    for (let i = 0; i < orders.length; i++) {
-      const nonceObject = await idexWrapper.getNextNonce(address)
-      await idexWrapper.sendOrder(
-        web3,
-        address,
-        privateKey,
-        orders[i],
-        nonceObject
+    if ((await idexWrapper.getOpenOrders(address)).length == 0) {
+      var orders = module.exports.getStaircaseOrders(
+        steps,
+        size,
+        highestBid,
+        lowestAsk,
+        spread
+      )
+      for (let i = 0; i < orders.length; i++) {
+        const nonce = await idexWrapper.getNextNonce(address)
+        if (typeof nonce.nonce !== 'number') {
+          console.log(
+            `Failed to retrieve nonce, cannot send ${orders[i]}. Skipping...`
+          )
+        } else
+          await idexWrapper.sendOrder(
+            web3,
+            address,
+            privateKey,
+            orders[i],
+            nonce
+          )
+      }
+    } else {
+      console.log(
+        'There are previous orders to be cleared, skipping placing orders.'
       )
     }
   },
@@ -225,7 +239,7 @@ module.exports = {
         new BigNumber(spread)
       )
 
-      await sleep(30000)
+      await sleep(3000)
     }
 
     w.on('message', msg => {
