@@ -160,6 +160,9 @@ module.exports = {
 
       for (let i = 0; i < openOrders.length; i++) {
         const nonce = await idexWrapper.getNextNonce(address)
+        assert(typeof nonce.nonce === 'number')
+        assert(typeof openOrders[i].orderHash === 'number')
+
         await idexWrapper.cancelOrder(
           web3,
           address,
@@ -216,7 +219,7 @@ module.exports = {
         new BigNumber(spread)
       )
 
-      await sleep(30000)
+      await sleep(300)
     }
 
     w.on('message', msg => {
