@@ -185,6 +185,7 @@ module.exports = {
       )
   },
   autoMarketMake: function(address, privateKey, steps, size, spread) {
+    let placingOrders = false
     let buyTotal = new BigNumber(0)
     let sellTotal = new BigNumber(0)
     const checksumAddress = web3.utils.toChecksumAddress(address)
@@ -210,11 +211,13 @@ module.exports = {
         const currentSpread = lowestAsk.minus(highestBid).div(lowestAsk)
 
         if (
-          currentSpread.gt(new BigNumber(spread).times(new BigNumber(1.05)))
+          currentSpread.gt(new BigNumber(spread).times(new BigNumber(1.05))) &&
+          !placingOrders
         ) {
           console.log(
             `SPREAD IS HIGHER THAN DESIRED: ${currentSpread.toString()}`
           )
+          placingOrders = true
           await module.exports.clearOrdersAndSendStaircaseOrders(
             checksumAddress,
             privateKey,
@@ -224,6 +227,7 @@ module.exports = {
             lowestAsk,
             new BigNumber(spread)
           )
+          placingOrders = false
         }
       }
     })
