@@ -191,7 +191,9 @@ module.exports = {
         const nonce = await idexWrapper.getNextNonce(address)
         if (typeof nonce.nonce !== 'number') {
           console.log(
-            `Failed to retrieve nonce, cannot send ${orders[i]}. Skipping...`
+            `Failed to retrieve nonce, cannot send ${orders[
+              i
+            ].toString()}. Skipping...`
           )
         } else
           await idexWrapper.sendOrder(
