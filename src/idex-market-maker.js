@@ -196,13 +196,17 @@ module.exports = {
             ].toString()}. Skipping...`
           )
         } else
-          await idexWrapper.sendOrder(
-            web3,
-            address,
-            privateKey,
-            orders[i],
-            nonce
-          )
+          try {
+            await idexWrapper.sendOrder(
+              web3,
+              address,
+              privateKey,
+              orders[i],
+              nonce
+            )
+          } catch (e) {
+            console.log(e)
+          }
       }
     } else {
       console.log(
