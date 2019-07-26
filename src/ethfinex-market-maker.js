@@ -158,6 +158,7 @@ module.exports = {
 
       if (parsed.event == 'auth') {
         const result = await ethfinexRestWrapper.getBalance()
+        console.log(result)
         availableETH = result[0][2]
         availablePNK = result[1][2]
         console.log(await ethfinexRestWrapper.getTicker())
