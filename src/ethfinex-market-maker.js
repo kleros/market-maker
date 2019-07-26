@@ -55,7 +55,8 @@ module.exports = {
     ]
 
     const orders = []
-
+    assert(reserve.ether.gt(0))
+    assert(reserve.pinakion.gt(0))
     assert(typeof steps === 'number')
     assert(typeof spread === 'object')
     assert(steps > 0)
@@ -107,9 +108,10 @@ module.exports = {
 
   autoMarketMake: async (steps, size, spread) => {
     let flag = 0
+    let initialOrdersPlaced = false
 
     const w = new WS(ETHFINEX_WEBSOCKET_API)
-    let reserve = { ether: 'Initializing...', pinakion: 'Initializing...' }
+    let reserve
     const CANCEL_ALL_ORDERS = JSON.stringify([
       0,
       'oc_multi',
@@ -143,53 +145,53 @@ module.exports = {
       console.log(parsed)
 
       if (
-        availablePNK &&
-        availableETH &&
-        reserve.ether &&
-        reserve.pinakion &&
-        highestBid &&
-        lowestAsk
-      )
-        console.log(
-          `Wallet ETH: ${availableETH} | Reserve ETH: ${
-            reserve.ether
-          } |  Wallet PNK: ${availablePNK} | Reserve Pinakion: ${
-            reserve.pinakion
-          } Reserve Price: ${lowestAsk.plus(highestBid).div(new BigNumber(2))}`
-        )
-
-      if (parsed.event == 'auth') {
-        const balance = await ethfinexRestWrapper.getBalance()
-        availableETH = balance[0][2]
-        availablePNK = balance[1][2]
-        const ticker = await ethfinexRestWrapper.getTicker()
-
-        highestBid = new BigNumber(ticker[0])
-        lowestAsk = new BigNumber(ticker[2])
-
-        availablePNK = new BigNumber(availablePNK)
-        availableETH = new BigNumber(availableETH)
-
+        !isNaN(availablePNK) &&
+        !isNaN(availableETH) &&
+        !reserve &&
+        lowestAsk &&
+        highestBid
+      ) {
         reserve = module.exports.calculateMaximumReserve(
           availableETH,
           availablePNK,
           lowestAsk.plus(highestBid).div(new BigNumber(2))
         )
-        console.log(
-          `Wallet ETH: ${availableETH} | Reserve ETH: ${
-            reserve.ether
-          } |  Wallet PNK: ${availablePNK} | Reserve Pinakion: ${
-            reserve.pinakion
-          } Reserve Price: ${lowestAsk.plus(highestBid).div(new BigNumber(2))}`
-        )
+        console.log('Calculating maximum reserve...')
+      }
 
-        orders = module.exports.getStaircaseOrders(
-          parseInt(steps),
-          MIN_ETH_SIZE,
-          new BigNumber(spread),
-          reserve
+      if (reserve) {
+        console.log(
+          `Reserve ETH: ${reserve.ether} | Reserve Pinakion: ${
+            reserve.pinakion
+          } | Reserve Price: ${reserve.ether.div(reserve.pinakion)}`
         )
-        w.send(JSON.stringify(orders))
+        if (!initialOrdersPlaced) {
+          const orders = module.exports.getStaircaseOrders(
+            parseInt(steps),
+            MIN_ETH_SIZE,
+            new BigNumber(spread),
+            reserve
+          )
+
+          w.send(JSON.stringify(orders))
+          initialOrdersPlaced = true
+        }
+      }
+
+      if (parsed.event == 'info') {
+        const ticker = await ethfinexRestWrapper.getTicker()
+        highestBid = new BigNumber(ticker[0])
+        lowestAsk = new BigNumber(ticker[2])
+      }
+
+      if (parsed.event == 'auth') {
+      }
+
+      if (Array.isArray(parsed) && parsed[1] == 'wu') {
+        const payload = parsed[2]
+        if (payload[1] == 'PNK') availablePNK = new BigNumber(payload[2])
+        else if (payload[1] == 'ETH') availableETH = new BigNumber(payload[2])
+        else console.log('Unhandled wallet update.')
       }
 
       if (
