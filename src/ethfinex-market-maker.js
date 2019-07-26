@@ -12,8 +12,7 @@ BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
 const SYMBOL = 'tPNKETH'
 const ORDER_INTERVAL = new BigNumber(0.00025)
-const MIN_ETH_SIZE = new BigNumber(0.02)
-const MIN_PNK_SIZE = new BigNumber(10000)
+const MIN_ETH_SIZE = new BigNumber(0.15)
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -62,10 +61,10 @@ module.exports = {
     assert(typeof spread === 'object')
     assert(steps > 0)
 
-    // assert(
-    //   spread.gte(new BigNumber(0.001)) && spread.lte(new BigNumber(1)),
-    //   `Spread out of bounds: ${spread.toString()}`
-    // )
+    assert(
+      spread.gte(new BigNumber(0.001)) && spread.lte(new BigNumber(1)),
+      `Spread out of bounds: ${spread.toString()}`
+    )
     assert(new BigNumber(steps).times(spread).lt(new BigNumber(1)))
 
     const invariant = reserve.ether.times(reserve.pinakion)
