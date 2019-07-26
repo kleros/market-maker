@@ -210,7 +210,12 @@ module.exports = {
         reserve.ether = reserve.ether.plus(etherAmount)
         reserve.pinakion = reserve.pinakion.plus(pinakionAmount)
         w.send(CANCEL_ALL_ORDERS)
-        console.log(orders)
+        const orders = module.exports.getStaircaseOrders(
+          parseInt(steps),
+          MIN_ETH_SIZE,
+          new BigNumber(spread),
+          reserve
+        )
 
         w.send(JSON.stringify(orders))
         flag++
