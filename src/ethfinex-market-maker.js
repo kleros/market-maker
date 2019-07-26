@@ -176,7 +176,7 @@ module.exports = {
             reserve
           )
           const chunks = chunk(orders, 15)
-          for (chunk in chunks) w.send(JSON.stringify(chunk))
+          for (c in chunks) w.send(JSON.stringify(chunk))
           initialOrdersPlaced = true
         }
       }
