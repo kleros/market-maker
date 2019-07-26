@@ -4,6 +4,7 @@ const program = require('commander')
 const WS = require('ws')
 const BigNumber = require('bignumber.js')
 const ethfinexRestWrapper = require('./ethfinex-rest-api-wrapper')
+const { chunk } = require('lodash')
 
 const ETHFINEX_WEBSOCKET_API = 'wss://api.ethfinex.com/ws/2/'
 
@@ -161,9 +162,11 @@ module.exports = {
 
       if (reserve) {
         console.log(
-          `Reserve ETH: ${reserve.ether} | Reserve Pinakion: ${
+          `RESERVE <> ETH*PNK: ${reserve.ether.times(reserve.pinakion)} ETH: ${
+            reserve.ether
+          } | PNK: ${reserve.pinakion} | ETH/PNK: ${reserve.ether.div(
             reserve.pinakion
-          } | Reserve Price: ${reserve.ether.div(reserve.pinakion)}`
+          )}`
         )
         if (!initialOrdersPlaced) {
           const orders = module.exports.getStaircaseOrders(
@@ -172,8 +175,8 @@ module.exports = {
             new BigNumber(spread),
             reserve
           )
-
-          w.send(JSON.stringify(orders))
+          const chunks = chunk(orders, 15)
+          for (chunk in chunks) w.send(JSON.stringify(chunk))
           initialOrdersPlaced = true
         }
       }
@@ -199,6 +202,8 @@ module.exports = {
         parsed[1] == 'te' &&
         parsed[2][1] == SYMBOL
       ) {
+        w.send(CANCEL_ALL_ORDERS)
+
         const tradeExecutionLog = parsed[2]
         const pinakionAmount = new BigNumber(tradeExecutionLog[4])
         const price = new BigNumber(tradeExecutionLog[5])
@@ -209,14 +214,13 @@ module.exports = {
 
         reserve.ether = reserve.ether.plus(etherAmount)
         reserve.pinakion = reserve.pinakion.plus(pinakionAmount)
-        w.send(CANCEL_ALL_ORDERS)
         const orders = module.exports.getStaircaseOrders(
           parseInt(steps),
           MIN_ETH_SIZE,
           new BigNumber(spread),
           reserve
         )
-
+        console.log(orders)
         w.send(JSON.stringify(orders))
         flag++
         if (flag > 3) process.exit(1)
