@@ -16,8 +16,8 @@ console.log(`v ${require('./package.json').version}`)
 console.log('\n')
 
 commander
-  .command('ethfinex-market-maker <steps> <size> <spread>')
-  .action((steps, size, spread) => ethfinexAutoMarketMake(steps, size, spread))
+  .command('ethfinex-market-maker <steps> <spread>')
+  .action((steps, spread) => ethfinexAutoMarketMake(steps, spread))
 
 commander
   .command('idex-market-maker <address> <private_key> <steps> <size> <spread>')

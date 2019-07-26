@@ -109,7 +109,7 @@ module.exports = {
     return chunks
   },
 
-  autoMarketMake: async (steps, size, spread) => {
+  autoMarketMake: async (steps, spread) => {
     let flag = 0
     let initialOrdersPlaced = false
 
@@ -170,6 +170,12 @@ module.exports = {
             reserve.pinakion
           )}`
         )
+
+        assert(
+          new BigNumber(steps).times(MIN_ETH_SIZE).lt(reserve.ether),
+          'Your reserve cannot cover this many orders. Please reduce number of steps.'
+        )
+
         if (!initialOrdersPlaced) {
           const orders = module.exports.getStaircaseOrders(
             parseInt(steps),
