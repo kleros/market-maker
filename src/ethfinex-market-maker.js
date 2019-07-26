@@ -134,38 +134,38 @@ module.exports = {
       process.exit(2)
     }
 
+    w.on('open', () => {
+      w.send(authenticationPayload())
+    })
     w.on('message', async msg => {
       const parsed = JSON.parse(msg)
-      // if (
-      //   !// Don't log ...
-      //   (
-      //     Array.isArray(parsed) &&
-      //     (parsed[1] == 'tu' || // ... trade execution updates, ...
-      //     parsed[1] == 'hb' || // ... heartbeats,
-      //       parsed[1] == 'b')
-      //   ) // ... and balance updates.
-      // )
+
       console.log(parsed)
 
-      if (availablePNK && availableETH && highestBid && lowestAsk)
+      if (
+        availablePNK &&
+        availableETH &&
+        reserve.ether &&
+        reserve.pinakion &&
+        highestBid &&
+        lowestAsk
+      )
         console.log(
-          `Available ETH: ${availableETH} | Reserve ETH: ${
+          `Wallet ETH: ${availableETH} | Reserve ETH: ${
             reserve.ether
-          } |  Available PNK: ${availablePNK} | Reserve Pinakion: ${
+          } |  Wallet PNK: ${availablePNK} | Reserve Pinakion: ${
             reserve.pinakion
-          } Current Price: ${lowestAsk.plus(highestBid).div(new BigNumber(2))}`
+          } Reserve Price: ${lowestAsk.plus(highestBid).div(new BigNumber(2))}`
         )
 
       if (parsed.event == 'auth') {
-        const result = await ethfinexRestWrapper.getBalance()
-        console.log(result)
-        availableETH = result[0][2]
-        availablePNK = result[1][2]
-        console.log(await ethfinexRestWrapper.getTicker())
-        highestBid = (await ethfinexRestWrapper.getTicker())[0]
-        lowestAsk = (await ethfinexRestWrapper.getTicker())[2]
-        highestBid = new BigNumber(highestBid)
-        lowestAsk = new BigNumber(lowestAsk)
+        const balance = await ethfinexRestWrapper.getBalance()
+        availableETH = balance[0][2]
+        availablePNK = balance[1][2]
+        const ticker = await ethfinexRestWrapper.getTicker()
+
+        highestBid = new BigNumber(ticker[0])
+        lowestAsk = new BigNumber(ticker[2])
 
         availablePNK = new BigNumber(availablePNK)
         availableETH = new BigNumber(availableETH)
@@ -175,9 +175,13 @@ module.exports = {
           availablePNK,
           lowestAsk.plus(highestBid).div(new BigNumber(2))
         )
-
-        console.log(`Initial reserve:
-          ${JSON.stringify(reserve)}`)
+        console.log(
+          `Wallet ETH: ${availableETH} | Reserve ETH: ${
+            reserve.ether
+          } |  Wallet PNK: ${availablePNK} | Reserve Pinakion: ${
+            reserve.pinakion
+          } Reserve Price: ${lowestAsk.plus(highestBid).div(new BigNumber(2))}`
+        )
 
         orders = module.exports.getStaircaseOrders(
           parseInt(steps),
@@ -185,7 +189,9 @@ module.exports = {
           new BigNumber(spread),
           reserve
         )
+        w.send(JSON.stringify(orders))
       }
+
       if (
         Array.isArray(parsed) &&
         parsed[1] == 'te' &&
@@ -226,9 +232,5 @@ module.exports = {
         event: 'auth'
       })
     }
-    w.on('open', () => {
-      w.send(authenticationPayload())
-      w.send('laylaylom')
-    })
   }
 }
