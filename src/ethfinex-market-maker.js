@@ -224,8 +224,7 @@ module.exports = {
           new BigNumber(spread),
           reserve
         )
-        console.log(orders)
-        w.send(JSON.stringify(orders))
+        for (batch of orders) w.send(JSON.stringify(batch))
         flag++
         if (flag > 3) process.exit(1)
       }
