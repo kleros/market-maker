@@ -3,22 +3,46 @@ const crypto = require('crypto')
 const program = require('commander')
 const WS = require('ws')
 const BigNumber = require('bignumber.js')
+const ethfinexRestWrapper = require('./ethfinex-rest-api-wrapper')
 
 const ETHFINEX_WEBSOCKET_API = 'wss://api.ethfinex.com/ws/2/'
 
 BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
 const SYMBOL = 'tPNKETH'
-const ORDER_INTERVAL = 0.0005
+const ORDER_INTERVAL = new BigNumber(0.00025)
+const MIN_ETH_SIZE = new BigNumber(0.02)
+const MIN_PNK_SIZE = new BigNumber(10000)
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 module.exports = {
-  getStaircaseOrders: function(steps, size, highestBid, lowestAsk, spread) {
-    console.log(`Lowest ask: ${highestBid.toString()}`)
-    console.log(`Highest bid: ${lowestAsk.toString()}`)
+  calculateMaximumReserve: function(
+    availableEther,
+    availablePinakion,
+    initialPrice
+  ) {
+    const etherValueOfAvailablePinakion = availablePinakion.times(initialPrice)
+    const isEtherTheLimitingResource = etherValueOfAvailablePinakion.gt(
+      availableEther
+    )
+      ? true
+      : false
+
+    if (isEtherTheLimitingResource)
+      return {
+        ether: availableEther,
+        pinakion: availableEther.div(initialPrice)
+      }
+    else
+      return {
+        ether: availablePinakion.times(initialPrice),
+        pinakion: availablePinakion
+      }
+  },
+  getStaircaseOrders: function(steps, sizeInEther, spread, reserve) {
     const newExchangeLimitOrder = (amount, price) => [
       'on',
       {
@@ -33,63 +57,73 @@ module.exports = {
     const orders = []
 
     assert(typeof steps === 'number')
-    assert(typeof size === 'object')
-    assert(typeof highestBid === 'object')
-    assert(typeof lowestAsk === 'object')
     assert(typeof spread === 'object')
     assert(steps > 0)
-    assert(size.gt(0))
-    assert(
-      highestBid.gt(new BigNumber(0)) && highestBid.lt(new BigNumber(1)),
-      `Highest bid out of bounds: ${highestBid.toString()}`
-    )
-    assert(
-      lowestAsk.gt(new BigNumber(0)) && lowestAsk.lt(new BigNumber(1)),
-      `Lowest ask out of bounds: ${lowestAsk.toString()}`
-    )
-    assert(
-      spread.gte(new BigNumber(0.001)) && spread.lte(new BigNumber(0.2)),
-      `Spread out of bounds: ${spread.toString()}`
-    )
+
+    // assert(
+    //   spread.gte(new BigNumber(0.001)) && spread.lte(new BigNumber(1)),
+    //   `Spread out of bounds: ${spread.toString()}`
+    // )
     assert(new BigNumber(steps).times(spread).lt(new BigNumber(1)))
 
-    const newAsk = lowestAsk
-      .plus(highestBid)
-      .div(new BigNumber(2).minus(spread))
+    const invariant = reserve.ether.times(reserve.pinakion)
 
-    const newBid = newAsk.times(new BigNumber(1).minus(spread))
+    for (let i = 0; i < steps; i++) {
+      const orderPrice = reserve.ether
+        .div(reserve.pinakion)
+        .times(
+          new BigNumber(1)
+            .minus(spread.div(new BigNumber(2)))
+            .minus(ORDER_INTERVAL.times(new BigNumber(i)))
+        )
 
-    for (let i = 0; i < steps; i++)
+      const sizeInPinakion = sizeInEther.div(orderPrice)
+
+      orders.push(
+        newExchangeLimitOrder(sizeInPinakion.toString(), orderPrice.toString())
+      )
+    }
+
+    for (let i = 0; i < steps; i++) {
+      const orderPrice = reserve.ether
+        .div(reserve.pinakion)
+        .times(
+          new BigNumber(1)
+            .plus(spread.div(new BigNumber(2)))
+            .plus(ORDER_INTERVAL.times(new BigNumber(i)))
+        )
+
+      const sizeInPinakion = sizeInEther.div(orderPrice)
+
       orders.push(
         newExchangeLimitOrder(
-          size.toString(),
-          newBid
-            .times(
-              new BigNumber(1).minus(
-                new BigNumber(ORDER_INTERVAL).times(new BigNumber(i))
-              )
-            )
-            .toString()
+          sizeInPinakion.times(new BigNumber('-1')).toString(),
+          orderPrice.toString()
         )
       )
-
-    for (let i = 0; i < steps; i++)
-      orders.push(
-        newExchangeLimitOrder(
-          size.times(new BigNumber('-1')).toString(),
-          newAsk
-            .times(
-              new BigNumber(1).plus(
-                new BigNumber(ORDER_INTERVAL).times(new BigNumber(i))
-              )
-            )
-            .toString()
-        )
-      )
+    }
     return [0, 'ox_multi', null, orders]
   },
 
   autoMarketMake: async (steps, size, spread) => {
+    let flag = 0
+
+    const w = new WS(ETHFINEX_WEBSOCKET_API)
+    let reserve = { ether: 'Initializing...', pinakion: 'Initializing...' }
+    const CANCEL_ALL_ORDERS = JSON.stringify([
+      0,
+      'oc_multi',
+      null,
+      {
+        all: 1
+      }
+    ])
+    let availablePNK
+    let availableETH
+    let highestBid
+    let lowestAsk
+    let orders
+
     if (
       typeof process.env.ETHFINEX_KEY === 'undefined' ||
       typeof process.env.ETHFINEX_SECRET === 'undefined'
@@ -100,55 +134,80 @@ module.exports = {
       process.exit(2)
     }
 
-    const w = new WS(ETHFINEX_WEBSOCKET_API)
-
-    let channelID
-
-    w.on('message', msg => {
+    w.on('message', async msg => {
       const parsed = JSON.parse(msg)
-      if (
-        !// Don't log ...
-        (
-          Array.isArray(parsed) &&
-          (parsed[1] == 'tu' || // ... trade execution updates, ...
-          parsed[1] == 'hb' || // ... heartbeats,
-            parsed[1] == 'bu')
-        ) // ... and balance updates.
-      )
-        console.log(parsed)
+      // if (
+      //   !// Don't log ...
+      //   (
+      //     Array.isArray(parsed) &&
+      //     (parsed[1] == 'tu' || // ... trade execution updates, ...
+      //     parsed[1] == 'hb' || // ... heartbeats,
+      //       parsed[1] == 'b')
+      //   ) // ... and balance updates.
+      // )
+      console.log(parsed)
 
-      if (parsed.event === 'subscribed') {
-        channelID = parsed.chanId
-      }
+      if (availablePNK && availableETH && highestBid && lowestAsk)
+        console.log(
+          `Available ETH: ${availableETH} | Reserve ETH: ${
+            reserve.ether
+          } |  Available PNK: ${availablePNK} | Reserve Pinakion: ${
+            reserve.pinakion
+          } Current Price: ${lowestAsk.plus(highestBid).div(new BigNumber(2))}`
+        )
 
-      if (
-        // Initial
-        channelID !== undefined &&
-        Array.isArray(parsed) &&
-        parsed[0] == channelID &&
-        Array.isArray(parsed[1]) &&
-        parsed[1].length == 10
-      ) {
-        console.log('TICKER UPDATE!')
+      if (parsed.event == 'auth') {
+        const result = await ethfinexRestWrapper.getBalance()
+        availableETH = result[0][2]
+        availablePNK = result[1][2]
+        console.log(await ethfinexRestWrapper.getTicker())
+        highestBid = (await ethfinexRestWrapper.getTicker())[0]
+        lowestAsk = (await ethfinexRestWrapper.getTicker())[2]
+        highestBid = new BigNumber(highestBid)
+        lowestAsk = new BigNumber(lowestAsk)
 
-        const highestBid = new BigNumber(parsed[1][0])
-        const lowestAsk = new BigNumber(parsed[1][2])
-        const currentSpread = lowestAsk.minus(highestBid).div(lowestAsk)
-        w.send(CANCEL_ALL_ORDERS)
-        w.send(
-          JSON.stringify(
-            module.exports.getStaircaseOrders(
-              parseInt(steps),
-              new BigNumber(size),
-              highestBid,
-              lowestAsk,
-              new BigNumber(spread)
-            )
-          )
+        availablePNK = new BigNumber(availablePNK)
+        availableETH = new BigNumber(availableETH)
+
+        reserve = module.exports.calculateMaximumReserve(
+          availableETH,
+          availablePNK,
+          lowestAsk.plus(highestBid).div(new BigNumber(2))
+        )
+
+        console.log(`Initial reserve:
+          ${JSON.stringify(reserve)}`)
+
+        orders = module.exports.getStaircaseOrders(
+          parseInt(steps),
+          MIN_ETH_SIZE,
+          new BigNumber(spread),
+          reserve
         )
       }
-    })
+      if (
+        Array.isArray(parsed) &&
+        parsed[1] == 'te' &&
+        parsed[2][1] == SYMBOL
+      ) {
+        const tradeExecutionLog = parsed[2]
+        const pinakionAmount = new BigNumber(tradeExecutionLog[4])
+        const price = new BigNumber(tradeExecutionLog[5])
 
+        const etherAmount = pinakionAmount
+          .times(price)
+          .times(new BigNumber('-1'))
+
+        reserve.ether = reserve.ether.plus(etherAmount)
+        reserve.pinakion = reserve.pinakion.plus(pinakionAmount)
+        w.send(CANCEL_ALL_ORDERS)
+        console.log(orders)
+
+        w.send(JSON.stringify(orders))
+        flag++
+        if (flag > 3) process.exit(1)
+      }
+    })
     const authenticationPayload = function() {
       const nonce = Date.now() * 1000
       const payload = `AUTH${nonce}`
@@ -166,31 +225,9 @@ module.exports = {
         event: 'auth'
       })
     }
-
-    const CANCEL_ALL_ORDERS = JSON.stringify([
-      0,
-      'oc_multi',
-      null,
-      {
-        all: 1
-      }
-    ])
-
-    const SUBSCRIBE_TRADES = JSON.stringify({
-      channel: 'trades',
-      event: 'subscribe',
-      symbol: SYMBOL
-    })
-
-    const SUBSCRIBE_TICKER = JSON.stringify({
-      channel: 'ticker',
-      event: 'subscribe',
-      symbol: SYMBOL
-    })
-
     w.on('open', () => {
       w.send(authenticationPayload())
-      w.send(SUBSCRIBE_TICKER)
+      w.send('laylaylom')
     })
   }
 }
