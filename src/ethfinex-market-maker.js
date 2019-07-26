@@ -104,7 +104,10 @@ module.exports = {
         )
       )
     }
-    return [0, 'ox_multi', null, orders]
+
+    const chunks = chunk(orders, 15).map(c => [0, 'ox_multi', null, c])
+
+    return chunks
   },
 
   autoMarketMake: async (steps, size, spread) => {
@@ -175,8 +178,9 @@ module.exports = {
             new BigNumber(spread),
             reserve
           )
-          const chunks = chunk(orders, 15)
-          for (c in chunks) w.send(JSON.stringify(chunk))
+
+          for (batch of orders) w.send(JSON.stringify(batch))
+
           initialOrdersPlaced = true
         }
       }
