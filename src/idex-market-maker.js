@@ -150,13 +150,13 @@ module.exports = {
   ) {
     if ((await idexWrapper.getOpenOrders(address)).length == 0) {
       const orders = module.exports.getOrders(steps, size, spread, reserve)
-      const promises = orders.map(order =>
+      const promises = orders.map(async order =>
         idexWrapper.sendOrder(
           web3,
           address,
           process.env.IDEX_SECRET,
           order,
-          idexWrapper.getNextNonce(address)
+          await idexWrapper.getNextNonce(address)
         )
       )
 
