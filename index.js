@@ -20,10 +20,8 @@ commander
   .action((steps, spread) => ethfinexAutoMarketMake(steps, spread))
 
 commander
-  .command('idex-market-maker <address> <private_key> <steps> <size> <spread>')
-  .action((address, privateKey, steps, size, spread) =>
-    idexAutoMarketMake(address, privateKey, steps, size, spread)
-  )
+  .command('idex-market-maker <steps> <spread>')
+  .action((steps, spread) => idexAutoMarketMake(steps, spread))
 
 // Handle unknown commands
 commander.on('command:*', () => {

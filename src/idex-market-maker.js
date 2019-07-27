@@ -13,94 +13,52 @@ const ETHER = '0x0000000000000000000000000000000000000000'
 const MARKET = 'ETH_PNK'
 const idexWrapper = require('./idex-https-api-wrapper')
 const calculateMaximumReserve = require('./utils').calculateMaximumReserve
+const getStaircaseOrders = require('./utils').getStaircaseOrders
 
 const web3 = new Web3(
   new Web3.providers.HttpProvider(process.env.ETHEREUM_PROVIDER)
 )
-const ORDER_INTERVAL = 0.0005
-
+const ORDER_INTERVAL = new BigNumber(0.0005)
+const MIN_ETH_SIZE = new BigNumber(0.15)
 const decimals = new BigNumber('10').pow(new BigNumber('18'))
 
 module.exports = {
-  getStaircaseOrders: function(steps, sizeInEther, spread, reserve) {
-    assert(typeof steps === 'number')
-
-    assert(typeof spread === 'object', spread.toString())
-    assert(steps > 0)
-    assert(size.gt(new BigNumber(0)))
-
-    assert(
-      spread.gte(new BigNumber(0.001)) && spread.lt(new BigNumber(0.1)),
-      spread.toString()
+  getOrders: function(steps, sizeInEther, spread, reserve) {
+    const rawOrders = getStaircaseOrders(
+      steps,
+      sizeInEther,
+      spread,
+      ORDER_INTERVAL,
+      reserve
     )
-    assert(new BigNumber(steps).times(spread).lt(new BigNumber(1)))
-
-    const newAsk = lowestAsk
-      .plus(highestBid)
-      .div(new BigNumber(2).minus(spread))
-
-    const newBid = newAsk.times(new BigNumber(1).minus(spread))
 
     const orders = []
-    for (let i = 0; i < steps; i++) {
-      const orderPrice = reserve.ether
-        .div(reserve.pinakion)
-        .times(
-          new BigNumber(1)
-            .plus(spread.div(new BigNumber(2)))
-            .plus(ORDER_INTERVAL.times(new BigNumber(i)))
-        )
-
-      const sizeInPinakion = sizeInEther.div(orderPrice)
-      const sellOrder = {
-        tokenBuy: ETHER,
-        amountBuy: sizeInEther
-          .times(decimals)
-          .toFixed(0, BigNumber.ROUND_UP)
-          .toString(),
-        tokenSell: PINAKION,
-        amountSell: new BigNumber(size).times(decimals).toString()
+    for (let i = 0; i < rawOrders.length; i++) {
+      if (rawOrders[i].pnk.lt(new BigNumber(0))) {
+        orders.push({
+          tokenBuy: ETHER,
+          amountBuy: rawOrders[i].eth
+            .times(decimals)
+            .toFixed(0, BigNumber.ROUND_UP)
+            .toString(),
+          tokenSell: PINAKION,
+          amountSell: rawOrders[i].pnk
+            .absoluteValue()
+            .times(decimals)
+            .toString()
+        })
+      } else {
+        orders.push({
+          tokenBuy: PINAKION,
+          amountBuy: rawOrders[i].pnk.times(decimals).toString(),
+          tokenSell: ETHER,
+          amountSell: rawOrders[i].eth
+            .absoluteValue()
+            .times(decimals)
+            .toFixed(0, BigNumber.ROUND_DOWN)
+            .toString()
+        })
       }
-
-      const buyOrder = {
-        tokenBuy: PINAKION,
-        amountBuy: new BigNumber(size).times(decimals).toString(),
-        tokenSell: ETHER,
-        amountSell: sizeInEther
-          .times(decimals)
-          .toFixed(0, BigNumber.ROUND_DOWN)
-          .toString()
-      }
-
-      assert(
-        new BigNumber(sellOrder.amountBuy)
-          .div(new BigNumber(sellOrder.amountSell))
-          .gt(highestBid),
-        new BigNumber(sellOrder.amountBuy)
-          .div(new BigNumber(sellOrder.amountSell))
-          .toString()
-      )
-      assert(
-        new BigNumber(buyOrder.amountSell)
-          .div(new BigNumber(buyOrder.amountBuy))
-          .lt(lowestAsk),
-        new BigNumber(buyOrder.amountBuy)
-          .div(new BigNumber(buyOrder.amountSell))
-          .toString()
-      )
-      console.log(
-        `Sell order at: ${new BigNumber(sellOrder.amountBuy)
-          .div(new BigNumber(sellOrder.amountSell))
-          .toString()}`
-      )
-      console.log(
-        `Buy order at: ${new BigNumber(buyOrder.amountSell)
-          .div(new BigNumber(buyOrder.amountBuy))
-          .toString()}`
-      )
-
-      orders.push(sellOrder)
-      orders.push(buyOrder)
     }
 
     return orders
@@ -130,7 +88,7 @@ module.exports = {
           await idexWrapper.cancelOrder(
             web3,
             address,
-            privateKey,
+            process.env.IDEX_SECRET,
             openOrders[i].orderHash,
             nonce
           )
@@ -145,17 +103,15 @@ module.exports = {
     privateKey,
     steps,
     size,
-    highestBid,
-    lowestAsk,
-    spread
+    spread,
+    reserve
   ) {
     if ((await idexWrapper.getOpenOrders(address)).length == 0) {
-      var orders = module.exports.getStaircaseOrders(
+      var orders = module.exports.getOrders(
         steps,
-        size,
-        highestBid,
-        lowestAsk,
-        spread
+        MIN_ETH_SIZE,
+        spread,
+        reserve
       )
       for (let i = 0; i < orders.length; i++) {
         const nonce = await idexWrapper.getNextNonce(address)
@@ -170,7 +126,7 @@ module.exports = {
             await idexWrapper.sendOrder(
               web3,
               address,
-              privateKey,
+              process.env.IDEX_SECRET,
               orders[i],
               nonce
             )
@@ -185,49 +141,89 @@ module.exports = {
     }
   },
 
-  autoMarketMake: async function(address, privateKey, steps, size, spread) {
-    const date = new Date()
-    let buyTotal = new BigNumber(0)
-    let sellTotal = new BigNumber(0)
-    const checksumAddress = web3.utils.toChecksumAddress(address)
+  autoMarketMake: async function(steps, size, spread) {
+    // while (true) {
+    //   const date = new Date()
+    //   console.log(
+    //     `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+    //   )
+    //   await module.exports.clearOrders(checksumAddress, process.env.IDEX_SECRET)
+    //   const ticker = await idexWrapper.getTicker(MARKET)
+    //
+    //   const highestBid = new BigNumber(ticker.highestBid)
+    //   const lowestAsk = new BigNumber(ticker.lowestAsk)
+    //   const currentSpread = lowestAsk.minus(highestBid).div(lowestAsk)
+    //   const balances = await idexWrapper.getBalances(checksumAddress)
+    //   const availableETH = new BigNumber(balances['ETH'])
+    //   const availablePNK = new BigNumber(balances['PNK'])
+    //   console.log(balances)
+    //   reserve = calculateMaximumReserve(
+    //     availableETH,
+    //     availablePNK,
+    //     lowestAsk.plus(highestBid).div(new BigNumber(2))
+    //   )
+    //
+    //   console.log(`highestBid: ${highestBid.toString()}`)
+    //   console.log(`lowestAsk: ${lowestAsk.toString()}`)
+    //
+    //   await module.exports.placeStaircaseOrders(
+    //     checksumAddress,
+    //     process.env.IDEX_SECRET,
+    //     parseInt(steps),
+    //     new BigNumber(size),
+    //     new BigNumber(spread),
+    //     reserve
+    //   )
+    //
+    //   await Promise(resolve => setTimeout(resolve, 30000))
+    // }
 
-    while (true) {
-      const date = new Date()
-      console.log(
-        `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
-      )
-      await module.exports.clearOrders(checksumAddress, privateKey)
-      const ticker = await idexWrapper.getTicker(MARKET)
-
-      const highestBid = new BigNumber(ticker.highestBid)
-      const lowestAsk = new BigNumber(ticker.lowestAsk)
-      const currentSpread = lowestAsk.minus(highestBid).div(lowestAsk)
-      console.log(`highestBid: ${highestBid.toString()}`)
-      console.log(`lowestAsk: ${lowestAsk.toString()}`)
-
-      await module.exports.placeStaircaseOrders(
-        checksumAddress,
-        privateKey,
-        parseInt(steps),
-        new BigNumber(size),
-        highestBid,
-        lowestAsk,
-        new BigNumber(spread)
-      )
-
-      await sleep(30000)
-    }
-
-    w.on('message', msg => {
+    w.on('message', async msg => {
       const parsed = JSON.parse(msg)
       console.log(parsed)
       if (parsed.request === 'handshake' && parsed.result === 'success') {
         w.send(
           JSON.stringify({
             sid: parsed.sid,
-            request: 'subscribeToMarkets',
-            payload: `{"topics": ["${MARKET}"], "events": ["market_orders", "market_cancels"] }`
+            request: 'subscribeToAccounts',
+            payload: `{"topics": ["${MARKET}"], "events": ["account_trades"] }`
           })
+        )
+      }
+
+      if (
+        parsed.request === 'subscribeToAccounts' &&
+        parsed.result === 'success'
+      ) {
+        const date = new Date()
+        const checksumAddress = web3.utils.toChecksumAddress(
+          process.env.IDEX_ADDRESS
+        )
+        await module.exports.clearOrders(
+          checksumAddress,
+          process.env.IDEX_SECRET
+        )
+        const ticker = await idexWrapper.getTicker(MARKET)
+
+        const highestBid = new BigNumber(ticker.highestBid)
+        const lowestAsk = new BigNumber(ticker.lowestAsk)
+        const balances = await idexWrapper.getBalances(checksumAddress)
+        const availableETH = new BigNumber(balances['ETH'])
+        const availablePNK = new BigNumber(balances['PNK'])
+        console.log(balances)
+        reserve = calculateMaximumReserve(
+          availableETH,
+          availablePNK,
+          lowestAsk.plus(highestBid).div(new BigNumber(2))
+        )
+
+        await module.exports.placeStaircaseOrders(
+          checksumAddress,
+          process.env.IDEX_SECRET,
+          parseInt(steps),
+          new BigNumber(size),
+          new BigNumber(spread),
+          reserve
         )
       }
     })

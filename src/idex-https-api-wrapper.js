@@ -23,6 +23,18 @@ module.exports = {
     })
   },
 
+  getBalances: async function(address) {
+    return await fetch(`${HTTPS_API}/returnBalances`, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      method: 'POST',
+      body: JSON.stringify({ address: address })
+    }).then(function(response) {
+      return response.json()
+    })
+  },
+
   getTicker: async function(market) {
     return await fetch(`${HTTPS_API}/returnTicker`, {
       headers: {
