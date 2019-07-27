@@ -214,7 +214,7 @@ module.exports = {
           reserve
         )
 
-        const date = new Date()
+        date = new Date()
 
         console.log(
           `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
@@ -254,7 +254,7 @@ module.exports = {
           reserve
         )
 
-        const date = new Date()
+        date = new Date()
 
         console.log(
           `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
