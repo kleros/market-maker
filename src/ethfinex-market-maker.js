@@ -115,19 +115,19 @@ module.exports = {
         const date = new Date()
 
         console.log(
-          `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.ether.times(
-            reserve.pinakion
-          )} ETH: ${reserve.ether} | PNK: ${
-            reserve.pinakion
-          } | ETH/PNK: ${reserve.ether.div(reserve.pinakion)}`
+          `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
+            reserve.pnk
+          )} ETH: ${reserve.eth} | PNK: ${
+            reserve.pnk
+          } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
         )
 
-        assert(
-          new BigNumber(steps).times(MIN_ETH_SIZE).lt(reserve.ether),
-          `Your reserve cannot cover this many orders. Max number of steps you can afford: ${reserve.ether.div(
-            MIN_ETH_SIZE
-          )}.`
-        )
+        // assert(
+        //   new BigNumber(steps).times(MIN_ETH_SIZE).lt(reserve.eth),
+        //   `Your reserve cannot cover this many orders. Max number of steps you can afford: ${reserve.eth.div(
+        //     MIN_ETH_SIZE
+        //   )}.`
+        // )
 
         if (!initialOrdersPlaced) {
           const orders = module.exports.getOrders(
