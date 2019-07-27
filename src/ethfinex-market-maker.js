@@ -5,6 +5,7 @@ const WS = require('ws')
 const BigNumber = require('bignumber.js')
 const ethfinexRestWrapper = require('./ethfinex-rest-api-wrapper')
 const { chunk } = require('lodash')
+const calculateMaximumReserve = require('./utils').calculateMaximumReserve
 
 const ETHFINEX_WEBSOCKET_API = 'wss://api.ethfinex.com/ws/2/'
 
@@ -19,29 +20,6 @@ function sleep(ms) {
 }
 
 module.exports = {
-  calculateMaximumReserve: function(
-    availableEther,
-    availablePinakion,
-    initialPrice
-  ) {
-    const etherValueOfAvailablePinakion = availablePinakion.times(initialPrice)
-    const isEtherTheLimitingResource = etherValueOfAvailablePinakion.gt(
-      availableEther
-    )
-      ? true
-      : false
-
-    if (isEtherTheLimitingResource)
-      return {
-        ether: availableEther,
-        pinakion: availableEther.div(initialPrice)
-      }
-    else
-      return {
-        ether: availablePinakion.times(initialPrice),
-        pinakion: availablePinakion
-      }
-  },
   getStaircaseOrders: function(steps, sizeInEther, spread, reserve) {
     const newExchangeLimitOrder = (amount, price) => [
       'on',
@@ -154,7 +132,7 @@ module.exports = {
         lowestAsk &&
         highestBid
       ) {
-        reserve = module.exports.calculateMaximumReserve(
+        reserve = calculateMaximumReserve(
           availableETH,
           availablePNK,
           lowestAsk.plus(highestBid).div(new BigNumber(2))
