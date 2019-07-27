@@ -243,6 +243,16 @@ module.exports = {
           new BigNumber(spread),
           reserve
         )
+
+        const date = new Date()
+
+        console.log(
+          `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
+            reserve.pnk
+          )} ETH: ${reserve.eth} | PNK: ${
+            reserve.pnk
+          } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
+        )
       }
     })
 
