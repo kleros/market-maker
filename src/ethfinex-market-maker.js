@@ -6,6 +6,7 @@ const BigNumber = require('bignumber.js')
 const ethfinexRestWrapper = require('./ethfinex-rest-api-wrapper')
 const { chunk } = require('lodash')
 const calculateMaximumReserve = require('./utils').calculateMaximumReserve
+const getStaircaseOrders = require('./utils').getStaircaseOrders
 
 const ETHFINEX_WEBSOCKET_API = 'wss://api.ethfinex.com/ws/2/'
 
@@ -20,7 +21,14 @@ function sleep(ms) {
 }
 
 module.exports = {
-  getStaircaseOrders: function(steps, sizeInEther, spread, reserve) {
+  getOrders: function(steps, sizeInEther, spread, reserve) {
+    const rawOrders = getStaircaseOrders(
+      steps,
+      sizeInEther,
+      spread,
+      ORDER_INTERVAL,
+      reserve
+    )
     const newExchangeLimitOrder = (amount, price) => [
       'on',
       {
@@ -33,55 +41,18 @@ module.exports = {
     ]
 
     const orders = []
-    assert(reserve.ether.gt(0))
-    assert(reserve.pinakion.gt(0))
-    assert(typeof steps === 'number')
-    assert(typeof spread === 'object')
-    assert(steps > 0)
 
-    assert(
-      spread.gte(new BigNumber(0.001)) && spread.lte(new BigNumber(1)),
-      `Spread out of bounds: ${spread.toString()}`
-    )
-    assert(new BigNumber(steps).times(spread).lt(new BigNumber(1)))
-
-    const invariant = reserve.ether.times(reserve.pinakion)
-
-    for (let i = 0; i < steps; i++) {
-      const orderPrice = reserve.ether
-        .div(reserve.pinakion)
-        .times(
-          new BigNumber(1)
-            .minus(spread.div(new BigNumber(2)))
-            .minus(ORDER_INTERVAL.times(new BigNumber(i)))
-        )
-
-      const sizeInPinakion = sizeInEther.div(orderPrice)
-
-      orders.push(
-        newExchangeLimitOrder(sizeInPinakion.toString(), orderPrice.toString())
-      )
-    }
-
-    for (let i = 0; i < steps; i++) {
-      const orderPrice = reserve.ether
-        .div(reserve.pinakion)
-        .times(
-          new BigNumber(1)
-            .plus(spread.div(new BigNumber(2)))
-            .plus(ORDER_INTERVAL.times(new BigNumber(i)))
-        )
-
-      const sizeInPinakion = sizeInEther.div(orderPrice)
-
+    for (let i = 0; i < rawOrders.length; i++) {
       orders.push(
         newExchangeLimitOrder(
-          sizeInPinakion.times(new BigNumber('-1')).toString(),
-          orderPrice.toString()
+          rawOrders[i].pnk.toString(),
+          rawOrders[i].eth
+            .div(rawOrders[i].pnk)
+            .absoluteValue()
+            .toString()
         )
       )
     }
-
     const chunks = chunk(orders, 15).map(c => [0, 'ox_multi', null, c])
 
     return chunks
@@ -149,15 +120,15 @@ module.exports = {
           )}`
         )
 
-        assert(
-          new BigNumber(steps).times(MIN_ETH_SIZE).lt(reserve.ether),
-          `Your reserve cannot cover this many orders. Max number of steps you can afford: ${reserve.ether.div(
-            MIN_ETH_SIZE
-          )}.`
-        )
+        // assert(
+        //   new BigNumber(steps).times(MIN_ETH_SIZE).lt(reserve.ether),
+        //   `Your reserve cannot cover this many orders. Max number of steps you can afford: ${reserve.ether.div(
+        //     MIN_ETH_SIZE
+        //   )}.`
+        // )
 
         if (!initialOrdersPlaced) {
-          const orders = module.exports.getStaircaseOrders(
+          const orders = module.exports.getOrders(
             parseInt(steps),
             MIN_ETH_SIZE,
             new BigNumber(spread),
@@ -203,7 +174,7 @@ module.exports = {
 
         reserve.ether = reserve.ether.plus(etherAmount)
         reserve.pinakion = reserve.pinakion.plus(pinakionAmount)
-        const orders = module.exports.getStaircaseOrders(
+        const orders = module.exports.getOrders(
           parseInt(steps),
           MIN_ETH_SIZE,
           new BigNumber(spread),

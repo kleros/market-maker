@@ -12,6 +12,7 @@ const PINAKION = '0x93ED3FBe21207Ec2E8f2d3c3de6e058Cb73Bc04d'
 const ETHER = '0x0000000000000000000000000000000000000000'
 const MARKET = 'ETH_PNK'
 const idexWrapper = require('./idex-https-api-wrapper')
+const calculateMaximumReserve = require('./utils').calculateMaximumReserve
 
 const web3 = new Web3(
   new Web3.providers.HttpProvider(process.env.ETHEREUM_PROVIDER)
@@ -19,43 +20,15 @@ const web3 = new Web3(
 const ORDER_INTERVAL = 0.0005
 
 const decimals = new BigNumber('10').pow(new BigNumber('18'))
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
-const promiseTimeout = function(ms, promise) {
-  // Create a promise that rejects in <ms> milliseconds
-  let timeout = new Promise((resolve, reject) => {
-    let id = setTimeout(() => {
-      clearTimeout(id)
-      reject('Timed out in ' + ms + 'ms.')
-    }, ms)
-  })
-
-  // Returns a race between our timeout and the passed in promise
-  return Promise.race([promise, timeout])
-}
 
 module.exports = {
-  getStaircaseOrders: function(steps, size, highestBid, lowestAsk, spread) {
+  getStaircaseOrders: function(steps, sizeInEther, spread, reserve) {
     assert(typeof steps === 'number')
-    assert(typeof size === 'object')
-    assert(typeof highestBid === 'object', highestBid.toString())
-    assert(typeof lowestAsk === 'object')
 
     assert(typeof spread === 'object', spread.toString())
     assert(steps > 0)
     assert(size.gt(new BigNumber(0)))
 
-    assert(
-      highestBid.gt(new BigNumber(0.000001)) &&
-        highestBid.lt(new BigNumber(0.001)),
-      highestBid.toString()
-    )
-    assert(
-      lowestAsk.gt(new BigNumber(0.000001)) &&
-        lowestAsk.lt(new BigNumber(0.001)),
-      lowestAsk.toString()
-    )
     assert(
       spread.gte(new BigNumber(0.001)) && spread.lt(new BigNumber(0.1)),
       spread.toString()
@@ -70,15 +43,18 @@ module.exports = {
 
     const orders = []
     for (let i = 0; i < steps; i++) {
+      const orderPrice = reserve.ether
+        .div(reserve.pinakion)
+        .times(
+          new BigNumber(1)
+            .plus(spread.div(new BigNumber(2)))
+            .plus(ORDER_INTERVAL.times(new BigNumber(i)))
+        )
+
+      const sizeInPinakion = sizeInEther.div(orderPrice)
       const sellOrder = {
         tokenBuy: ETHER,
-        amountBuy: newAsk
-          .times(
-            new BigNumber(1).plus(
-              new BigNumber(ORDER_INTERVAL).times(new BigNumber(i))
-            )
-          )
-          .times(size)
+        amountBuy: sizeInEther
           .times(decimals)
           .toFixed(0, BigNumber.ROUND_UP)
           .toString(),
@@ -90,13 +66,7 @@ module.exports = {
         tokenBuy: PINAKION,
         amountBuy: new BigNumber(size).times(decimals).toString(),
         tokenSell: ETHER,
-        amountSell: newBid
-          .times(
-            new BigNumber(1).minus(
-              new BigNumber(ORDER_INTERVAL).times(new BigNumber(i))
-            )
-          )
-          .times(size)
+        amountSell: sizeInEther
           .times(decimals)
           .toFixed(0, BigNumber.ROUND_DOWN)
           .toString()
