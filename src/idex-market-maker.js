@@ -155,7 +155,7 @@ module.exports = {
           web3,
           address,
           process.env.IDEX_SECRET,
-          orders[i],
+          order,
           idexWrapper.getNextNonce(address)
         )
       )
