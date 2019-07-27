@@ -142,13 +142,13 @@ module.exports = {
 
   autoMarketMake: async function(steps, spread) {
     let reserve
-
+    let date
     const checksumAddress = web3.utils.toChecksumAddress(
       process.env.IDEX_ADDRESS
     )
     w.on('message', async msg => {
       if (reserve) {
-        const date = new Date()
+        date = new Date()
 
         console.log(
           `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
