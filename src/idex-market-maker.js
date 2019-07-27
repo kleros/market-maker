@@ -156,7 +156,7 @@ module.exports = {
           address,
           process.env.IDEX_SECRET,
           orders[i],
-          await idexWrapper.getNextNonce(address)
+          idexWrapper.getNextNonce(address)
         )
       )
 
