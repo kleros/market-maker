@@ -175,7 +175,7 @@ module.exports = {
         parsed.request === 'subscribeToAccounts' &&
         parsed.result === 'success'
       ) {
-        const date = new Date()
+        date = new Date()
 
         await module.exports.clearOrders(
           checksumAddress,
