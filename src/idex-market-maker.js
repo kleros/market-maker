@@ -233,7 +233,7 @@ module.exports = {
           )}.`
         )
 
-        await module.exports.placeStaircaseOrderInParallel(
+        await module.exports.placeStaircaseOrdersInParallel(
           checksumAddress,
           process.env.IDEX_SECRET,
           parseInt(steps),
@@ -273,7 +273,7 @@ module.exports = {
           process.env.IDEX_SECRET
         )
 
-        await module.exports.placeStaircaseOrderInParallel(
+        await module.exports.placeStaircaseOrdersInParallel(
           checksumAddress,
           process.env.IDEX_SECRET,
           parseInt(steps),
