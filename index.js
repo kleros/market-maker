@@ -16,11 +16,11 @@ console.log(`v ${require('./package.json').version}`)
 console.log('\n')
 
 commander
-  .command('ethfinex-market-maker <steps> <spread>')
+  .command('ethfinex <steps> <spread>')
   .action((steps, spread) => ethfinexAutoMarketMake(steps, spread))
 
 commander
-  .command('idex-market-maker <steps> <spread>')
+  .command('idex <steps> <spread>')
   .action((steps, spread) => idexAutoMarketMake(steps, spread))
 
 // Handle unknown commands

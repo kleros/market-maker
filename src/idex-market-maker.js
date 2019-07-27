@@ -107,12 +107,7 @@ module.exports = {
     reserve
   ) {
     if ((await idexWrapper.getOpenOrders(address)).length == 0) {
-      var orders = module.exports.getOrders(
-        steps,
-        MIN_ETH_SIZE,
-        spread,
-        reserve
-      )
+      var orders = module.exports.getOrders(steps, size, spread, reserve)
       for (let i = 0; i < orders.length; i++) {
         const nonce = await idexWrapper.getNextNonce(address)
         if (typeof nonce.nonce !== 'number') {
@@ -141,43 +136,7 @@ module.exports = {
     }
   },
 
-  autoMarketMake: async function(steps, size, spread) {
-    // while (true) {
-    //   const date = new Date()
-    //   console.log(
-    //     `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
-    //   )
-    //   await module.exports.clearOrders(checksumAddress, process.env.IDEX_SECRET)
-    //   const ticker = await idexWrapper.getTicker(MARKET)
-    //
-    //   const highestBid = new BigNumber(ticker.highestBid)
-    //   const lowestAsk = new BigNumber(ticker.lowestAsk)
-    //   const currentSpread = lowestAsk.minus(highestBid).div(lowestAsk)
-    //   const balances = await idexWrapper.getBalances(checksumAddress)
-    //   const availableETH = new BigNumber(balances['ETH'])
-    //   const availablePNK = new BigNumber(balances['PNK'])
-    //   console.log(balances)
-    //   reserve = calculateMaximumReserve(
-    //     availableETH,
-    //     availablePNK,
-    //     lowestAsk.plus(highestBid).div(new BigNumber(2))
-    //   )
-    //
-    //   console.log(`highestBid: ${highestBid.toString()}`)
-    //   console.log(`lowestAsk: ${lowestAsk.toString()}`)
-    //
-    //   await module.exports.placeStaircaseOrders(
-    //     checksumAddress,
-    //     process.env.IDEX_SECRET,
-    //     parseInt(steps),
-    //     new BigNumber(size),
-    //     new BigNumber(spread),
-    //     reserve
-    //   )
-    //
-    //   await Promise(resolve => setTimeout(resolve, 30000))
-    // }
-
+  autoMarketMake: async function(steps, spread) {
     w.on('message', async msg => {
       const parsed = JSON.parse(msg)
       console.log(parsed)
@@ -221,7 +180,7 @@ module.exports = {
           checksumAddress,
           process.env.IDEX_SECRET,
           parseInt(steps),
-          new BigNumber(size),
+          MIN_ETH_SIZE,
           new BigNumber(spread),
           reserve
         )
