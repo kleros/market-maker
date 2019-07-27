@@ -140,6 +140,34 @@ module.exports = {
     }
   },
 
+  placeStaircaseOrdersInParallel: async function(
+    address,
+    privateKey,
+    steps,
+    size,
+    spread,
+    reserve
+  ) {
+    if ((await idexWrapper.getOpenOrders(address)).length == 0) {
+      const orders = module.exports.getOrders(steps, size, spread, reserve)
+      const promises = orders.map(order =>
+        idexWrapper.sendOrder(
+          web3,
+          address,
+          process.env.IDEX_SECRET,
+          orders[i],
+          await idexWrapper.getNextNonce(address)
+        )
+      )
+
+      await Promise.all(promises)
+    } else {
+      console.log(
+        'There are previous orders to be cleared, skipping placing orders.'
+      )
+    }
+  },
+
   autoMarketMake: async function(steps, spread) {
     let reserve
     let date
@@ -205,7 +233,7 @@ module.exports = {
           )}.`
         )
 
-        await module.exports.placeStaircaseOrders(
+        await module.exports.placeStaircaseOrderInParallel(
           checksumAddress,
           process.env.IDEX_SECRET,
           parseInt(steps),
@@ -245,7 +273,7 @@ module.exports = {
           process.env.IDEX_SECRET
         )
 
-        await module.exports.placeStaircaseOrders(
+        await module.exports.placeStaircaseOrderInParallel(
           checksumAddress,
           process.env.IDEX_SECRET,
           parseInt(steps),
