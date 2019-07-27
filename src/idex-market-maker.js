@@ -142,57 +142,59 @@ module.exports = {
 
   autoMarketMake: async function(steps, spread) {
     w.on('message', async msg => {
-      const checksumAddress = web3.utils.toChecksumAddress(
-        process.env.IDEX_ADDRESS
-      )
-      const parsed = JSON.parse(msg)
-      console.log(parsed)
-      if (parsed.request === 'handshake' && parsed.result === 'success') {
-        w.send(
-          JSON.stringify({
-            sid: parsed.sid,
-            request: 'subscribeToAccounts',
-            payload: `{"topics": ["${checksumAddress}"], "events": ["account_trades"] }`
-          })
-        )
-      }
+      let reserve
 
-      if (
-        parsed.request === 'subscribeToAccounts' &&
-        parsed.result === 'success'
-      ) {
+      if (reserve) {
         const date = new Date()
 
-        await module.exports.clearOrders(
-          checksumAddress,
-          process.env.IDEX_SECRET
-        )
-        const ticker = await idexWrapper.getTicker(MARKET)
-
-        const highestBid = new BigNumber(ticker.highestBid)
-        const lowestAsk = new BigNumber(ticker.lowestAsk)
-        const balances = await idexWrapper.getBalances(checksumAddress)
-        const availableETH = new BigNumber(balances['ETH'])
-        const availablePNK = new BigNumber(balances['PNK'])
-        console.log(balances)
-
-        console.log('Calculating maximum reserve...')
-
-        reserve = calculateMaximumReserve(
-          availableETH,
-          availablePNK,
-          lowestAsk.plus(highestBid).div(new BigNumber(2))
+        console.log(
+          `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
+            reserve.pnk
+          )} ETH: ${reserve.eth} | PNK: ${
+            reserve.pnk
+          } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
         )
 
-        if (reserve) {
+        const checksumAddress = web3.utils.toChecksumAddress(
+          process.env.IDEX_ADDRESS
+        )
+        const parsed = JSON.parse(msg)
+        console.log(parsed)
+        if (parsed.request === 'handshake' && parsed.result === 'success') {
+          w.send(
+            JSON.stringify({
+              sid: parsed.sid,
+              request: 'subscribeToAccounts',
+              payload: `{"topics": ["${checksumAddress}"], "events": ["account_trades"] }`
+            })
+          )
+        }
+
+        if (
+          parsed.request === 'subscribeToAccounts' &&
+          parsed.result === 'success'
+        ) {
           const date = new Date()
 
-          console.log(
-            `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
-              reserve.pnk
-            )} ETH: ${reserve.eth} | PNK: ${
-              reserve.pnk
-            } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
+          await module.exports.clearOrders(
+            checksumAddress,
+            process.env.IDEX_SECRET
+          )
+          const ticker = await idexWrapper.getTicker(MARKET)
+
+          const highestBid = new BigNumber(ticker.highestBid)
+          const lowestAsk = new BigNumber(ticker.lowestAsk)
+          const balances = await idexWrapper.getBalances(checksumAddress)
+          const availableETH = new BigNumber(balances['ETH'])
+          const availablePNK = new BigNumber(balances['PNK'])
+          console.log(balances)
+
+          console.log('Calculating maximum reserve...')
+
+          reserve = calculateMaximumReserve(
+            availableETH,
+            availablePNK,
+            lowestAsk.plus(highestBid).div(new BigNumber(2))
           )
 
           assert(
@@ -202,6 +204,36 @@ module.exports = {
             )}.`
           )
         }
+
+        await module.exports.placeStaircaseOrders(
+          checksumAddress,
+          process.env.IDEX_SECRET,
+          parseInt(steps),
+          MIN_ETH_SIZE,
+          new BigNumber(spread),
+          reserve
+        )
+      }
+
+      if (parsed.event === 'account_trades') {
+        const payload = JSON.parse(parsed.payload)
+        const trade = payload.trades[0]
+        const pnkAmount = trade.amount
+        const ethAmount = trade.total
+        const isBuy = trade.tokenSell == ETHER
+
+        if (isBuy) {
+          reserve.pnk = reserve.pnk.plus(new BigNumber(pnkAmount))
+          reserve.eth = reserve.eth.minus(new BigNumber(ethAmount))
+        } else {
+          reserve.pnk = reserve.pnk.minus(new BigNumber(pnkAmount))
+          reserve.eth = reserve.eth.plus(new BigNumber(ethAmount))
+        }
+
+        await module.exports.clearOrders(
+          checksumAddress,
+          process.env.IDEX_SECRET
+        )
 
         await module.exports.placeStaircaseOrders(
           checksumAddress,
