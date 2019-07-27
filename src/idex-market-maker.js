@@ -174,11 +174,33 @@ module.exports = {
         const availableETH = new BigNumber(balances['ETH'])
         const availablePNK = new BigNumber(balances['PNK'])
         console.log(balances)
+
+        console.log('Calculating maximum reserve...')
+
         reserve = calculateMaximumReserve(
           availableETH,
           availablePNK,
           lowestAsk.plus(highestBid).div(new BigNumber(2))
         )
+
+        if (reserve) {
+          const date = new Date()
+
+          console.log(
+            `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
+              reserve.pnk
+            )} ETH: ${reserve.eth} | PNK: ${
+              reserve.pnk
+            } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
+          )
+
+          assert(
+            new BigNumber(steps).times(MIN_ETH_SIZE).lt(reserve.eth),
+            `Your reserve cannot cover this many orders. Max number of steps you can afford: ${reserve.eth.div(
+              MIN_ETH_SIZE
+            )}.`
+          )
+        }
 
         await module.exports.placeStaircaseOrders(
           checksumAddress,
