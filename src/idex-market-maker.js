@@ -142,6 +142,9 @@ module.exports = {
 
   autoMarketMake: async function(steps, spread) {
     w.on('message', async msg => {
+      const checksumAddress = web3.utils.toChecksumAddress(
+        process.env.IDEX_ADDRESS
+      )
       const parsed = JSON.parse(msg)
       console.log(parsed)
       if (parsed.request === 'handshake' && parsed.result === 'success') {
@@ -149,7 +152,7 @@ module.exports = {
           JSON.stringify({
             sid: parsed.sid,
             request: 'subscribeToAccounts',
-            payload: `{"topics": ["${MARKET}"], "events": ["account_trades"] }`
+            payload: `{"topics": ["${checksumAddress}"], "events": ["account_trades"] }`
           })
         )
       }
@@ -159,9 +162,7 @@ module.exports = {
         parsed.result === 'success'
       ) {
         const date = new Date()
-        const checksumAddress = web3.utils.toChecksumAddress(
-          process.env.IDEX_ADDRESS
-        )
+
         await module.exports.clearOrders(
           checksumAddress,
           process.env.IDEX_SECRET
