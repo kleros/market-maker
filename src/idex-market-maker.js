@@ -154,56 +154,56 @@ module.exports = {
             reserve.pnk
           } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
         )
+      }
 
-        const checksumAddress = web3.utils.toChecksumAddress(
-          process.env.IDEX_ADDRESS
+      const checksumAddress = web3.utils.toChecksumAddress(
+        process.env.IDEX_ADDRESS
+      )
+      const parsed = JSON.parse(msg)
+      console.log(parsed)
+      if (parsed.request === 'handshake' && parsed.result === 'success') {
+        w.send(
+          JSON.stringify({
+            sid: parsed.sid,
+            request: 'subscribeToAccounts',
+            payload: `{"topics": ["${checksumAddress}"], "events": ["account_trades"] }`
+          })
         )
-        const parsed = JSON.parse(msg)
-        console.log(parsed)
-        if (parsed.request === 'handshake' && parsed.result === 'success') {
-          w.send(
-            JSON.stringify({
-              sid: parsed.sid,
-              request: 'subscribeToAccounts',
-              payload: `{"topics": ["${checksumAddress}"], "events": ["account_trades"] }`
-            })
-          )
-        }
+      }
 
-        if (
-          parsed.request === 'subscribeToAccounts' &&
-          parsed.result === 'success'
-        ) {
-          const date = new Date()
+      if (
+        parsed.request === 'subscribeToAccounts' &&
+        parsed.result === 'success'
+      ) {
+        const date = new Date()
 
-          await module.exports.clearOrders(
-            checksumAddress,
-            process.env.IDEX_SECRET
-          )
-          const ticker = await idexWrapper.getTicker(MARKET)
+        await module.exports.clearOrders(
+          checksumAddress,
+          process.env.IDEX_SECRET
+        )
+        const ticker = await idexWrapper.getTicker(MARKET)
 
-          const highestBid = new BigNumber(ticker.highestBid)
-          const lowestAsk = new BigNumber(ticker.lowestAsk)
-          const balances = await idexWrapper.getBalances(checksumAddress)
-          const availableETH = new BigNumber(balances['ETH'])
-          const availablePNK = new BigNumber(balances['PNK'])
-          console.log(balances)
+        const highestBid = new BigNumber(ticker.highestBid)
+        const lowestAsk = new BigNumber(ticker.lowestAsk)
+        const balances = await idexWrapper.getBalances(checksumAddress)
+        const availableETH = new BigNumber(balances['ETH'])
+        const availablePNK = new BigNumber(balances['PNK'])
+        console.log(balances)
 
-          console.log('Calculating maximum reserve...')
+        console.log('Calculating maximum reserve...')
 
-          reserve = calculateMaximumReserve(
-            availableETH,
-            availablePNK,
-            lowestAsk.plus(highestBid).div(new BigNumber(2))
-          )
+        reserve = calculateMaximumReserve(
+          availableETH,
+          availablePNK,
+          lowestAsk.plus(highestBid).div(new BigNumber(2))
+        )
 
-          assert(
-            new BigNumber(steps).times(MIN_ETH_SIZE).lt(reserve.eth),
-            `Your reserve cannot cover this many orders. Max number of steps you can afford: ${reserve.eth.div(
-              MIN_ETH_SIZE
-            )}.`
-          )
-        }
+        assert(
+          new BigNumber(steps).times(MIN_ETH_SIZE).lt(reserve.eth),
+          `Your reserve cannot cover this many orders. Max number of steps you can afford: ${reserve.eth.div(
+            MIN_ETH_SIZE
+          )}.`
+        )
 
         await module.exports.placeStaircaseOrders(
           checksumAddress,
