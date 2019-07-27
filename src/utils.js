@@ -34,7 +34,7 @@ module.exports = {
         .times(
           new BigNumber(1)
             .plus(spread.div(new BigNumber(2)))
-            .plus(interval.times(new BigNumber(i)))
+            .plus(interval.times(new BigNumber(steps - 1 - i)))
         )
 
       let sizeInPinakion = sizeInEther.div(orderPrice)
@@ -48,7 +48,7 @@ module.exports = {
         .times(
           new BigNumber(1)
             .minus(spread.div(new BigNumber(2)))
-            .minus(interval.times(new BigNumber(i)))
+            .minus(interval.times(new BigNumber(steps - 1 - i)))
         )
 
       sizeInPinakion = sizeInEther.div(orderPrice)
