@@ -141,9 +141,12 @@ module.exports = {
   },
 
   autoMarketMake: async function(steps, spread) {
-    w.on('message', async msg => {
-      let reserve
+    let reserve
 
+    const checksumAddress = web3.utils.toChecksumAddress(
+      process.env.IDEX_ADDRESS
+    )
+    w.on('message', async msg => {
       if (reserve) {
         const date = new Date()
 
@@ -156,9 +159,6 @@ module.exports = {
         )
       }
 
-      const checksumAddress = web3.utils.toChecksumAddress(
-        process.env.IDEX_ADDRESS
-      )
       const parsed = JSON.parse(msg)
       console.log(parsed)
       if (parsed.request === 'handshake' && parsed.result === 'success') {
