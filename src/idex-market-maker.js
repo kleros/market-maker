@@ -45,12 +45,16 @@ module.exports = {
           amountSell: rawOrders[i].pnk
             .absoluteValue()
             .times(decimals)
+            .toFixed(0, BigNumber.ROUND_DOWN)
             .toString()
         })
       } else {
         orders.push({
           tokenBuy: PINAKION,
-          amountBuy: rawOrders[i].pnk.times(decimals).toString(),
+          amountBuy: rawOrders[i].pnk
+            .times(decimals)
+            .toFixed(0, BigNumber.ROUND_UP)
+            .toString(),
           tokenSell: ETHER,
           amountSell: rawOrders[i].eth
             .absoluteValue()
