@@ -93,9 +93,20 @@ module.exports = {
     w.on('message', async msg => {
       const parsed = JSON.parse(msg)
 
-      if (parsed[1] != 'on' && parsed[1] != 'n' && parsed[1] != 'oc')
+      if (parsed[1] != 'on' && parsed[1] != 'n' && parsed[1] != 'oc') {
         console.log(parsed)
-      else process.stdout.write('.')
+        if (reserve) {
+          const date = new Date()
+
+          console.log(
+            `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
+              reserve.pnk
+            )} ETH: ${reserve.eth} | PNK: ${
+              reserve.pnk
+            } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
+          )
+        }
+      } else process.stdout.write('.')
 
       if (
         !isNaN(availablePNK) &&
