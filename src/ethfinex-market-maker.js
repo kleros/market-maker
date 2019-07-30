@@ -187,7 +187,7 @@ module.exports = {
           new BigNumber(spread),
           reserve
         )
-        //for (batch of orders) w.send(JSON.stringify(batch))
+        for (batch of orders) w.send(JSON.stringify(batch))
       }
     })
     const authenticationPayload = function() {
