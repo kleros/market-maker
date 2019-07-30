@@ -86,8 +86,7 @@ module.exports = {
           break
         }
 
-        console.log('Open orders:')
-        console.log(openOrders.map(x => x.orderHash))
+        console.log(`Number of open orders: ${openOrders.length}`)
 
         for (let i = 0; i < openOrders.length; i++) {
           const nonce = await idexWrapper.getNextNonce(address)
