@@ -159,10 +159,8 @@ module.exports = {
         const payload = parsed[2]
         if (payload[1] == 'PNK') {
           availablePNK = new BigNumber(payload[2])
-          console.log('availablePNK updated.')
         } else if (payload[1] == 'ETH') {
           availableETH = new BigNumber(payload[2])
-          console.log('availableETH updated.')
         } else console.log('Unhandled wallet update.')
       }
 
@@ -183,23 +181,6 @@ module.exports = {
 
         reserve.eth = reserve.eth.plus(etherAmount)
         reserve.pnk = reserve.pnk.plus(pinakionAmount)
-
-        const currentReservePrice = reserve.eth.div(reserve.pnk)
-
-        const newReserve = calculateMaximumReserve(
-          availableETH,
-          availablePNK,
-          currentReservePrice
-        )
-
-        if (
-          newReserve.eth
-            .times(newReserve.pnk)
-            .gt(reserve.eth.times(reserve.pnk))
-        ) {
-          console.log('Reserve expanded.')
-          reserve = newReserve
-        }
 
         const orders = module.exports.getOrders(
           parseInt(steps),
