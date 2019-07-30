@@ -79,6 +79,7 @@ module.exports = {
     let lowestAsk
     let orders
 
+    let flag = 0
     if (
       typeof process.env.ETHFINEX_KEY === 'undefined' ||
       typeof process.env.ETHFINEX_SECRET === 'undefined'
@@ -165,6 +166,9 @@ module.exports = {
         parsed[1] == 'te' &&
         parsed[2][1] == SYMBOL
       ) {
+        if (flag > 2) process.exit(flag)
+        flag++
+
         w.send(CANCEL_ALL_ORDERS)
 
         const tradeExecutionLog = parsed[2]
