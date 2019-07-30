@@ -87,7 +87,6 @@ module.exports = {
       .then(function(response) {
         return response.json()
       })
-      .then(console.log)
   },
 
   signCancel: (web3, privateKey, args) => {
@@ -136,7 +135,6 @@ module.exports = {
       .then(function(response) {
         return response.json()
       })
-      .then(console.log)
   },
 
   signOrder: (web3, privateKey, args) => {

@@ -38,8 +38,6 @@ module.exports = {
       reserve
     )
 
-    console.log(rawOrders.map(x => x.eth.div(x.pnk)).toString())
-
     const orders = []
     for (let i = 0; i < rawOrders.length; i++) {
       if (rawOrders[i].pnk.lt(new BigNumber(0))) {
@@ -97,13 +95,16 @@ module.exports = {
           assert(typeof nonce.nonce === 'number')
           assert(typeof openOrders[i].orderHash === 'string')
 
-          await idexWrapper.cancelOrder(
+          const response = await idexWrapper.cancelOrder(
             web3,
             address,
             process.env.IDEX_SECRET,
             openOrders[openOrders.length - 1 - i].orderHash,
             nonce
           )
+
+          if (reponse.success) console.log('✔️')
+          else console.log('❌')
         }
       } catch (e) {
         console.log(e)
@@ -131,13 +132,15 @@ module.exports = {
           )
         } else
           try {
-            await idexWrapper.sendOrder(
+            const response = await idexWrapper.sendOrder(
               web3,
               address,
               process.env.IDEX_SECRET,
               orders[i],
               nonce
             )
+            if (reponse.success) console.log('✔️')
+            else console.log('❌')
           } catch (e) {
             console.log(e)
           }
