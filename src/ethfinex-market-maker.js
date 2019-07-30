@@ -30,7 +30,7 @@ module.exports = {
       reserve
     )
 
-    console.log(rawOrders)
+    console.log(JSON.stringify(rawOrders))
     const newExchangeLimitOrder = (amount, price) => [
       'on',
       {
