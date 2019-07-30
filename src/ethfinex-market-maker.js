@@ -29,6 +29,8 @@ module.exports = {
       ORDER_INTERVAL,
       reserve
     )
+
+    console.log(rawOrders)
     const newExchangeLimitOrder = (amount, price) => [
       'on',
       {
