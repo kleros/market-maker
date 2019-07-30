@@ -30,7 +30,6 @@ module.exports = {
       reserve
     )
 
-    console.log(JSON.stringify(rawOrders))
     const newExchangeLimitOrder = (amount, price) => [
       'on',
       {
@@ -56,7 +55,6 @@ module.exports = {
       )
     }
     const chunks = chunk(orders, 15).map(c => [0, 'ox_multi', null, c])
-    console.log(JSON.stringify(chunks))
     return chunks
   },
 
@@ -79,7 +77,6 @@ module.exports = {
     let lowestAsk
     let orders
 
-    let flag = 0
     if (
       typeof process.env.ETHFINEX_KEY === 'undefined' ||
       typeof process.env.ETHFINEX_SECRET === 'undefined'
@@ -96,7 +93,8 @@ module.exports = {
     w.on('message', async msg => {
       const parsed = JSON.parse(msg)
 
-      console.log(parsed)
+      if (parsed[1] != 'on' && parsed[1] != 'oc') console.log(parsed)
+      else process.stdout.write('.')
 
       if (
         !isNaN(availablePNK) &&
@@ -139,6 +137,7 @@ module.exports = {
             reserve
           )
 
+          console.log('Placing orders...')
           for (batch of orders) w.send(JSON.stringify(batch))
 
           initialOrdersPlaced = true
@@ -166,9 +165,7 @@ module.exports = {
         parsed[1] == 'te' &&
         parsed[2][1] == SYMBOL
       ) {
-        if (flag > 2) process.exit(flag)
-        flag++
-
+        console.log('Cancelling orders...')
         w.send(CANCEL_ALL_ORDERS)
 
         const tradeExecutionLog = parsed[2]
@@ -187,6 +184,7 @@ module.exports = {
           new BigNumber(spread),
           reserve
         )
+        console.log('Placing orders...')
         for (batch of orders) w.send(JSON.stringify(batch))
       }
     })
