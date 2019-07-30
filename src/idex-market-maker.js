@@ -94,18 +94,13 @@ module.exports = {
           assert(typeof nonce.nonce === 'number')
           assert(typeof openOrders[i].orderHash === 'string')
 
-          await idexWrapper
-            .cancelOrder(
-              web3,
-              address,
-              process.env.IDEX_SECRET,
-              openOrders[openOrders.length - 1 - i].orderHash,
-              nonce
-            )
-            .then(function(response) {
-              if (response.success) console.log('✔️')
-              else console.log('❌')
-            })
+          await idexWrapper.cancelOrder(
+            web3,
+            address,
+            process.env.IDEX_SECRET,
+            openOrders[openOrders.length - 1 - i].orderHash,
+            nonce
+          )
         }
       } catch (e) {
         console.log(e)
@@ -133,18 +128,13 @@ module.exports = {
           )
         } else
           try {
-            await idexWrapper
-              .sendOrder(
-                web3,
-                address,
-                process.env.IDEX_SECRET,
-                orders[i],
-                nonce
-              )
-              .then(function(response) {
-                if (response.success) console.log('✔️')
-                else console.log('❌')
-              })
+            await idexWrapper.sendOrder(
+              web3,
+              address,
+              process.env.IDEX_SECRET,
+              orders[i],
+              nonce
+            )
           } catch (e) {
             console.log(e)
           }

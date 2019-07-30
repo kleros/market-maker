@@ -87,6 +87,10 @@ module.exports = {
       .then(function(response) {
         return response.json()
       })
+      .then(function(response) {
+        if (response.success) console.log('✔️')
+        else console.log('❌')
+      })
   },
 
   signCancel: (web3, privateKey, args) => {
@@ -134,6 +138,10 @@ module.exports = {
       })
       .then(function(response) {
         return response.json()
+      })
+      .then(function(response) {
+        if (response.success) console.log('✔️')
+        else console.log('❌')
       })
   },
 
