@@ -93,7 +93,7 @@ module.exports = {
             web3,
             address,
             process.env.IDEX_SECRET,
-            openOrders[i].orderHash,
+            openOrders[openOrders.length - 1 - i].orderHash,
             nonce
           )
         }
