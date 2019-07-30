@@ -112,6 +112,9 @@ module.exports = {
   ) {
     if ((await idexWrapper.getOpenOrders(address)).length == 0) {
       var orders = module.exports.getOrders(steps, size, spread, reserve)
+
+      console.log(orders.map(order => order.eth.div(order.pnk).toString()))
+
       for (let i = 0; i < orders.length; i++) {
         const nonce = await idexWrapper.getNextNonce(address)
         if (typeof nonce.nonce !== 'number') {
