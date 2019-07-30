@@ -192,9 +192,10 @@ module.exports = {
           newReserve.eth
             .times(newReserve.pnk)
             .gt(reserve.eth.times(reserve.pnk))
-        )
+        ) {
           console.log('Reserve expanded.')
-        reserve = newReserve
+          reserve = newReserve
+        }
 
         const orders = module.exports.getOrders(
           parseInt(steps),
