@@ -59,7 +59,6 @@ module.exports = {
   },
 
   autoMarketMake: async (steps, spread) => {
-    let flag = 0
     let initialOrdersPlaced = false
 
     const w = new WS(ETHFINEX_WEBSOCKET_API)
@@ -183,8 +182,6 @@ module.exports = {
           reserve
         )
         for (batch of orders) w.send(JSON.stringify(batch))
-        flag++
-        if (flag > 3) process.exit(1)
       }
     })
     const authenticationPayload = function() {
