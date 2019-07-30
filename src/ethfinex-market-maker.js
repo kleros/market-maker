@@ -93,7 +93,8 @@ module.exports = {
     w.on('message', async msg => {
       const parsed = JSON.parse(msg)
 
-      if (parsed[1] != 'on' && parsed[1] != 'oc') console.log(parsed)
+      if (parsed[1] != 'on' && parsed[1] != 'n' && parsed[1] != 'oc')
+        console.log(parsed)
       else process.stdout.write('.')
 
       if (
