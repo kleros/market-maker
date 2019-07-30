@@ -88,8 +88,8 @@ module.exports = {
         return response.json()
       })
       .then(function(response) {
-        if (response.success) console.log('✔️')
-        else console.log('❌')
+        if (response.success) process.stdout.write.log('✔️')
+        else process.stdout.write.log('❌')
       })
   },
 
@@ -140,8 +140,8 @@ module.exports = {
         return response.json()
       })
       .then(function(response) {
-        if (response.success) console.log('✔️')
-        else console.log('❌')
+        if (response.success) process.stdout.write.log('✔️')
+        else process.stdout.write.log('❌')
       })
   },
 
