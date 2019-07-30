@@ -173,8 +173,8 @@ module.exports = {
           .times(price)
           .times(new BigNumber('-1'))
 
-        reserve.ether = reserve.ether.plus(etherAmount)
-        reserve.pinakion = reserve.pinakion.plus(pinakionAmount)
+        reserve.eth = reserve.eth.plus(etherAmount)
+        reserve.pnk = reserve.pnk.plus(pinakionAmount)
         const orders = module.exports.getOrders(
           parseInt(steps),
           MIN_ETH_SIZE,
