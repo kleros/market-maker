@@ -140,7 +140,7 @@ module.exports = {
         return response.json()
       })
       .then(function(response) {
-        if (response.success) process.stdout.write('✔️')
+        if (response.orderHash) process.stdout.write('✔️')
         else process.stdout.write('❌')
       })
   },
