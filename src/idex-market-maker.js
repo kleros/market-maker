@@ -196,14 +196,21 @@ module.exports = {
         const balances = await idexWrapper.getBalances(checksumAddress)
         const availableETH = new BigNumber(balances['ETH'])
         const availablePNK = new BigNumber(balances['PNK'])
-        console.log(balances)
 
-        console.log('Calculating maximum reserve...')
+        console.log('Account balance:')
+        console.log(balances)
 
         reserve = calculateMaximumReserve(
           availableETH,
           availablePNK,
           lowestAsk.plus(highestBid).div(new BigNumber(2))
+        )
+        console.log(
+          `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
+            reserve.pnk
+          )} ETH: ${reserve.eth} | PNK: ${
+            reserve.pnk
+          } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
         )
 
         assert(
