@@ -94,6 +94,7 @@ module.exports = {
       const parsed = JSON.parse(msg)
 
       if (parsed[1] != 'on' && parsed[1] != 'n' && parsed[1] != 'oc') {
+        console.log('')
         console.log(parsed)
         if (reserve) {
           const date = new Date()
@@ -141,7 +142,6 @@ module.exports = {
 
           console.log('Placing orders...')
           for (batch of orders) w.send(JSON.stringify(batch))
-          console.log('')
           initialOrdersPlaced = true
         }
       }
@@ -169,7 +169,6 @@ module.exports = {
       ) {
         console.log('Cancelling orders...')
         w.send(CANCEL_ALL_ORDERS)
-        console.log('')
         const tradeExecutionLog = parsed[2]
         const pinakionAmount = new BigNumber(tradeExecutionLog[4])
         const price = new BigNumber(tradeExecutionLog[5])
@@ -188,7 +187,6 @@ module.exports = {
         )
         console.log('Placing orders...')
         for (batch of orders) w.send(JSON.stringify(batch))
-        console.log('')
       }
     })
     const authenticationPayload = function() {
