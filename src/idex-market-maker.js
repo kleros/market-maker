@@ -105,6 +105,7 @@ module.exports = {
         console.log(e)
       }
     }
+    console.log('')
   },
   placeStaircaseOrders: async function(
     address,
@@ -116,7 +117,7 @@ module.exports = {
   ) {
     if ((await idexWrapper.getOpenOrders(address)).length == 0) {
       var orders = module.exports.getOrders(steps, size, spread, reserve)
-
+      console.log('Placing orders...')
       for (let i = 0; i < orders.length; i++) {
         const nonce = await idexWrapper.getNextNonce(address)
         if (typeof nonce.nonce !== 'number') {
@@ -138,6 +139,7 @@ module.exports = {
             console.log(e)
           }
       }
+      console.log('')
     } else {
       console.log(
         'There are previous orders to be cleared, skipping placing orders.'
