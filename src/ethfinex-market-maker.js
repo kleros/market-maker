@@ -157,9 +157,13 @@ module.exports = {
 
       if (Array.isArray(parsed) && parsed[1] == 'wu') {
         const payload = parsed[2]
-        if (payload[1] == 'PNK') availablePNK = new BigNumber(payload[2])
-        else if (payload[1] == 'ETH') availableETH = new BigNumber(payload[2])
-        else console.log('Unhandled wallet update.')
+        if (payload[1] == 'PNK') {
+          availablePNK = new BigNumber(payload[2])
+          console.log('availablePNK updated.')
+        } else if (payload[1] == 'ETH') {
+          availableETH = new BigNumber(payload[2])
+          console.log('availableETH updated.')
+        } else console.log('Unhandled wallet update.')
       }
 
       if (
