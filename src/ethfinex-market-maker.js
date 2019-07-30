@@ -54,7 +54,7 @@ module.exports = {
       )
     }
     const chunks = chunk(orders, 15).map(c => [0, 'ox_multi', null, c])
-
+    console.log(JSON.stringify(chunks))
     return chunks
   },
 
@@ -181,7 +181,7 @@ module.exports = {
           new BigNumber(spread),
           reserve
         )
-        for (batch of orders) w.send(JSON.stringify(batch))
+        //for (batch of orders) w.send(JSON.stringify(batch))
       }
     })
     const authenticationPayload = function() {
