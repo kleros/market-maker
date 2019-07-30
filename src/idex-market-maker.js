@@ -32,6 +32,8 @@ module.exports = {
       reserve
     )
 
+    console.log(rawOrders.map(x => x.eth.div(x.pnk)).toString())
+
     const orders = []
     for (let i = 0; i < rawOrders.length; i++) {
       if (rawOrders[i].pnk.lt(new BigNumber(0))) {
@@ -113,8 +115,6 @@ module.exports = {
     if ((await idexWrapper.getOpenOrders(address)).length == 0) {
       var orders = module.exports.getOrders(steps, size, spread, reserve)
 
-      console.log(orders.map(order => order.eth.div(order.pnk).toString()))
-
       for (let i = 0; i < orders.length; i++) {
         const nonce = await idexWrapper.getNextNonce(address)
         if (typeof nonce.nonce !== 'number') {
@@ -146,6 +146,7 @@ module.exports = {
   autoMarketMake: async function(steps, spread) {
     let reserve
     let date
+    let state
     const checksumAddress = web3.utils.toChecksumAddress(
       process.env.IDEX_ADDRESS
     )
@@ -201,12 +202,12 @@ module.exports = {
           lowestAsk.plus(highestBid).div(new BigNumber(2))
         )
 
-        assert(
-          new BigNumber(steps).times(MIN_ETH_SIZE).lt(reserve.eth),
-          `Your reserve cannot cover this many orders. Max number of steps you can afford: ${reserve.eth.div(
-            MIN_ETH_SIZE
-          )}.`
-        )
+        // assert(
+        //   new BigNumber(steps).times(MIN_ETH_SIZE).lt(reserve.eth),
+        //   `Your reserve cannot cover this many orders. Max number of steps you can afford: ${reserve.eth.div(
+        //     MIN_ETH_SIZE
+        //   )}.`
+        // )
 
         await module.exports.placeStaircaseOrders(
           checksumAddress,
