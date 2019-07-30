@@ -103,7 +103,7 @@ module.exports = {
             nonce
           )
 
-          if (reponse.success) console.log('✔️')
+          if (response.success) console.log('✔️')
           else console.log('❌')
         }
       } catch (e) {
@@ -139,7 +139,7 @@ module.exports = {
               orders[i],
               nonce
             )
-            if (reponse.success) console.log('✔️')
+            if (response.success) console.log('✔️')
             else console.log('❌')
           } catch (e) {
             console.log(e)
