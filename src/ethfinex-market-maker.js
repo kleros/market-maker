@@ -13,7 +13,7 @@ const ETHFINEX_WEBSOCKET_API = 'wss://api.ethfinex.com/ws/2/'
 BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
 const SYMBOL = 'tPNKETH'
-const ORDER_INTERVAL = new BigNumber(0.00075)
+const ORDER_INTERVAL = new BigNumber(0.00025)
 const MIN_ETH_SIZE = new BigNumber(0.02)
 
 function sleep(ms) {
