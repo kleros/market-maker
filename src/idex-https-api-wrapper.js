@@ -107,7 +107,6 @@ module.exports = {
     const vrs = mapValues(ecsign(salted, toBuffer(privateKey)), (value, key) =>
       key === 'v' ? value : bufferToHex(value)
     )
-    console.log(Object.assign(args, vrs))
     return Object.assign(args, vrs)
   },
 
@@ -180,7 +179,6 @@ module.exports = {
     const vrs = mapValues(ecsign(salted, toBuffer(privateKey)), (value, key) =>
       key === 'v' ? value : bufferToHex(value)
     )
-    console.log(Object.assign(args, vrs))
     return Object.assign(args, vrs)
   },
 
