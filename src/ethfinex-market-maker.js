@@ -179,6 +179,23 @@ module.exports = {
 
         reserve.eth = reserve.eth.plus(etherAmount)
         reserve.pnk = reserve.pnk.plus(pinakionAmount)
+
+        const currentReservePrice = reserve.eth.div(reserve.pnk)
+
+        const newReserve = calculateMaximumReserve(
+          availableETH,
+          availablePNK,
+          currentReservePrice
+        )
+
+        if (
+          newReserve.eth
+            .times(newReserve.pnk)
+            .gt(reserve.eth.times(reserve.pnk))
+        )
+          console.log('Reserve expanded.')
+        reserve = newReserve
+
         const orders = module.exports.getOrders(
           parseInt(steps),
           MIN_ETH_SIZE,
