@@ -101,11 +101,11 @@ module.exports = {
             nonce
           )
         }
+        console.log('')
       } catch (e) {
         console.log(e)
       }
     }
-    console.log('')
   },
   placeStaircaseOrders: async function(
     address,
