@@ -81,7 +81,6 @@ module.exports = {
       try {
         const openOrders = await idexWrapper.getOpenOrders(address)
 
-        console.log(openOrders)
         if (Array.isArray(openOrders) && openOrders.length == 0) {
           console.log('No open order left.')
           break
