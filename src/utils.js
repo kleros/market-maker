@@ -4,8 +4,8 @@ BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
 module.exports = {
   calculateMaximumReserve: function(availableETH, availablePNK, initialPrice) {
-    // assert(availableETH.gt(0) && availablePNK.gt(0))
-    // assert(initialPrice.gt(0.000004) && initialPrice.lt(0.0004))
+    assert(availableETH.gt(0) && availablePNK.gt(0))
+    assert(initialPrice.gt(0.000004) && initialPrice.lt(0.0004))
 
     const etherValueOfAvailablePinakion = availablePNK.times(initialPrice)
     const isEtherTheLimitingResource = etherValueOfAvailablePinakion.gt(
@@ -27,10 +27,10 @@ module.exports = {
   },
 
   getStaircaseOrders: function(steps, sizeInEther, spread, interval, reserve) {
-    // assert(sizeInEther.gt(0) && sizeInEther.lt(100))
-    // assert(spread.gt(0.001) && spread.lt(1))
-    // assert(interval.gt(0) && interval.lt(spread))
-    // assert(reserve.eth.gt(0) && reserve.pnk.gt(0))
+    assert(sizeInEther.gt(0) && sizeInEther.lt(100))
+    assert(spread.gt(0.001) && spread.lt(1))
+    assert(interval.gt(0) && interval.lt(spread))
+    assert(reserve.eth.gt(0) && reserve.pnk.gt(0))
 
     const orders = []
     for (let i = 0; i < steps; i++) {

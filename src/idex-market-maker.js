@@ -22,6 +22,12 @@ const ORDER_INTERVAL = new BigNumber(0.0005)
 const MIN_ETH_SIZE = new BigNumber(0.15)
 const decimals = new BigNumber('10').pow(new BigNumber('18'))
 
+AutoMarketMakerState = {
+  AWAITING: 0,
+  PLACING: 1,
+  CLEARING: 2
+}
+
 module.exports = {
   getOrders: function(steps, sizeInEther, spread, reserve) {
     const rawOrders = getStaircaseOrders(
@@ -146,7 +152,7 @@ module.exports = {
   autoMarketMake: async function(steps, spread) {
     let reserve
     let date
-    let state
+    let state = AutoMarketMakerState.AWAITING
     const checksumAddress = web3.utils.toChecksumAddress(
       process.env.IDEX_ADDRESS
     )
@@ -202,13 +208,14 @@ module.exports = {
           lowestAsk.plus(highestBid).div(new BigNumber(2))
         )
 
-        // assert(
-        //   new BigNumber(steps).times(MIN_ETH_SIZE).lt(reserve.eth),
-        //   `Your reserve cannot cover this many orders. Max number of steps you can afford: ${reserve.eth.div(
-        //     MIN_ETH_SIZE
-        //   )}.`
-        // )
+        assert(
+          new BigNumber(steps).times(MIN_ETH_SIZE).lt(reserve.eth),
+          `Your reserve cannot cover this many orders. Max number of steps you can afford: ${reserve.eth.div(
+            MIN_ETH_SIZE
+          )}.`
+        )
 
+        state = AutoMarketMakerState.PLACING
         await module.exports.placeStaircaseOrders(
           checksumAddress,
           process.env.IDEX_SECRET,
@@ -217,6 +224,7 @@ module.exports = {
           new BigNumber(spread),
           reserve
         )
+        state = AutoMarketMakerState.AWAITING
 
         date = new Date()
 
@@ -229,7 +237,10 @@ module.exports = {
         )
       }
 
-      if (parsed.event === 'account_trades') {
+      if (
+        parsed.event === 'account_trades' &&
+        state == AutoMarketMakerState.AWAITING
+      ) {
         const payload = JSON.parse(parsed.payload)
         const trade = payload.trades[0]
         const pnkAmount = trade.amount
@@ -244,10 +255,12 @@ module.exports = {
           reserve.eth = reserve.eth.plus(new BigNumber(ethAmount))
         }
 
+        state = AutoMarketMakerState.CLEARING
         await module.exports.clearOrders(
           checksumAddress,
           process.env.IDEX_SECRET
         )
+        state = AutoMarketMakerState.PLACING
 
         await module.exports.placeStaircaseOrders(
           checksumAddress,
@@ -257,6 +270,7 @@ module.exports = {
           new BigNumber(spread),
           reserve
         )
+        state = AutoMarketMakerState.AWAITING
 
         date = new Date()
 
