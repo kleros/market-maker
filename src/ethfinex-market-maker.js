@@ -182,6 +182,7 @@ module.exports = {
         parsed[1] == 'te' &&
         parsed[2][1] == SYMBOL
       ) {
+        await Promise(resolve => setTimeout(resolve, 3000))
         console.log('Cancelling orders...')
         w.send(CANCEL_ALL_ORDERS)
         const tradeExecutionLog = parsed[2]
