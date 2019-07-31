@@ -44,6 +44,13 @@ module.exports = {
     const orders = []
 
     for (let i = 0; i < rawOrders.length; i++) {
+      const orderAmount = rawOrders[i].pnk
+      const orderPrice = rawOrders[i].eth.div(rawOrders[i].pnk).absoluteValue()
+
+      if (orderAmount.isPositive())
+        assert(orderPrice.lt(reserve.eth.div(reserve.pnk)))
+      else assert(orderPrice.gt(reserve.eth.div(reserve.pnk)))
+
       orders.push(
         newExchangeLimitOrder(
           rawOrders[i].pnk.toString(),
@@ -194,6 +201,7 @@ module.exports = {
           reserve
         )
         console.log('Placing orders...')
+
         for (batch of orders) w.send(JSON.stringify(batch))
       }
     })
