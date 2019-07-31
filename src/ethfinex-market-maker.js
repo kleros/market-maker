@@ -125,13 +125,14 @@ module.exports = {
       }
 
       if (reserve) {
-        assert(
-          new BigNumber(steps).times(MIN_ETH_SIZE).lt(reserve.eth),
-          `Your reserve cannot cover this many orders. Max number of steps you can afford: ${reserve.eth.div(
-            MIN_ETH_SIZE
-          )}.`
-        )
-
+        if (new BigNumber(steps).times(MIN_ETH_SIZE).lt(reserve.eth)) {
+          console.log(
+            `Your reserve cannot cover this many orders. Max number of steps you can afford: ${reserve.eth
+              .div(MIN_ETH_SIZE)
+              .toFixed(0, BigNumber.ROUND_DOWN)}. Reducing steps.`
+          )
+          steps = reserve.eth.div(MIN_ETH_SIZE).toFixed(0, BigNumber.ROUND_DOWN)
+        }
         if (!initialOrdersPlaced) {
           const orders = module.exports.getOrders(
             parseInt(steps),
