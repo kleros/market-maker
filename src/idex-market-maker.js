@@ -213,13 +213,6 @@ module.exports = {
           } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
         )
 
-        assert(
-          new BigNumber(steps).times(MIN_ETH_SIZE).lt(reserve.eth),
-          `Your reserve cannot cover this many orders. Max number of steps you can afford: ${reserve.eth.div(
-            MIN_ETH_SIZE
-          )}.`
-        )
-
         if (new BigNumber(steps).times(MIN_ETH_SIZE).lt(reserve.eth)) {
           console.log(
             `Your reserve cannot cover this many orders. Max number of steps you can afford: ${reserve.eth
