@@ -14,7 +14,7 @@ BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
 const SYMBOL = 'tPNKETH'
 const ORDER_INTERVAL = new BigNumber(0.00025)
-const MIN_ETH_SIZE = new BigNumber(0.02)
+const MIN_ETH_SIZE = new BigNumber(0.05)
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -66,6 +66,7 @@ module.exports = {
   },
 
   autoMarketMake: async (steps, spread) => {
+    assert(steps <= 128, 'You exceeded Ethfinex maximum order limit.')
     let initialOrdersPlaced = false
 
     const w = new WS(ETHFINEX_WEBSOCKET_API)
