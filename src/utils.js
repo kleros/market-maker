@@ -38,8 +38,8 @@ module.exports = {
         .div(reserve.pnk)
         .times(
           new BigNumber(1)
-            .plus(spread.div(new BigNumber(2)))
-            .plus(interval.times(new BigNumber(steps - 1 - i)))
+            .plus(spread.div(2))
+            .plus(interval.times(steps - 1 - i))
         )
       assert(orderPrice.gt(reserve.eth.div(reserve.pnk)))
 
@@ -53,8 +53,8 @@ module.exports = {
         .div(reserve.pnk)
         .times(
           new BigNumber(1)
-            .minus(spread.div(new BigNumber(2)))
-            .minus(interval.times(new BigNumber(steps - 1 - i)))
+            .minus(spread.div(2))
+            .minus(interval.times(steps - 1 - i))
         )
 
       assert(orderPrice.lt(reserve.eth.div(reserve.pnk)))
