@@ -1,6 +1,6 @@
 {
   "name": "@kleros/market-maker",
-  "version": "2.1.7",
+  "version": "2.1.8",
   "main": "index.js",
   "bin": "index.js",
   "repository": "https://github.com/kleros/market-maker.git",
