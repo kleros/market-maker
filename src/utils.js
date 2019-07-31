@@ -46,7 +46,7 @@ module.exports = {
       let sizeInPinakion = sizeInEther.div(orderPrice)
       const sellOrder = {
         eth: sizeInEther,
-        pnk: new BigNumber('-1').times(sizeInPinakion)
+        pnk: sizeInPinakion.times(-1)
       }
 
       orderPrice = reserve.eth
@@ -63,7 +63,7 @@ module.exports = {
 
       const buyOrder = {
         pnk: sizeInPinakion,
-        eth: new BigNumber('-1').times(sizeInEther)
+        eth: sizeInEther.times(-1)
       }
 
       orders.push(sellOrder)
