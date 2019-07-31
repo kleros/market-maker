@@ -14,7 +14,7 @@ BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
 const SYMBOL = 'tPNKETH'
 const ORDER_INTERVAL = new BigNumber(0.00025)
-const MIN_ETH_SIZE = new BigNumber(0.05)
+const MIN_ETH_SIZE = new BigNumber(0.15)
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
