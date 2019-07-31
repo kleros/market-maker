@@ -34,7 +34,7 @@ module.exports = {
 
     const orders = []
     for (let i = 0; i < steps; i++) {
-      let orderPrice = reserve.eth
+      const sellOrderPrice = reserve.eth
         .div(reserve.pnk)
         .times(
           new BigNumber(1)
@@ -43,13 +43,13 @@ module.exports = {
         )
       assert(orderPrice.gt(reserve.eth.div(reserve.pnk)))
 
-      let sizeInPinakion = sizeInEther.div(orderPrice)
+      let sizeInPinakion = sizeInEther.div(sellOrderPrice)
       const sellOrder = {
         eth: sizeInEther,
         pnk: sizeInPinakion.times(-1)
       }
 
-      orderPrice = reserve.eth
+      const buyOrderPrice = reserve.eth
         .div(reserve.pnk)
         .times(
           new BigNumber(1)
@@ -59,7 +59,7 @@ module.exports = {
 
       assert(orderPrice.lt(reserve.eth.div(reserve.pnk)))
 
-      sizeInPinakion = sizeInEther.div(orderPrice)
+      sizeInPinakion = sizeInEther.div(buyOrderPrice)
 
       const buyOrder = {
         pnk: sizeInPinakion,
