@@ -41,6 +41,7 @@ module.exports = {
             .plus(spread.div(new BigNumber(2)))
             .plus(interval.times(new BigNumber(steps - 1 - i)))
         )
+      assert(orderPrice.gt(reserve.eth.div(reserve.pnk)))
 
       let sizeInPinakion = sizeInEther.div(orderPrice)
       const sellOrder = {
@@ -55,6 +56,8 @@ module.exports = {
             .minus(spread.div(new BigNumber(2)))
             .minus(interval.times(new BigNumber(steps - 1 - i)))
         )
+
+      assert(orderPrice.lt(reserve.eth.div(reserve.pnk)))
 
       sizeInPinakion = sizeInEther.div(orderPrice)
 
