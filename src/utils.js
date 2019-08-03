@@ -14,19 +14,68 @@ module.exports = {
       ? true
       : false
 
-    if (isEtherTheLimitingResource)
+    if (isEtherTheLimitingResource) {
+      assert(availableETH.gt(0) && availableETH.div(initialPrice).gt(0))
       return {
         eth: availableETH,
         pnk: availableETH.div(initialPrice)
       }
-    else
+    } else {
+      assert(availableETH.times(initialPrice).gt(0) && availablePNK.gt(0))
       return {
         eth: availablePNK.times(initialPrice),
         pnk: availablePNK
       }
+    }
   },
 
-  getStaircaseOrders: function(steps, sizeInEther, spread, interval, reserve) {
+  getSimpleStaircaseOrders: function(
+    steps,
+    sizeInEther,
+    spread,
+    interval,
+    priceCenter
+  ) {
+    assert(sizeInEther.gt(0) && sizeInEther.lt(100))
+    assert(spread.gt(0.001) && spread.lt(1))
+    assert(interval.gt(0) && interval.lt(spread))
+
+    const orders = []
+    for (let i = 0; i < steps; i++) {
+      const sellOrderPrice = priceCenter.times(
+        new BigNumber(1).plus(spread.div(2)).plus(interval.times(i))
+      )
+      assert(sellOrderPrice.gt(priceCenter))
+
+      sellOrder = {
+        pnk: sizeInEther.div(sellOrderPrice),
+        eth: sizeInEther
+      }
+
+      const buyOrderPrice = priceCenter.times(
+        new BigNumber(1).minus(spread.div(2)).minus(interval.times(i))
+      )
+
+      buyOrder = {
+        pnk: sizeInEther.div(buyOrderPrice),
+        eth: sizeInEther
+      }
+
+      assert(buyOrderPrice.lt(priceCenter))
+
+      orders.push(sellOrder)
+      orders.push(buyOrder)
+    }
+    return orders
+  },
+
+  getBoundingCurveStaircaseOrders: function(
+    steps,
+    sizeInEther,
+    spread,
+    interval,
+    reserve
+  ) {
     assert(sizeInEther.gt(0) && sizeInEther.lt(100))
     assert(spread.gt(0.001) && spread.lt(1))
     assert(interval.gt(0) && interval.lt(spread))
@@ -35,12 +84,10 @@ module.exports = {
     const orders = []
     for (let i = 0; i < steps; i++) {
       const sellOrderPrice = reserve.eth
-        .div(reserve.pnk)
-        .times(
-          new BigNumber(1)
-            .plus(spread.div(2))
-            .plus(interval.times(steps - 1 - i))
-        )
+        .plus(sizeInEther.times(i + 1))
+        .pow(2)
+        .div(reserve.pnk.times(reserve.eth))
+
       assert(sellOrderPrice.gt(reserve.eth.div(reserve.pnk)))
 
       let sizeInPinakion = sizeInEther.div(sellOrderPrice)
@@ -50,12 +97,9 @@ module.exports = {
       }
 
       const buyOrderPrice = reserve.eth
-        .div(reserve.pnk)
-        .times(
-          new BigNumber(1)
-            .minus(spread.div(2))
-            .minus(interval.times(steps - 1 - i))
-        )
+        .minus(sizeInEther.times(i + 1))
+        .pow(2)
+        .div(reserve.pnk.times(reserve.eth))
 
       assert(buyOrderPrice.lt(reserve.eth.div(reserve.pnk)))
 
