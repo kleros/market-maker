@@ -171,7 +171,10 @@ module.exports = {
         await sleep(2000)
         release()
         flag++
-        if (flag > 10) process.exit(5)
+        if (flag > 20) {
+          console.log('Kill switch...')
+          process.exit(5)
+        }
       }
     })
     const authenticationPayload = function() {
