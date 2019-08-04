@@ -214,34 +214,32 @@ module.exports = {
         const ethAmount = trade.total
         const isBuy = trade.tokenSell == ETHER
 
-        if (isBuy) {
-          tradeAmounts.buy = tradeAmounts.buy.plus(ethAmount)
-          if (
+        isBuy
+          ? (tradeAmounts.buy = tradeAmounts.buy.plus(ethAmount))
+          : (tradeAmounts.sell = tradeAmounts.sell.plus(ethAmount))
+
+        tradeAmounts.buy.gte(
+          MIN_ETH_SIZE.times(new BigNumber(1).minus(ORDER_SIZE_RANDOMNESS))
+        ) ||
+        tradeAmounts.sell.gte(
+          MIN_ETH_SIZE.times(new BigNumber(1).minus(ORDER_SIZE_RANDOMNESS))
+        )
+          ? console.log(
+              `New price center: ${(priceCenter = priceCenter.times(
+                new BigNumber(1).minus(ORDER_INTERVAL * 3)
+              ))}`
+            )
+          : console.log(`Trade amounts: ${JSON.stringify(tradeAmounts)}`)
+
+        if (
+          (!mutex.isLocked() &&
             tradeAmounts.buy.gte(
               MIN_ETH_SIZE.times(new BigNumber(1).minus(ORDER_SIZE_RANDOMNESS))
-            )
-          ) {
-            priceCenter = priceCenter.times(
-              new BigNumber(1).minus(ORDER_INTERVAL * 3)
-            )
-            console.log(`New price center: ${priceCenter}`)
-          }
-        } else {
-          tradeAmounts.sell = tradeAmounts.sell.plus(ethAmount)
-          if (
-            tradeAmounts.sell.gte(
-              MIN_ETH_SIZE.times(new BigNumber(1).minus(ORDER_SIZE_RANDOMNESS))
-            )
-          ) {
-            priceCenter = priceCenter.times(
-              new BigNumber(1).plus(ORDER_INTERVAL * 3)
-            )
-            console.log(`New price center: ${priceCenter}`)
-          }
-        }
-
-        console.log(JSON.stringify(tradeAmounts))
-        if (!mutex.isLocked()) {
+            )) ||
+          tradeAmounts.sell.gte(
+            MIN_ETH_SIZE.times(new BigNumber(1).minus(ORDER_SIZE_RANDOMNESS))
+          )
+        ) {
           // If in the middle of replacing, skip this trigger.
           const release = await mutex.acquire()
           await module.exports.clearOrders(
@@ -257,6 +255,9 @@ module.exports = {
             new BigNumber(spread),
             priceCenter
           )
+
+          tradeAmounts.buy = new BigNumber(0)
+          tradeAmounts.sell = new BigNumber(0)
 
           release()
         }
