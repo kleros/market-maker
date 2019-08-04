@@ -89,7 +89,7 @@ module.exports = {
       })
       .then(function(response) {
         if (response.success) process.stdout.write('✔️')
-        else log(response)
+        else console.log(response)
       })
   },
 
@@ -141,7 +141,7 @@ module.exports = {
       })
       .then(function(response) {
         if (response.orderHash) process.stdout.write('✔️')
-        else log(response)
+        else console.log(response)
       })
   },
 
