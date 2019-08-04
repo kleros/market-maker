@@ -19,7 +19,7 @@ const web3 = new Web3(
   new Web3.providers.HttpProvider(process.env.ETHEREUM_PROVIDER)
 )
 const ORDER_INTERVAL = new BigNumber(0.0005)
-const MIN_ETH_SIZE = new BigNumber(0.155)
+const MIN_ETH_SIZE = new BigNumber(0.2)
 const ORDER_SIZE_RANDOMNESS = 0.03
 const decimals = new BigNumber('10').pow(new BigNumber('18'))
 
@@ -157,6 +157,7 @@ module.exports = {
     let date
     let priceCenter
     const mutex = new Mutex()
+    const tradeAmounts = { buy: new BigNumber(0), sell: new BigNumber(0) }
     const checksumAddress = web3.utils.toChecksumAddress(
       process.env.IDEX_ADDRESS
     )
@@ -214,16 +215,32 @@ module.exports = {
         const isBuy = trade.tokenSell == ETHER
 
         if (isBuy) {
-          priceCenter = priceCenter.times(
-            new BigNumber(1).minus(ORDER_INTERVAL * 3)
-          )
-          console.log(`New price center: ${priceCenter}`)
+          tradeAmounts.buy = tradeAmounts.buy.plus(total)
+          if (
+            tradeAmounts.buy.gte(
+              MIN_ETH_SIZE.times(new BigNumber(1).minus(ORDER_SIZE_RANDOMNESS))
+            )
+          ) {
+            priceCenter = priceCenter.times(
+              new BigNumber(1).minus(ORDER_INTERVAL * 3)
+            )
+            console.log(`New price center: ${priceCenter}`)
+          }
         } else {
-          priceCenter = priceCenter.times(
-            new BigNumber(1).plus(ORDER_INTERVAL * 3)
-          )
-          console.log(`New price center: ${priceCenter}`)
+          tradeAmounts.sell = tradeAmounts.sell.plus(total)
+          if (
+            tradeAmounts.sell.gte(
+              MIN_ETH_SIZE.times(new BigNumber(1).minus(ORDER_SIZE_RANDOMNESS))
+            )
+          ) {
+            priceCenter = priceCenter.times(
+              new BigNumber(1).plus(ORDER_INTERVAL * 3)
+            )
+            console.log(`New price center: ${priceCenter}`)
+          }
         }
+
+        console.log(JSON.stringify(tradeAmounts))
         if (!mutex.isLocked()) {
           // If in the middle of replacing, skip this trigger.
           const release = await mutex.acquire()
