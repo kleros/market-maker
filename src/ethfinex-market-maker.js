@@ -124,6 +124,7 @@ module.exports = {
 
       if (parsed.event == 'info') {
         const ticker = await ethfinexRestWrapper.getTicker()
+        console.log(ticker)
         highestBid = new BigNumber(ticker[0])
         lowestAsk = new BigNumber(ticker[2])
       }
@@ -147,11 +148,11 @@ module.exports = {
         let newPriceCenter
         if (pinakionAmount.gt(0))
           newPriceCenter = priceCenter.times(
-            new BigNumber(1).minus(ORDER_INTERVAL)
+            new BigNumber(1).minus(ORDER_INTERVAL.times(3))
           )
         else if (pinakionAmount.lt(0)) {
           newPriceCenter = priceCenter.times(
-            new BigNumber(1).plus(ORDER_INTERVAL)
+            new BigNumber(1).plus(ORDER_INTERVAL.times(3))
           )
         }
 
