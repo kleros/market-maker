@@ -66,6 +66,8 @@ module.exports = {
   },
 
   autoMarketMake: async (steps, spread) => {
+    const mutex = new Mutex()
+
     const replaceOrders = async function(mutex) {
       const release = await mutex.acquire()
       console.log('Cancelling orders...')
@@ -109,8 +111,6 @@ module.exports = {
     let highestBid
     let lowestAsk
     let orders
-
-    const mutex = new Mutex()
 
     if (
       typeof process.env.ETHFINEX_KEY === 'undefined' ||
