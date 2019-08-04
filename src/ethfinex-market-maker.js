@@ -134,8 +134,10 @@ module.exports = {
 
       if (
         Array.isArray(parsed) &&
-        parsed[1] == 'te' &&
-        parsed[2][1] == SYMBOL
+        parsed[0] == 0 &&
+        parsed[1] === 'oc' &&
+        Array.isArray(parsed[2]) &&
+        parsed[2][6] == 0 // Updated amount, if equals to zero means the orders was fully filled.
       ) {
         const release = await mutex.acquire()
         console.log('Cancelling orders...')
