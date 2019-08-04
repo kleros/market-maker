@@ -68,32 +68,6 @@ module.exports = {
   autoMarketMake: async (steps, spread) => {
     const mutex = new Mutex()
     let flag = 0
-    const replaceOrders = async function() {
-      const release = await mutex.acquire()
-      console.log('Cancelling orders...')
-      w.send(CANCEL_ALL_ORDERS)
-
-      const tradeExecutionLog = parsed[2]
-      const pinakionAmount = new BigNumber(tradeExecutionLog[4])
-      const price = new BigNumber(tradeExecutionLog[5])
-
-      let newPriceCenter
-      if (pinakionAmount.gt(0))
-        newPriceCenter = price.times(new BigNumber(1).minus(ORDER_INTERVAL))
-      else if (pinakionAmount.lt(0))
-        newPriceCenter = price.times(new BigNumber(1).plus(ORDER_INTERVAL))
-
-      const orders = module.exports.getOrders(
-        parseInt(steps),
-        MIN_ETH_SIZE,
-        new BigNumber(spread),
-        newPriceCenter
-      )
-      console.log('Placing orders...')
-
-      for (batch of orders) w.send(JSON.stringify(batch))
-      release()
-    }
 
     assert(steps <= 128, 'You exceeded Ethfinex maximum order limit.')
     let initialOrdersPlaced = false
@@ -160,7 +134,30 @@ module.exports = {
         parsed[1] == 'te' &&
         parsed[2][1] == SYMBOL
       ) {
-        replaceOrders()
+        const release = await mutex.acquire()
+        console.log('Cancelling orders...')
+        w.send(CANCEL_ALL_ORDERS)
+
+        const tradeExecutionLog = parsed[2]
+        const pinakionAmount = new BigNumber(tradeExecutionLog[4])
+        const price = new BigNumber(tradeExecutionLog[5])
+
+        let newPriceCenter
+        if (pinakionAmount.gt(0))
+          newPriceCenter = price.times(new BigNumber(1).minus(ORDER_INTERVAL))
+        else if (pinakionAmount.lt(0))
+          newPriceCenter = price.times(new BigNumber(1).plus(ORDER_INTERVAL))
+
+        const orders = module.exports.getOrders(
+          parseInt(steps),
+          MIN_ETH_SIZE,
+          new BigNumber(spread),
+          newPriceCenter
+        )
+        console.log('Placing orders...')
+
+        for (batch of orders) w.send(JSON.stringify(batch))
+        release()
         flag++
         if (flag > 2) process.exit(5)
       }
