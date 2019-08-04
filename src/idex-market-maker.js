@@ -2,6 +2,7 @@ const WS = require('ws')
 const Web3 = require('web3')
 const assert = require('assert')
 const BigNumber = require('bignumber.js')
+const Mutex = require('async-mutex').Mutex
 
 BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
@@ -12,8 +13,7 @@ const PINAKION = '0x93ED3FBe21207Ec2E8f2d3c3de6e058Cb73Bc04d'
 const ETHER = '0x0000000000000000000000000000000000000000'
 const MARKET = 'ETH_PNK'
 const idexWrapper = require('./idex-https-api-wrapper')
-const calculateMaximumReserve = require('./utils').calculateMaximumReserve
-const getStaircaseOrders = require('./utils').getStaircaseOrders
+const utils = require('./utils')
 
 const web3 = new Web3(
   new Web3.providers.HttpProvider(process.env.ETHEREUM_PROVIDER)
@@ -23,20 +23,14 @@ const MIN_ETH_SIZE = new BigNumber(0.155)
 const ORDER_SIZE_RANDOMNESS = 0.03
 const decimals = new BigNumber('10').pow(new BigNumber('18'))
 
-AutoMarketMakerState = {
-  AWAITING: 0,
-  PLACING: 1,
-  CLEARING: 2
-}
-
 module.exports = {
-  getOrders: function(steps, sizeInEther, spread, reserve) {
-    const rawOrders = getStaircaseOrders(
+  getOrders: function(steps, sizeInEther, spread, priceCenter) {
+    const rawOrders = utils.getSimpleStaircaseOrders(
       steps,
       sizeInEther,
       spread,
       ORDER_INTERVAL,
-      reserve
+      priceCenter
     )
 
     const orders = []
@@ -125,10 +119,10 @@ module.exports = {
     steps,
     size,
     spread,
-    reserve
+    priceCenter
   ) {
     if ((await idexWrapper.getOpenOrders(address)).length == 0) {
-      var orders = module.exports.getOrders(steps, size, spread, reserve)
+      var orders = module.exports.getOrders(steps, size, spread, priceCenter)
       console.log('Placing orders...')
       for (let i = 0; i < orders.length; i++) {
         const nonce = await idexWrapper.getNextNonce(address)
@@ -160,25 +154,13 @@ module.exports = {
   },
 
   autoMarketMake: async function(steps, spread) {
-    let reserve
     let date
-    let state = AutoMarketMakerState.AWAITING
+    let priceCenter
+    const mutex = new Mutex()
     const checksumAddress = web3.utils.toChecksumAddress(
       process.env.IDEX_ADDRESS
     )
     w.on('message', async msg => {
-      if (reserve) {
-        date = new Date()
-
-        console.log(
-          `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
-            reserve.pnk
-          )} ETH: ${reserve.eth} | PNK: ${
-            reserve.pnk
-          } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
-        )
-      }
-
       const parsed = JSON.parse(msg)
       console.log(parsed)
       if (parsed.request === 'handshake' && parsed.result === 'success') {
@@ -206,64 +188,27 @@ module.exports = {
         const highestBid = new BigNumber(ticker.highestBid)
         const lowestAsk = new BigNumber(ticker.lowestAsk)
         const balances = await idexWrapper.getBalances(checksumAddress)
-        const availableETH = new BigNumber(balances['ETH'])
-        const availablePNK = new BigNumber(balances['PNK'])
 
         console.log('Account balance:')
         console.log(balances)
 
-        reserve = calculateMaximumReserve(
-          availableETH,
-          availablePNK,
-          lowestAsk.plus(highestBid).div(new BigNumber(2))
-        )
-        console.log(
-          `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
-            reserve.pnk
-          )} ETH: ${reserve.eth} | PNK: ${
-            reserve.pnk
-          } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
-        )
+        priceCenter = lowestAsk.plus(highestBid).div(2)
 
-        if (new BigNumber(steps).times(MIN_ETH_SIZE).lt(reserve.eth)) {
-          console.log(
-            `Your reserve cannot cover this many orders. Max number of steps you can afford: ${reserve.eth
-              .div(MIN_ETH_SIZE)
-              .div(2)
-              .toFixed(0, BigNumber.ROUND_DOWN)}. Reducing steps.`
-          )
-          steps = reserve.eth
-            .div(MIN_ETH_SIZE)
-            .div(2)
-            .toFixed(0, BigNumber.ROUND_DOWN)
-        }
-
-        state = AutoMarketMakerState.PLACING
         await module.exports.placeStaircaseOrders(
           checksumAddress,
           process.env.IDEX_SECRET,
           parseInt(steps),
           MIN_ETH_SIZE,
           new BigNumber(spread),
-          reserve
+          priceCenter
         )
-        state = AutoMarketMakerState.AWAITING
 
         date = new Date()
-
-        console.log(
-          `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
-            reserve.pnk
-          )} ETH: ${reserve.eth} | PNK: ${
-            reserve.pnk
-          } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
-        )
       }
 
-      if (
-        parsed.event === 'account_trades' &&
-        state == AutoMarketMakerState.AWAITING
-      ) {
+      if (parsed.event === 'account_trades') {
+        const release = mutex.acquire()
+
         const payload = JSON.parse(parsed.payload)
         const trade = payload.trades[0]
         const pnkAmount = trade.amount
@@ -271,19 +216,19 @@ module.exports = {
         const isBuy = trade.tokenSell == ETHER
 
         if (isBuy) {
-          reserve.pnk = reserve.pnk.plus(new BigNumber(pnkAmount))
-          reserve.eth = reserve.eth.minus(new BigNumber(ethAmount))
+          priceCenter = priceCenter.times(
+            new BigNumber(1).minus(ORDER_INTERVAL * 3)
+          )
         } else {
-          reserve.pnk = reserve.pnk.minus(new BigNumber(pnkAmount))
-          reserve.eth = reserve.eth.plus(new BigNumber(ethAmount))
+          priceCenter = priceCenter.times(
+            new BigNumber(1).plus(ORDER_INTERVAL * 3)
+          )
         }
 
-        state = AutoMarketMakerState.CLEARING
         await module.exports.clearOrders(
           checksumAddress,
           process.env.IDEX_SECRET
         )
-        state = AutoMarketMakerState.PLACING
 
         await module.exports.placeStaircaseOrders(
           checksumAddress,
@@ -291,19 +236,11 @@ module.exports = {
           parseInt(steps),
           MIN_ETH_SIZE,
           new BigNumber(spread),
-          reserve
+          priceCenter
         )
-        state = AutoMarketMakerState.AWAITING
 
         date = new Date()
-
-        console.log(
-          `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
-            reserve.pnk
-          )} ETH: ${reserve.eth} | PNK: ${
-            reserve.pnk
-          } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
-        )
+        release()
       }
     })
 
