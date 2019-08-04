@@ -129,6 +129,7 @@ module.exports = {
       const parsed = JSON.parse(msg)
 
       console.log(parsed)
+      console.log(`Mutex Locked: ${mutex.isLocked()}`)
 
       if (lowestAsk && highestBid) {
         if (!initialOrdersPlaced) {
