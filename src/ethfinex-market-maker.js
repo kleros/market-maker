@@ -66,6 +66,33 @@ module.exports = {
   },
 
   autoMarketMake: async (steps, spread) => {
+    const replaceOrders = async function(mutex) {
+      const release = await mutex.acquire()
+      console.log('Cancelling orders...')
+      w.send(CANCEL_ALL_ORDERS)
+      await Promise(resolve => setTimeout(resolve, 3000))
+      const tradeExecutionLog = parsed[2]
+      const pinakionAmount = new BigNumber(tradeExecutionLog[4])
+      const price = new BigNumber(tradeExecutionLog[5])
+
+      let newPriceCenter
+      if (pinakionAmount.gt(0))
+        newPriceCenter = price.times(new BigNumber(1).minus(ORDER_INTERVAL))
+      else if (pinakionAmount.lt(0))
+        newPriceCenter = price.times(new BigNumber(1).plus(ORDER_INTERVAL))
+
+      const orders = module.exports.getOrders(
+        parseInt(steps),
+        MIN_ETH_SIZE,
+        new BigNumber(spread),
+        newPriceCenter
+      )
+      console.log('Placing orders...')
+
+      for (batch of orders) w.send(JSON.stringify(batch))
+      release()
+    }
+
     assert(steps <= 128, 'You exceeded Ethfinex maximum order limit.')
     let initialOrdersPlaced = false
 
@@ -133,33 +160,6 @@ module.exports = {
         parsed[2][1] == SYMBOL
       ) {
         replaceOrders()
-      }
-
-      const replaceOrders = async function(mutex) {
-        const release = await mutex.acquire()
-        console.log('Cancelling orders...')
-        w.send(CANCEL_ALL_ORDERS)
-        await Promise(resolve => setTimeout(resolve, 3000))
-        const tradeExecutionLog = parsed[2]
-        const pinakionAmount = new BigNumber(tradeExecutionLog[4])
-        const price = new BigNumber(tradeExecutionLog[5])
-
-        let newPriceCenter
-        if (pinakionAmount.gt(0))
-          newPriceCenter = price.times(new BigNumber(1).minus(ORDER_INTERVAL))
-        else if (pinakionAmount.lt(0))
-          newPriceCenter = price.times(new BigNumber(1).plus(ORDER_INTERVAL))
-
-        const orders = module.exports.getOrders(
-          parseInt(steps),
-          MIN_ETH_SIZE,
-          new BigNumber(spread),
-          newPriceCenter
-        )
-        console.log('Placing orders...')
-
-        for (batch of orders) w.send(JSON.stringify(batch))
-        release()
       }
     })
     const authenticationPayload = function() {
