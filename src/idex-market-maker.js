@@ -207,8 +207,6 @@ module.exports = {
       }
 
       if (parsed.event === 'account_trades') {
-        const release = await mutex.acquire()
-
         const payload = JSON.parse(parsed.payload)
         const trade = payload.trades[0]
         const pnkAmount = trade.amount
@@ -219,12 +217,15 @@ module.exports = {
           priceCenter = priceCenter.times(
             new BigNumber(1).minus(ORDER_INTERVAL * 3)
           )
+          console.log(`New price center: ${priceCenter}`)
         } else {
           priceCenter = priceCenter.times(
             new BigNumber(1).plus(ORDER_INTERVAL * 3)
           )
+          console.log(`New price center: ${priceCenter}`)
         }
 
+        const release = await mutex.acquire()
         await module.exports.clearOrders(
           checksumAddress,
           process.env.IDEX_SECRET
@@ -239,7 +240,6 @@ module.exports = {
           priceCenter
         )
 
-        date = new Date()
         release()
       }
     })
