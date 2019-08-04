@@ -141,23 +141,20 @@ module.exports = {
         w.send(CANCEL_ALL_ORDERS)
         await Promise(resolve => setTimeout(resolve, 3000))
         const tradeExecutionLog = parsed[2]
-        const pinakionAmount = new BigNumber(tradeExecutionLog[4]).times(
-          new BigNumber(tradeExecutionLog[8])
-        )
+        const pinakionAmount = new BigNumber(tradeExecutionLog[4])
         const price = new BigNumber(tradeExecutionLog[5])
 
-        const etherAmount = pinakionAmount
-          .times(price)
-          .times(new BigNumber('-1'))
-
-        reserve.eth = reserve.eth.plus(etherAmount)
-        reserve.pnk = reserve.pnk.plus(pinakionAmount)
+        let newPriceCenter
+        if (pinakionAmount.gt(0))
+          newPriceCenter = price.times(new BigNumber(1).minus(ORDER_INTERVAL))
+        else if (pinakionAmount.lt(0))
+          newPriceCenter = price.times(new BigNumber(1).plus(ORDER_INTERVAL))
 
         const orders = module.exports.getOrders(
           parseInt(steps),
           MIN_ETH_SIZE,
           new BigNumber(spread),
-          reserve
+          newPriceCenter
         )
         console.log('Placing orders...')
 
