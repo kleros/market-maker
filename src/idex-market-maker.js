@@ -193,7 +193,7 @@ module.exports = {
         console.log(balances)
 
         priceCenter = lowestAsk.plus(highestBid).div(2)
-
+        console.log(`Price center: ${priceCenter}`)
         await module.exports.placeStaircaseOrders(
           checksumAddress,
           process.env.IDEX_SECRET,
@@ -224,23 +224,25 @@ module.exports = {
           )
           console.log(`New price center: ${priceCenter}`)
         }
+        if (!mutex.isLocked) {
+          // If in the middle of replacing, skip this trigger.
+          const release = await mutex.acquire()
+          await module.exports.clearOrders(
+            checksumAddress,
+            process.env.IDEX_SECRET
+          )
 
-        const release = await mutex.acquire()
-        await module.exports.clearOrders(
-          checksumAddress,
-          process.env.IDEX_SECRET
-        )
+          await module.exports.placeStaircaseOrders(
+            checksumAddress,
+            process.env.IDEX_SECRET,
+            parseInt(steps),
+            MIN_ETH_SIZE,
+            new BigNumber(spread),
+            priceCenter
+          )
 
-        await module.exports.placeStaircaseOrders(
-          checksumAddress,
-          process.env.IDEX_SECRET,
-          parseInt(steps),
-          MIN_ETH_SIZE,
-          new BigNumber(spread),
-          priceCenter
-        )
-
-        release()
+          release()
+        }
       }
     })
 
