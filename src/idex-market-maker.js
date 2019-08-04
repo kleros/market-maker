@@ -207,7 +207,7 @@ module.exports = {
       }
 
       if (parsed.event === 'account_trades') {
-        const release = mutex.acquire()
+        const release = await mutex.acquire()
 
         const payload = JSON.parse(parsed.payload)
         const trade = payload.trades[0]
