@@ -215,7 +215,7 @@ module.exports = {
         const isBuy = trade.tokenSell == ETHER
 
         if (isBuy) {
-          tradeAmounts.buy = tradeAmounts.buy.plus(total)
+          tradeAmounts.buy = tradeAmounts.buy.plus(ethAmount)
           if (
             tradeAmounts.buy.gte(
               MIN_ETH_SIZE.times(new BigNumber(1).minus(ORDER_SIZE_RANDOMNESS))
@@ -227,7 +227,7 @@ module.exports = {
             console.log(`New price center: ${priceCenter}`)
           }
         } else {
-          tradeAmounts.sell = tradeAmounts.sell.plus(total)
+          tradeAmounts.sell = tradeAmounts.sell.plus(ethAmount)
           if (
             tradeAmounts.sell.gte(
               MIN_ETH_SIZE.times(new BigNumber(1).minus(ORDER_SIZE_RANDOMNESS))
