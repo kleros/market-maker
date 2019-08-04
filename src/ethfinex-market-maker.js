@@ -155,12 +155,13 @@ module.exports = {
             new BigNumber(1).plus(ORDER_INTERVAL.times(3))
           )
         }
+        priceCenter = newPriceCenter
 
         const orders = module.exports.getOrders(
           parseInt(steps),
           MIN_ETH_SIZE,
           new BigNumber(spread),
-          newPriceCenter
+          priceCenter
         )
         console.log('Placing orders...')
 
