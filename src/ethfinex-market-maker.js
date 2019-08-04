@@ -72,7 +72,7 @@ module.exports = {
       const release = await mutex.acquire()
       console.log('Cancelling orders...')
       w.send(CANCEL_ALL_ORDERS)
-      await Promise(resolve => setTimeout(resolve, 3000))
+
       const tradeExecutionLog = parsed[2]
       const pinakionAmount = new BigNumber(tradeExecutionLog[4])
       const price = new BigNumber(tradeExecutionLog[5])
