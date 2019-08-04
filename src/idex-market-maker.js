@@ -224,11 +224,17 @@ module.exports = {
         tradeAmounts.sell.gte(
           MIN_ETH_SIZE.times(new BigNumber(1).minus(ORDER_SIZE_RANDOMNESS))
         )
-          ? console.log(
-              `New price center: ${(priceCenter = priceCenter.times(
-                new BigNumber(1).minus(ORDER_INTERVAL * 3)
-              ))}`
-            )
+          ? isBuy
+            ? console.log(
+                `New price center: ${(priceCenter = priceCenter.times(
+                  new BigNumber(1).minus(ORDER_INTERVAL * 3)
+                ))}`
+              )
+            : console.log(
+                `New price center: ${(priceCenter = priceCenter.times(
+                  new BigNumber(1).plus(ORDER_INTERVAL * 3)
+                ))}`
+              )
           : console.log(`Trade amounts: ${JSON.stringify(tradeAmounts)}`)
 
         if (
