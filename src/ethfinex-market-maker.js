@@ -68,7 +68,7 @@ module.exports = {
   autoMarketMake: async (steps, spread) => {
     const mutex = new Mutex()
     let flag = 0
-    const replaceOrders = async function(mutex) {
+    const replaceOrders = async function() {
       const release = await mutex.acquire()
       console.log('Cancelling orders...')
       w.send(CANCEL_ALL_ORDERS)
