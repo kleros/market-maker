@@ -1,19 +1,19 @@
 const assert = require('chai').assert
-const getStaircaseOrders = require('../src/ethfinex-market-maker.js')
-  .getStaircaseOrders
-const calculateMaximumReserve = require('../src/ethfinex-market-maker.js')
-  .calculateMaximumReserve
+const getBoundingCurveStaircaseOrders = require('../src/utils')
+  .getBoundingCurveStaircaseOrders
+const calculateMaximumReserve = require('../src/utils').calculateMaximumReserve
 const BigNumber = require('bignumber.js')
 
 BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
-const testCases = [
+const testCases_old = [
   {
     args: {
       steps: 3,
-      sizeInEther: new BigNumber(0.25),
+      sizeInEther: new BigNumber(0.15),
       spread: new BigNumber(0.005),
-      reserve: { ether: new BigNumber('12'), pinakion: new BigNumber(300000) }
+      interval: new BigNumber(0.00025),
+      reserve: { eth: new BigNumber('120'), pnk: new BigNumber(3000000) }
     },
     expected: [
       0,
@@ -85,6 +85,44 @@ const testCases = [
   }
 ]
 
+const testCases = [
+  {
+    args: {
+      steps: 3,
+      sizeInEther: new BigNumber(0.15),
+      spread: new BigNumber(0.005),
+      interval: new BigNumber(0.00025),
+      reserve: { eth: new BigNumber('120'), pnk: new BigNumber(3000000) }
+    },
+    expected: [
+      {
+        eth: new BigNumber(0.15),
+        pnk: new BigNumber('-3740.64254887383280262967')
+      },
+      {
+        eth: new BigNumber(-0.15),
+        pnk: new BigNumber('3759.39260746772013201734')
+      },
+      {
+        eth: new BigNumber(0.15),
+        pnk: new BigNumber('-3731.32007885523099980722')
+      },
+      {
+        eth: new BigNumber(-0.15),
+        pnk: new BigNumber('3768.82054760962556767859')
+      },
+      {
+        eth: new BigNumber(0.15),
+        pnk: new BigNumber('-3722.03241580064794380972')
+      },
+      {
+        eth: new BigNumber(-0.15),
+        pnk: new BigNumber('3778.28399786526954120612')
+      }
+    ]
+  }
+]
+
 const maximumReserveTestCases = [
   {
     args: {
@@ -92,7 +130,7 @@ const maximumReserveTestCases = [
       availablePinakion: new BigNumber(400000),
       lastPrice: new BigNumber(0.00004)
     },
-    expected: { ether: new BigNumber(12), pinakion: new BigNumber(300000) }
+    expected: { eth: new BigNumber(12), pnk: new BigNumber(300000) }
   },
   {
     args: {
@@ -100,7 +138,7 @@ const maximumReserveTestCases = [
       availablePinakion: new BigNumber(300000),
       lastPrice: new BigNumber(0.00004)
     },
-    expected: { ether: new BigNumber(12), pinakion: new BigNumber(300000) }
+    expected: { eth: new BigNumber(12), pnk: new BigNumber(300000) }
   },
   {
     args: {
@@ -108,41 +146,41 @@ const maximumReserveTestCases = [
       availablePinakion: new BigNumber(200000),
       lastPrice: new BigNumber(0.00004)
     },
-    expected: { ether: new BigNumber(8), pinakion: new BigNumber(200000) }
+    expected: { eth: new BigNumber(8), pnk: new BigNumber(200000) }
   }
 ]
 
-describe('Ethfinex Staircase Order Test', () => {
+describe('Bounding Curve Staircase Order Test', () => {
   for (const testCase of testCases)
     it(`should correctly calculate for ${JSON.stringify(
       testCase.args
     )}`, function() {
-      const actual = getStaircaseOrders(
+      const actual = getBoundingCurveStaircaseOrders(
         testCase.args.steps,
         testCase.args.sizeInEther,
         testCase.args.spread,
+        testCase.args.interval,
         testCase.args.reserve
       )
 
-      console.log(actual)
-      for (let i = 0; i < testCase.expected[3].length; i++) {
-        console.log(testCase.expected[3].length)
-        console.log(actual[3][i][1])
-        console.log(
-          new BigNumber(actual[3][i][1].amount)
-            .times(new BigNumber(actual[3][i][1].price))
-            .toString()
+      for (let i = 0; i < testCase.expected.length; i++) {
+        assert(
+          actual[i].eth.eq(testCase.expected[i].eth),
+          `Actual: ${actual[i].eth.toString()} Expected: ${testCase.expected[
+            i
+          ].eth.toString()}`
         )
-        // assert.equal(actual[3][i][0], testCase.expected[3][i][0])
-        // assert.equal(actual[3][i][1].amount, testCase.expected[3][i][1].amount)
-        // assert.equal(actual[3][i][1].price, testCase.expected[3][i][1].price)
-        // assert.equal(actual[3][i][1].symbol, testCase.expected[3][i][1].symbol)
-        // assert.equal(actual[3][i][1].type, testCase.expected[3][i][1].type)
+        assert(
+          actual[i].pnk.eq(testCase.expected[i].pnk),
+          `Actual: ${actual[i].pnk.toString()} Expected: ${testCase.expected[
+            i
+          ].pnk.toString()}`
+        )
       }
     })
 })
 
-describe('Ethfinex Maximum Reserve Calculation Test', () => {
+describe('Maximum Reserve Calculation Test', () => {
   for (const testCase of maximumReserveTestCases)
     it(`should correctly calculate for ${JSON.stringify(
       testCase.args

@@ -48,7 +48,7 @@ module.exports = {
       assert(sellOrderPrice.gt(priceCenter))
 
       sellOrder = {
-        pnk: sizeInEther.div(sellOrderPrice),
+        pnk: sizeInEther.div(sellOrderPrice).times(-1),
         eth: sizeInEther
       }
 
@@ -58,7 +58,7 @@ module.exports = {
 
       buyOrder = {
         pnk: sizeInEther.div(buyOrderPrice),
-        eth: sizeInEther
+        eth: sizeInEther.times(-1)
       }
 
       assert(buyOrderPrice.lt(priceCenter))

@@ -1,91 +1,49 @@
 const assert = require('chai').assert
-const getBoundingCurveStaircaseOrders = require('../src/utils')
-  .getBoundingCurveStaircaseOrders
-const calculateMaximumReserve = require('../src/utils').calculateMaximumReserve
+
+const utils = require('../src/utils')
 const BigNumber = require('bignumber.js')
 
 BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
-const testCases_old = [
+const simpleStaircaseTestCases = [
   {
     args: {
       steps: 3,
       sizeInEther: new BigNumber(0.15),
       spread: new BigNumber(0.005),
       interval: new BigNumber(0.00025),
-      reserve: { eth: new BigNumber('120'), pnk: new BigNumber(3000000) }
+      priceCenter: new BigNumber('0.00004')
     },
     expected: [
-      0,
-      'ox_multi',
-      null,
-      [
-        [
-          'on',
-          {
-            amount: '10000',
-            cid: null,
-            price: '0.0000447738693467336667',
-            symbol: 'tPNKETH',
-            type: 'EXCHANGE LIMIT'
-          }
-        ],
-        [
-          'on',
-          {
-            amount: '10000',
-            cid: null,
-            price: '0.00004475148241206029986665',
-            symbol: 'tPNKETH',
-            type: 'EXCHANGE LIMIT'
-          }
-        ],
-        [
-          'on',
-          {
-            amount: '-10000',
-            cid: null,
-            price: '0.00004522613065326633',
-            symbol: 'tPNKETH',
-            type: 'EXCHANGE LIMIT'
-          }
-        ],
-        [
-          'on',
-          {
-            amount: '-10000',
-            cid: null,
-            price: '0.000045248743718592963165',
-            symbol: 'tPNKETH',
-            type: 'EXCHANGE LIMIT'
-          }
-        ],
-        [
-          'on',
-          {
-            amount: '-10000',
-            cid: null,
-            price: '0.00004522613065326633',
-            symbol: 'tPNKETH',
-            type: 'EXCHANGE LIMIT'
-          }
-        ],
-        [
-          'on',
-          {
-            amount: '-10000',
-            cid: null,
-            price: '0.000045248743718592963165',
-            symbol: 'tPNKETH',
-            type: 'EXCHANGE LIMIT'
-          }
-        ]
-      ]
+      {
+        eth: new BigNumber(0.15),
+        pnk: new BigNumber('-3740.64837905236907730673')
+      },
+      {
+        eth: new BigNumber(-0.15),
+        pnk: new BigNumber('3759.3984962406015037594')
+      },
+      {
+        eth: new BigNumber(0.15),
+        pnk: new BigNumber('-3739.71578160059835452506')
+      },
+      {
+        eth: new BigNumber(-0.15),
+        pnk: new BigNumber('3760.34093757834043619955')
+      },
+      {
+        eth: new BigNumber(0.15),
+        pnk: new BigNumber('-3738.78364905284147557328')
+      },
+      {
+        eth: new BigNumber(-0.15),
+        pnk: new BigNumber('3761.28385155466399197593')
+      }
     ]
   }
 ]
 
-const testCases = [
+const boundingCurveTestCases = [
   {
     args: {
       steps: 3,
@@ -150,19 +108,50 @@ const maximumReserveTestCases = [
   }
 ]
 
-describe('Bounding Curve Staircase Order Test', () => {
-  for (const testCase of testCases)
+describe('Simple Staircase Order Test', () => {
+  for (const testCase of simpleStaircaseTestCases)
     it(`should correctly calculate for ${JSON.stringify(
       testCase.args
     )}`, function() {
-      const actual = getBoundingCurveStaircaseOrders(
+      const actual = utils.getSimpleStaircaseOrders(
+        testCase.args.steps,
+        testCase.args.sizeInEther,
+        testCase.args.spread,
+        testCase.args.interval,
+        testCase.args.priceCenter
+      )
+
+      assert.equal(testCase.args.steps * 2, testCase.expected.length)
+      for (let i = 0; i < testCase.expected.length; i++) {
+        assert(
+          actual[i].eth.eq(testCase.expected[i].eth),
+          `Actual: ${actual[i].eth.toString()} Expected: ${testCase.expected[
+            i
+          ].eth.toString()}`
+        )
+        assert(
+          actual[i].pnk.eq(testCase.expected[i].pnk),
+          `Actual: ${actual[i].pnk.toString()} Expected: ${testCase.expected[
+            i
+          ].pnk.toString()}`
+        )
+      }
+    })
+})
+
+describe('Bounding Curve Staircase Order Test', () => {
+  for (const testCase of boundingCurveTestCases)
+    it(`should correctly calculate for ${JSON.stringify(
+      testCase.args
+    )}`, function() {
+      const actual = utils.getBoundingCurveStaircaseOrders(
         testCase.args.steps,
         testCase.args.sizeInEther,
         testCase.args.spread,
         testCase.args.interval,
         testCase.args.reserve
       )
-
+      assert.equal(testCase.args.steps * 2, testCase.expected.length)
       for (let i = 0; i < testCase.expected.length; i++) {
         assert(
           actual[i].eth.eq(testCase.expected[i].eth),
@@ -185,7 +174,7 @@ describe('Maximum Reserve Calculation Test', () => {
     it(`should correctly calculate for ${JSON.stringify(
       testCase.args
     )}`, function() {
-      const actual = calculateMaximumReserve(
+      const actual = utils.calculateMaximumReserve(
         testCase.args.availableEther,
         testCase.args.availablePinakion,
         testCase.args.lastPrice

@@ -9,12 +9,13 @@ const queryParams = 'type=price'
 const body = {}
 let signature = `/api/${apiPath}${nonce}${JSON.stringify(body)}`
 
-const sig = crypto
-  .createHmac('SHA384', process.env.ETHFINEX_SECRET)
-  .update(signature)
-const shex = sig.digest('hex')
-
 module.exports = {
+  getSignatureHash: function() {
+    const sig = crypto
+      .createHmac('SHA384', process.env.ETHFINEX_SECRET)
+      .update(signature)
+    return (shex = sig.digest('hex'))
+  },
   getBalance: async function() {
     return await fetch(
       `https://api.bitfinex.com/v2/auth/r/wallets?type=price`,
@@ -23,7 +24,7 @@ module.exports = {
           'Content-Type': 'application/json',
           'bfx-nonce': nonce,
           'bfx-apikey': 'V1F4WqaK7DAxtfS3kV5l6KtSd4d0h5zltYv7BjYoKD2',
-          'bfx-signature': shex
+          'bfx-signature': module.exports.getSignatureHash()
         },
         json: true,
         method: 'POST',
