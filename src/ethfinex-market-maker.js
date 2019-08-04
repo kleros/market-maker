@@ -144,7 +144,7 @@ module.exports = {
         w.send(CANCEL_ALL_ORDERS)
 
         const tradeExecutionLog = parsed[2]
-        const pinakionAmount = new BigNumber(tradeExecutionLog[4])
+        const pinakionAmount = new BigNumber(tradeExecutionLog[7])
         const price = new BigNumber(tradeExecutionLog[5])
 
         let newPriceCenter
