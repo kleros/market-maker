@@ -67,7 +67,7 @@ module.exports = {
 
   autoMarketMake: async (steps, spread) => {
     const mutex = new Mutex()
-
+    let flag = 0
     const replaceOrders = async function(mutex) {
       const release = await mutex.acquire()
       console.log('Cancelling orders...')
@@ -160,6 +160,8 @@ module.exports = {
         parsed[2][1] == SYMBOL
       ) {
         replaceOrders()
+        flag++
+        if (flag > 2) process.exit(5)
       }
     })
     const authenticationPayload = function() {
