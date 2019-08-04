@@ -85,6 +85,7 @@ module.exports = {
     let highestBid
     let lowestAsk
     let orders
+    let priceCenter
 
     if (
       typeof process.env.ETHFINEX_KEY === 'undefined' ||
@@ -105,13 +106,14 @@ module.exports = {
       console.log(parsed)
       console.log(`Mutex Locked: ${mutex.isLocked()}`)
 
-      if (lowestAsk && highestBid) {
+      if (!priceCenter && lowestAsk && highestBid) {
+        priceCenter = highestBid.plus(lowestAsk).div(2)
         if (!initialOrdersPlaced) {
           const orders = module.exports.getOrders(
             parseInt(steps),
             MIN_ETH_SIZE,
             new BigNumber(spread),
-            highestBid.plus(lowestAsk).div(2)
+            priceCenter
           )
 
           console.log('Placing orders...')
@@ -144,9 +146,14 @@ module.exports = {
 
         let newPriceCenter
         if (pinakionAmount.gt(0))
-          newPriceCenter = price.times(new BigNumber(1).minus(ORDER_INTERVAL))
-        else if (pinakionAmount.lt(0))
-          newPriceCenter = price.times(new BigNumber(1).plus(ORDER_INTERVAL))
+          newPriceCenter = priceCenter.times(
+            new BigNumber(1).minus(ORDER_INTERVAL)
+          )
+        else if (pinakionAmount.lt(0)) {
+          newPriceCenter = priceCenter.times(
+            new BigNumber(1).plus(ORDER_INTERVAL)
+          )
+        }
 
         const orders = module.exports.getOrders(
           parseInt(steps),
