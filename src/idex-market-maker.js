@@ -224,7 +224,7 @@ module.exports = {
           )
           console.log(`New price center: ${priceCenter}`)
         }
-        if (!mutex.isLocked) {
+        if (!mutex.isLocked()) {
           // If in the middle of replacing, skip this trigger.
           const release = await mutex.acquire()
           await module.exports.clearOrders(
