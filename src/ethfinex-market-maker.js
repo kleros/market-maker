@@ -205,7 +205,6 @@ module.exports = {
         const orders = module.exports.getOrders(
           parseInt(steps),
           MIN_ETH_SIZE,
-          new BigNumber(spread),
           reserve
         )
         console.log('Placing orders...')
