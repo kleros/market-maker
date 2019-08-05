@@ -280,6 +280,10 @@ module.exports = {
       keepAlive()
     })
 
+    w.on('error', event => {
+      console.error(event)
+    })
+
     w.on('close', () => {
       cancelKeepAlive()
     })

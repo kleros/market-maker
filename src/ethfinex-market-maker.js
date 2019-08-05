@@ -100,6 +100,11 @@ module.exports = {
     w.on('open', () => {
       w.send(authenticationPayload())
     })
+
+    w.on('error', event => {
+      console.log(event)
+    })
+
     w.on('message', async msg => {
       const parsed = JSON.parse(msg)
 
