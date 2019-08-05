@@ -63,7 +63,7 @@ module.exports = {
     return chunks
   },
 
-  autoMarketMake: async (steps, spread) => {
+  autoMarketMake: async steps => {
     const mutex = new Mutex()
     let flag = 0
 

@@ -150,7 +150,7 @@ module.exports = {
     }
   },
 
-  autoMarketMake: async function(steps, spread) {
+  autoMarketMake: async function(steps) {
     let date
     let priceCenter
     let reserve
