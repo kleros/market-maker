@@ -48,8 +48,6 @@ const boundingCurveTestCases = [
     args: {
       steps: 3,
       sizeInEther: new BigNumber(0.15),
-      spread: new BigNumber(0.005),
-      interval: new BigNumber(0.00025),
       reserve: { eth: new BigNumber('120'), pnk: new BigNumber(3000000) }
     },
     expected: [
@@ -147,8 +145,6 @@ describe('Bounding Curve Staircase Order Test', () => {
       const actual = utils.getBoundingCurveStaircaseOrders(
         testCase.args.steps,
         testCase.args.sizeInEther,
-        testCase.args.spread,
-        testCase.args.interval,
         testCase.args.reserve
       )
       assert.equal(testCase.args.steps * 2, testCase.expected.length)

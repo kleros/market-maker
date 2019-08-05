@@ -69,16 +69,8 @@ module.exports = {
     return orders
   },
 
-  getBoundingCurveStaircaseOrders: function(
-    steps,
-    sizeInEther,
-    spread,
-    interval,
-    reserve
-  ) {
+  getBoundingCurveStaircaseOrders: function(steps, sizeInEther, reserve) {
     assert(sizeInEther.gt(0) && sizeInEther.lt(100))
-    assert(spread.gt(0.001) && spread.lt(1))
-    assert(interval.gt(0) && interval.lt(spread))
     assert(reserve.eth.gt(0) && reserve.pnk.gt(0))
 
     const orders = []
