@@ -70,6 +70,7 @@ module.exports = {
   },
 
   getBoundingCurveStaircaseOrders: function(steps, sizeInEther, reserve) {
+    assert(reserve.eth.gt(sizeInEther.times(steps)))
     assert(sizeInEther.gt(0) && sizeInEther.lt(100))
     assert(reserve.eth.gt(0) && reserve.pnk.gt(0))
 
@@ -93,7 +94,12 @@ module.exports = {
         .pow(2)
         .div(reserve.pnk.times(reserve.eth))
 
-      assert(buyOrderPrice.lt(reserve.eth.div(reserve.pnk)))
+      assert(
+        buyOrderPrice.lt(reserve.eth.div(reserve.pnk)),
+        `Buy order price: ${buyOrderPrice}; equilibrium: ${reserve.eth.div(
+          reserve.pnk
+        )}`
+      )
 
       sizeInPinakion = sizeInEther.div(buyOrderPrice)
 
