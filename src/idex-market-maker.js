@@ -19,18 +19,16 @@ const web3 = new Web3(
   new Web3.providers.HttpProvider(process.env.ETHEREUM_PROVIDER)
 )
 const ORDER_INTERVAL = new BigNumber(0.0005)
-const MIN_ETH_SIZE = new BigNumber(0.2)
+const MIN_ETH_SIZE = new BigNumber(0.155)
 const ORDER_SIZE_RANDOMNESS = 0.03
 const decimals = new BigNumber('10').pow(new BigNumber('18'))
 
 module.exports = {
-  getOrders: function(steps, sizeInEther, spread, priceCenter) {
-    const rawOrders = utils.getSimpleStaircaseOrders(
+  getOrders: function(steps, sizeInEther, reserve) {
+    const rawOrders = utils.getBoundingCurveStaircaseOrders(
       steps,
       sizeInEther,
-      spread,
-      ORDER_INTERVAL,
-      priceCenter
+      reserve
     )
 
     const orders = []
@@ -118,11 +116,10 @@ module.exports = {
     privateKey,
     steps,
     size,
-    spread,
-    priceCenter
+    reserve
   ) {
     if ((await idexWrapper.getOpenOrders(address)).length == 0) {
-      var orders = module.exports.getOrders(steps, size, spread, priceCenter)
+      var orders = module.exports.getOrders(steps, size, reserve)
       console.log('Placing orders...')
       for (let i = 0; i < orders.length; i++) {
         const nonce = await idexWrapper.getNextNonce(address)
@@ -156,12 +153,24 @@ module.exports = {
   autoMarketMake: async function(steps, spread) {
     let date
     let priceCenter
+    let reserve
     const mutex = new Mutex()
     const tradeAmounts = { buy: new BigNumber(0), sell: new BigNumber(0) }
     const checksumAddress = web3.utils.toChecksumAddress(
       process.env.IDEX_ADDRESS
     )
     w.on('message', async msg => {
+      if (reserve) {
+        date = new Date()
+
+        console.log(
+          `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
+            reserve.pnk
+          )} ETH: ${reserve.eth} | PNK: ${
+            reserve.pnk
+          } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
+        )
+      }
       const parsed = JSON.parse(msg)
       console.log(parsed)
       if (parsed.request === 'handshake' && parsed.result === 'success') {
@@ -185,23 +194,36 @@ module.exports = {
           process.env.IDEX_SECRET
         )
         const ticker = await idexWrapper.getTicker(MARKET)
-
+        console.log(ticker)
         const highestBid = new BigNumber(ticker.highestBid)
         const lowestAsk = new BigNumber(ticker.lowestAsk)
         const balances = await idexWrapper.getBalances(checksumAddress)
+        const availableETH = new BigNumber(balances['ETH'])
+        const availablePNK = new BigNumber(balances['PNK'])
 
         console.log('Account balance:')
         console.log(balances)
 
-        priceCenter = lowestAsk.plus(highestBid).div(2)
-        console.log(`Price center: ${priceCenter}`)
+        const reserve = utils.calculateMaximumReserve(
+          availableETH,
+          availablePNK,
+          lowestAsk.plus(highestBid).div(2)
+        )
+
+        console.log(
+          `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
+            reserve.pnk
+          )} ETH: ${reserve.eth} | PNK: ${
+            reserve.pnk
+          } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
+        )
+
         await module.exports.placeStaircaseOrders(
           checksumAddress,
           process.env.IDEX_SECRET,
           parseInt(steps),
           MIN_ETH_SIZE,
-          new BigNumber(spread),
-          priceCenter
+          reserve
         )
 
         date = new Date()
@@ -214,38 +236,15 @@ module.exports = {
         const ethAmount = trade.total
         const isBuy = trade.tokenSell == ETHER
 
-        isBuy
-          ? (tradeAmounts.buy = tradeAmounts.buy.plus(ethAmount))
-          : (tradeAmounts.sell = tradeAmounts.sell.plus(ethAmount))
+        if (isBuy) {
+          reserve.pnk = reserve.pnk.plus(new BigNumber(pnkAmount))
+          reserve.eth = reserve.eth.minus(new BigNumber(ethAmount))
+        } else {
+          reserve.pnk = reserve.pnk.minus(new BigNumber(pnkAmount))
+          reserve.eth = reserve.eth.plus(new BigNumber(ethAmount))
+        }
 
-        tradeAmounts.buy.gte(
-          MIN_ETH_SIZE.times(new BigNumber(1).minus(ORDER_SIZE_RANDOMNESS))
-        ) ||
-        tradeAmounts.sell.gte(
-          MIN_ETH_SIZE.times(new BigNumber(1).minus(ORDER_SIZE_RANDOMNESS))
-        )
-          ? isBuy
-            ? console.log(
-                `New price center: ${(priceCenter = priceCenter.times(
-                  new BigNumber(1).minus(ORDER_INTERVAL * 3)
-                ))}`
-              )
-            : console.log(
-                `New price center: ${(priceCenter = priceCenter.times(
-                  new BigNumber(1).plus(ORDER_INTERVAL * 3)
-                ))}`
-              )
-          : console.log(`Trade amounts: ${JSON.stringify(tradeAmounts)}`)
-
-        if (
-          (!mutex.isLocked() &&
-            tradeAmounts.buy.gte(
-              MIN_ETH_SIZE.times(new BigNumber(1).minus(ORDER_SIZE_RANDOMNESS))
-            )) ||
-          tradeAmounts.sell.gte(
-            MIN_ETH_SIZE.times(new BigNumber(1).minus(ORDER_SIZE_RANDOMNESS))
-          )
-        ) {
+        if (!mutex.isLocked()) {
           // If in the middle of replacing, skip this trigger.
           const release = await mutex.acquire()
           await module.exports.clearOrders(
@@ -258,12 +257,8 @@ module.exports = {
             process.env.IDEX_SECRET,
             parseInt(steps),
             MIN_ETH_SIZE,
-            new BigNumber(spread),
-            priceCenter
+            reserve
           )
-
-          tradeAmounts.buy = new BigNumber(0)
-          tradeAmounts.sell = new BigNumber(0)
 
           release()
         }
