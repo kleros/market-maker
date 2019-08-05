@@ -236,6 +236,8 @@ module.exports = {
         const ethAmount = trade.total
         const isBuy = trade.tokenSell == ETHER
 
+        const oldInvariant = reserve.eth.times(reserve.pnk)
+
         if (isBuy) {
           reserve.pnk = reserve.pnk.plus(new BigNumber(pnkAmount))
           reserve.eth = reserve.eth.minus(new BigNumber(ethAmount))
@@ -243,6 +245,13 @@ module.exports = {
           reserve.pnk = reserve.pnk.minus(new BigNumber(pnkAmount))
           reserve.eth = reserve.eth.plus(new BigNumber(ethAmount))
         }
+
+        const newInvariant = reserve.eth.times(reserve.pnk)
+
+        assert(
+          newInvariant.gte(oldInvariant),
+          'Invariant should not decrease. Check bounding curve implemention.'
+        )
 
         if (!mutex.isLocked()) {
           // If in the middle of replacing, skip this trigger.
