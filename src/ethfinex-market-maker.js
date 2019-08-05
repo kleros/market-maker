@@ -15,20 +15,18 @@ BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
 const SYMBOL = 'tPNKETH'
 const ORDER_INTERVAL = new BigNumber(0.0005)
-const MIN_ETH_SIZE = new BigNumber(0.05)
+const MIN_ETH_SIZE = new BigNumber(0.03)
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 module.exports = {
-  getOrders: function(steps, sizeInEther, spread, priceCenter) {
-    const rawOrders = utils.getSimpleStaircaseOrders(
+  getOrders: function(steps, sizeInEther, reserve) {
+    const rawOrders = utils.getBoundingCurveStaircaseOrders(
       steps,
       sizeInEther,
-      spread,
-      ORDER_INTERVAL,
-      priceCenter
+      reserve
     )
     const newExchangeLimitOrder = (amount, price) => [
       'on',
@@ -42,14 +40,14 @@ module.exports = {
     ]
 
     const orders = []
-
+    const equilibrium = reserve.eth.div(reserve.pnk)
     for (let i = 0; i < rawOrders.length; i++) {
       const orderAmount = rawOrders[i].pnk
       const orderPrice = rawOrders[i].eth.div(rawOrders[i].pnk).absoluteValue()
 
       if (orderAmount.isPositive())
-        assert(orderPrice.lt(priceCenter), orderPrice.toString())
-      else assert(orderPrice.gt(priceCenter), orderPrice.toString())
+        assert(orderPrice.lt(equilibrium), orderPrice.toString())
+      else assert(orderPrice.gt(equilibrium), orderPrice.toString())
 
       orders.push(
         newExchangeLimitOrder(
@@ -73,7 +71,6 @@ module.exports = {
     let initialOrdersPlaced = false
 
     const w = new WS(ETHFINEX_WEBSOCKET_API)
-    let reserve
     const CANCEL_ALL_ORDERS = JSON.stringify([
       0,
       'oc_multi',
@@ -85,7 +82,7 @@ module.exports = {
     let highestBid
     let lowestAsk
     let orders
-    let priceCenter
+    let reserve
 
     if (
       typeof process.env.ETHFINEX_KEY === 'undefined' ||
@@ -108,17 +105,56 @@ module.exports = {
     w.on('message', async msg => {
       const parsed = JSON.parse(msg)
 
-      console.log(parsed)
-      console.log(`Mutex Locked: ${mutex.isLocked()}`)
+      if (
+        parsed[1] != 'on' &&
+        parsed[1] != 'n' &&
+        parsed[1] != 'oc' &&
+        parsed[1] != 'hb'
+      ) {
+        if (reserve) {
+          const date = new Date()
 
-      if (!priceCenter && lowestAsk && highestBid) {
-        priceCenter = highestBid.plus(lowestAsk).div(2)
+          console.log(
+            `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
+              reserve.pnk
+            )} ETH: ${reserve.eth} | PNK: ${
+              reserve.pnk
+            } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
+          )
+        }
+        console.log(parsed)
+      }
+
+      if (Array.isArray(parsed) && parsed[1] == 'wu') {
+        const payload = parsed[2]
+        if (payload[1] == 'PNK') {
+          availablePNK = new BigNumber(payload[2])
+        } else if (payload[1] == 'ETH') {
+          availableETH = new BigNumber(payload[2])
+        } else console.log('Unhandled wallet update.')
+      }
+
+      if (!reserve && lowestAsk && highestBid) {
+        reserve = utils.calculateMaximumReserve(
+          availableETH,
+          availablePNK,
+          highestBid.plus(lowestAsk).div(2)
+        )
+
+        const date = new Date()
+
+        console.log(
+          `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
+            reserve.pnk
+          )} ETH: ${reserve.eth} | PNK: ${
+            reserve.pnk
+          } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
+        )
         if (!initialOrdersPlaced) {
           const orders = module.exports.getOrders(
             parseInt(steps),
             MIN_ETH_SIZE,
-            new BigNumber(spread),
-            priceCenter
+            reserve
           )
 
           console.log('Placing orders...')
@@ -139,36 +175,38 @@ module.exports = {
 
       if (
         Array.isArray(parsed) &&
-        parsed[0] == 0 &&
-        parsed[1] === 'oc' &&
-        Array.isArray(parsed[2]) &&
-        parsed[2][6] == 0 // Updated amount, if equals to zero means the orders was fully filled.
+        parsed[1] == 'te' &&
+        parsed[2][1] == SYMBOL
       ) {
         const release = await mutex.acquire()
         console.log('Cancelling orders...')
         w.send(CANCEL_ALL_ORDERS)
 
         const tradeExecutionLog = parsed[2]
-        const pinakionAmount = new BigNumber(tradeExecutionLog[7])
+        const pinakionAmount = new BigNumber(tradeExecutionLog[4])
         const price = new BigNumber(tradeExecutionLog[5])
 
-        let newPriceCenter
-        if (pinakionAmount.gt(0))
-          newPriceCenter = priceCenter.times(
-            new BigNumber(1).minus(ORDER_INTERVAL.times(3))
-          )
-        else if (pinakionAmount.lt(0)) {
-          newPriceCenter = priceCenter.times(
-            new BigNumber(1).plus(ORDER_INTERVAL.times(3))
-          )
-        }
-        priceCenter = newPriceCenter
+        const oldInvariant = reserve.eth.times(reserve.pnk)
+
+        const etherAmount = pinakionAmount
+          .times(price)
+          .times(new BigNumber('-1'))
+
+        reserve.eth = reserve.eth.plus(etherAmount)
+        reserve.pnk = reserve.pnk.plus(pinakionAmount)
+
+        const newInvariant = reserve.eth.times(reserve.pnk)
+
+        assert(
+          newInvariant.gte(oldInvariant),
+          'Invariant should not decrease. Check bounding curve implemention.'
+        )
 
         const orders = module.exports.getOrders(
           parseInt(steps),
           MIN_ETH_SIZE,
           new BigNumber(spread),
-          priceCenter
+          reserve
         )
         console.log('Placing orders...')
 
