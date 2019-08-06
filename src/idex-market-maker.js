@@ -179,7 +179,7 @@ module.exports = {
 
     heartbeat = client => {
       clearTimeout(client.pingTimeout)
-      client.pingTimeout = terminate(30000)
+      client.pingTimeout = terminate(300000)
     }
     w.on('ping', () => {
       console.log('ping')
