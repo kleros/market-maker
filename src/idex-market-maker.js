@@ -24,14 +24,6 @@ const MIN_ETH_SIZE = new BigNumber(0.155)
 const ORDER_SIZE_RANDOMNESS = 0.03
 const decimals = new BigNumber('10').pow(new BigNumber('18'))
 
-function terminate(ms) {
-  return new Promise(resolve =>
-    setTimeout(function() {
-      process.exit(utils.WEBSOCKET_CONNECTION_DOWN)
-    }, ms)
-  )
-}
-
 module.exports = {
   getOrders: function(steps, sizeInEther, reserve) {
     const rawOrders = utils.getBoundingCurveStaircaseOrders(
@@ -179,15 +171,14 @@ module.exports = {
 
     heartbeat = client => {
       clearTimeout(client.pingTimeout)
-      client.pingTimeout = terminate(300000)
+      client.pingTimeout = setTimeout(function() {
+        process.exit(utils.WEBSOCKET_CONNECTION_DOWN)
+      }, 60000)
     }
     w.on('ping', () => {
-      console.log('ping')
+      heartbeat(w)
     })
 
-    w.on('pong', () => {
-      console.log('pong')
-    })
     w.on('message', async msg => {
       heartbeat(w)
 
