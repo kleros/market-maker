@@ -14,6 +14,7 @@ const ETHER = '0x0000000000000000000000000000000000000000'
 const MARKET = 'ETH_PNK'
 const idexWrapper = require('./idex-https-api-wrapper')
 const utils = require('./utils')
+const fs = require('fs')
 
 const web3 = new Web3(
   new Web3.providers.HttpProvider(process.env.ETHEREUM_PROVIDER)
@@ -163,6 +164,13 @@ module.exports = {
     let date
     let priceCenter
     let reserve
+    fs.readFile('idex_reserve.txt', 'utf-8', (err, data) => {
+      if (err) return
+      reserve = JSON.parse(data)
+      reserve.pnk = new BigNumber(reserve.pnk)
+      reserve.eth = new BigNumber(reserve.eth)
+      console.log('Found a reserve file, loading...')
+    })
     const mutex = new Mutex()
     const tradeAmounts = { buy: new BigNumber(0), sell: new BigNumber(0) }
     const checksumAddress = web3.utils.toChecksumAddress(
@@ -233,6 +241,11 @@ module.exports = {
           lowestAsk.plus(highestBid).div(2)
         )
 
+        fs.writeFile('idex_reserve.txt', JSON.stringify(reserve), err => {
+          if (err) console.log(err)
+          console.log('Reserve saved to file.')
+        })
+
         console.log(
           `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
             reserve.pnk
@@ -275,6 +288,11 @@ module.exports = {
           newInvariant.gte(oldInvariant),
           'Invariant should not decrease. Check bounding curve implemention.'
         )
+
+        fs.writeFile('idex_reserve.txt', JSON.stringify(reserve), err => {
+          if (err) console.log(err)
+          console.log('Reserve saved to file.')
+        })
 
         if (!mutex.isLocked()) {
           // If in the middle of replacing, skip this trigger.
