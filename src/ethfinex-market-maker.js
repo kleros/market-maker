@@ -8,6 +8,7 @@ const { chunk } = require('lodash')
 const calculateMaximumReserve = require('./utils').calculateMaximumReserve
 const utils = require('./utils')
 const Mutex = require('async-mutex').Mutex
+const fs = require('fs')
 
 const ETHFINEX_WEBSOCKET_API = 'wss://api.ethfinex.com/ws/2/'
 
@@ -17,18 +18,6 @@ const SYMBOL = 'tPNKETH'
 const ORDER_INTERVAL = new BigNumber(0.0005)
 const MIN_ETH_SIZE = new BigNumber(0.03)
 const WEBSOCKET_CONNECTION_DOWN = 123
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
-
-function terminate(ms) {
-  return new Promise(resolve =>
-    setTimeout(function() {
-      process.exit(utils.WEBSOCKET_CONNECTION_DOWN)
-    }, ms)
-  )
-}
 
 module.exports = {
   getOrders: function(steps, sizeInEther, reserve) {
@@ -95,6 +84,14 @@ module.exports = {
     let availableETH
     let availablePNK
 
+    fs.readFile('ethfinex_reserve.txt', 'utf-8', (err, data) => {
+      if (err) return
+      reserve = JSON.parse(data)
+      reserve.pnk = new BigNumber(reserve.pnk)
+      reserve.eth = new BigNumber(reserve.eth)
+      console.log('Found a reserve file, loading...')
+    })
+
     if (
       typeof process.env.ETHFINEX_KEY === 'undefined' ||
       typeof process.env.ETHFINEX_SECRET === 'undefined'
@@ -106,7 +103,9 @@ module.exports = {
     }
     heartbeat = client => {
       clearTimeout(client.pingTimeout)
-      client.pingTimeout = terminate(30000)
+      client.pingTimeout = setTimeout(function() {
+        process.exit(utils.WEBSOCKET_CONNECTION_DOWN)
+      }, 60000)
     }
     w.on('open', () => {
       heartbeat(w)
@@ -115,7 +114,7 @@ module.exports = {
 
     w.on('error', async event => {
       console.error(event)
-      await new Promise(resolve => setTimeout(resolve, 5000))
+      await new Promise(resolve => setTimeout(resolve, 30000))
       module.exports.autoMarketMake(steps)
     })
 
@@ -173,6 +172,12 @@ module.exports = {
             reserve.pnk
           } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
         )
+
+        fs.writeFile('ethfinex_reserve.txt', JSON.stringify(reserve), err => {
+          if (err) console.log(err)
+          console.log('Reserve saved to file.')
+        })
+
         if (!initialOrdersPlaced) {
           const orders = module.exports.getOrders(
             parseInt(steps),
@@ -224,6 +229,11 @@ module.exports = {
           newInvariant.gte(oldInvariant),
           'Invariant should not decrease. Check bounding curve implemention.'
         )
+
+        fs.writeFile('ethfinex_reserve.txt', JSON.stringify(reserve), err => {
+          if (err) console.log(err)
+          console.log('Reserve saved to file.')
+        })
 
         const orders = module.exports.getOrders(
           parseInt(steps),
