@@ -16,9 +16,18 @@ BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 const SYMBOL = 'tPNKETH'
 const ORDER_INTERVAL = new BigNumber(0.0005)
 const MIN_ETH_SIZE = new BigNumber(0.03)
+const WEBSOCKET_CONNECTION_DOWN = 123
 
 function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+function terminate(ms) {
+  return new Promise(resolve =>
+    setTimeout(function() {
+      process.exit(utils.WEBSOCKET_CONNECTION_DOWN)
+    }, ms)
+  )
 }
 
 module.exports = {
@@ -83,6 +92,8 @@ module.exports = {
     let lowestAsk
     let orders
     let reserve
+    let availableETH
+    let availablePNK
 
     if (
       typeof process.env.ETHFINEX_KEY === 'undefined' ||
@@ -93,13 +104,23 @@ module.exports = {
       )
       process.exit(2)
     }
-
+    heartbeat = client => {
+      clearTimeout(client.pingTimeout)
+      client.pingTimeout = terminate(30000)
+    }
     w.on('open', () => {
+      heartbeat(w)
       w.send(authenticationPayload())
     })
 
-    w.on('error', event => {
-      console.log(event)
+    w.on('error', async event => {
+      console.error(event)
+      await new Promise(resolve => setTimeout(resolve, 5000))
+      module.exports.autoMarketMake(steps)
+    })
+
+    w.on('close', function clear() {
+      clearTimeout(this.pingTimeout)
     })
 
     w.on('message', async msg => {
@@ -123,6 +144,8 @@ module.exports = {
           )
         }
         console.log(parsed)
+      } else {
+        heartbeat(w)
       }
 
       if (Array.isArray(parsed) && parsed[1] == 'wu') {
@@ -134,7 +157,7 @@ module.exports = {
         } else console.log('Unhandled wallet update.')
       }
 
-      if (!reserve && lowestAsk && highestBid) {
+      if (!reserve && availableETH && availablePNK && lowestAsk && highestBid) {
         reserve = utils.calculateMaximumReserve(
           availableETH,
           availablePNK,

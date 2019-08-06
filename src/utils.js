@@ -3,6 +3,7 @@ const BigNumber = require('bignumber.js')
 BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
 module.exports = {
+  WEBSOCKET_CONNECTION_DOWN: 123,
   calculateMaximumReserve: function(availableETH, availablePNK, initialPrice) {
     assert(availableETH.gt(0) && availablePNK.gt(0))
     assert(initialPrice.gt(0.000004) && initialPrice.lt(0.0004))

@@ -8,7 +8,7 @@ BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
 const API_KEY = '17paIsICur8sA0OBqG6dH5G1rmrHNMwt4oNk4iX9'
 const API_VERSION = '1.0.0'
-const w = new WS('wss://datastream.idex.market')
+
 const PINAKION = '0x93ED3FBe21207Ec2E8f2d3c3de6e058Cb73Bc04d'
 const ETHER = '0x0000000000000000000000000000000000000000'
 const MARKET = 'ETH_PNK'
@@ -22,6 +22,14 @@ const ORDER_INTERVAL = new BigNumber(0.0005)
 const MIN_ETH_SIZE = new BigNumber(0.155)
 const ORDER_SIZE_RANDOMNESS = 0.03
 const decimals = new BigNumber('10').pow(new BigNumber('18'))
+
+function terminate(ms) {
+  return new Promise(resolve =>
+    setTimeout(function() {
+      process.exit(utils.WEBSOCKET_CONNECTION_DOWN)
+    }, ms)
+  )
+}
 
 module.exports = {
   getOrders: function(steps, sizeInEther, reserve) {
@@ -151,6 +159,7 @@ module.exports = {
   },
 
   autoMarketMake: async function(steps) {
+    const w = new WS('wss://datastream.idex.market')
     let date
     let priceCenter
     let reserve
@@ -159,7 +168,21 @@ module.exports = {
     const checksumAddress = web3.utils.toChecksumAddress(
       process.env.IDEX_ADDRESS
     )
+
+    heartbeat = client => {
+      clearTimeout(client.pingTimeout)
+      client.pingTimeout = terminate(30000)
+    }
+    w.on('ping', () => {
+      console.log('ping')
+    })
+
+    w.on('pong', () => {
+      console.log('pong')
+    })
     w.on('message', async msg => {
+      heartbeat(w)
+
       if (reserve) {
         date = new Date()
 
@@ -284,16 +307,19 @@ module.exports = {
       keepAlive()
     })
 
-    w.on('error', event => {
+    w.on('error', async event => {
       console.error(event)
+      await new Promise(resolve => setTimeout(resolve, 5000))
+      module.exports.autoMarketMake(steps)
     })
 
     w.on('close', () => {
       cancelKeepAlive()
     })
 
-    var timerID = 0
+    var timerId = 0
     function keepAlive() {
+      heartbeat(w)
       var timeout = 10000
       if (w.readyState == WS.OPEN) w.send('')
 
