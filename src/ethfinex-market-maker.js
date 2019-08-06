@@ -129,7 +129,8 @@ module.exports = {
         parsed[1] != 'on' &&
         parsed[1] != 'n' &&
         parsed[1] != 'oc' &&
-        parsed[1] != 'hb'
+        parsed[1] != 'hb' &&
+        parsed[1] != 'bu'
       ) {
         if (reserve) {
           const date = new Date()
