@@ -20,8 +20,7 @@ const web3 = new Web3(
   new Web3.providers.HttpProvider(process.env.ETHEREUM_PROVIDER)
 )
 const ORDER_INTERVAL = new BigNumber(0.0005)
-const MIN_ETH_SIZE = new BigNumber(0.155)
-const ORDER_SIZE_RANDOMNESS = 0.03
+const MIN_ETH_SIZE = new BigNumber(0.15)
 const decimals = new BigNumber('10').pow(new BigNumber('18'))
 
 module.exports = {
@@ -34,26 +33,17 @@ module.exports = {
 
     const orders = []
     for (let i = 0; i < rawOrders.length; i++) {
-      const ORDER_SIZE_MULTIPLIER =
-        1 + (2 * ORDER_SIZE_RANDOMNESS * Math.random() - ORDER_SIZE_RANDOMNESS)
-
-      assert(
-        ORDER_SIZE_MULTIPLIER >= 1 - ORDER_SIZE_RANDOMNESS &&
-          ORDER_SIZE_MULTIPLIER < 1 + ORDER_SIZE_RANDOMNESS
-      )
       if (rawOrders[i].pnk.lt(new BigNumber(0))) {
         orders.push({
           tokenBuy: ETHER,
           amountBuy: rawOrders[i].eth
             .times(decimals)
-            .times(ORDER_SIZE_MULTIPLIER)
             .toFixed(0, BigNumber.ROUND_UP)
             .toString(),
           tokenSell: PINAKION,
           amountSell: rawOrders[i].pnk
             .absoluteValue()
             .times(decimals)
-            .times(ORDER_SIZE_MULTIPLIER)
             .toFixed(0, BigNumber.ROUND_DOWN)
             .toString()
         })
@@ -62,14 +52,12 @@ module.exports = {
           tokenBuy: PINAKION,
           amountBuy: rawOrders[i].pnk
             .times(decimals)
-            .times(ORDER_SIZE_MULTIPLIER)
             .toFixed(0, BigNumber.ROUND_UP)
             .toString(),
           tokenSell: ETHER,
           amountSell: rawOrders[i].eth
             .absoluteValue()
             .times(decimals)
-            .times(ORDER_SIZE_MULTIPLIER)
             .toFixed(0, BigNumber.ROUND_DOWN)
             .toString()
         })
