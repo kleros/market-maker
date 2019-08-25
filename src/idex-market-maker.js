@@ -265,7 +265,7 @@ module.exports = {
 
         assert(
           newInvariant.gte(oldInvariant),
-          'Invariant should not decrease. Check bounding curve implemention.'
+          `New Invariant: ${newInvariant}  Old Invariant: ${oldInvariant}\nInvariant should not decrease. Check bounding curve implemention.`
         )
 
         fs.writeFile('idex_reserve.txt', JSON.stringify(reserve), err => {
