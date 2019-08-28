@@ -72,7 +72,7 @@ module.exports = {
       console.log('Clearing previous orders...')
       try {
         const openOrders = await idexWrapper.getOpenOrders(
-          process.env.API_KEY,
+          process.env.IDEX_API_KEY,
           address
         )
 
@@ -85,14 +85,14 @@ module.exports = {
 
         for (let i = 0; i < openOrders.length; i++) {
           const nonce = await idexWrapper.getNextNonce(
-            process.env.API_KEY,
+            process.env.IDEX_API_KEY,
             address
           )
           assert(typeof nonce.nonce === 'number')
           assert(typeof openOrders[i].orderHash === 'string')
 
           await idexWrapper.cancelOrder(
-            process.env.API_KEY,
+            process.env.IDEX_API_KEY,
             web3,
             address,
             process.env.IDEX_SECRET,
@@ -114,14 +114,14 @@ module.exports = {
     reserve
   ) {
     if (
-      (await idexWrapper.getOpenOrders(process.env.API_KEY, address)).length ==
-      0
+      (await idexWrapper.getOpenOrders(process.env.IDEX_API_KEY, address))
+        .length == 0
     ) {
       var orders = module.exports.getOrders(steps, size, reserve)
       console.log('Placing orders...')
       for (let i = 0; i < orders.length; i++) {
         const nonce = await idexWrapper.getNextNonce(
-          process.env.API_KEY,
+          process.env.IDEX_API_KEY,
           address
         )
         if (typeof nonce.nonce !== 'number') {
@@ -133,7 +133,7 @@ module.exports = {
         } else
           try {
             await idexWrapper.sendOrder(
-              process.env.API_KEY,
+              process.env.IDEX_API_KEY,
               web3,
               address,
               process.env.IDEX_SECRET,
@@ -216,12 +216,15 @@ module.exports = {
           checksumAddress,
           process.env.IDEX_SECRET
         )
-        const ticker = await idexWrapper.getTicker(process.env.API_KEY, MARKET)
+        const ticker = await idexWrapper.getTicker(
+          process.env.IDEX_API_KEY,
+          MARKET
+        )
         console.log(ticker)
         const highestBid = new BigNumber(ticker.highestBid)
         const lowestAsk = new BigNumber(ticker.lowestAsk)
         const balances = await idexWrapper.getBalances(
-          process.env.API_KEY,
+          process.env.IDEX_API_KEY,
           checksumAddress
         )
         const availableETH = new BigNumber(balances['ETH'])
@@ -315,7 +318,7 @@ module.exports = {
         JSON.stringify({
           request: 'handshake',
           payload: `{"version": "${API_VERSION}", "key": "
-            KT3b-FfY6sGj_Je7NQ5E-
+            ${process.env.IDEX_API_KEY}
           "}`
         })
       )
