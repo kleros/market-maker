@@ -24,7 +24,7 @@ module.exports = {
     })
   },
 
-  getBalances: async function(address) {
+  getBalances: async function(apiKey, address) {
     return await fetch(`${HTTPS_API}/returnBalances`, {
       headers: {
         'Content-Type': 'application/json',
@@ -37,7 +37,7 @@ module.exports = {
     })
   },
 
-  getTicker: async function(market) {
+  getTicker: async function(apiKey, market) {
     return await fetch(`${HTTPS_API}/returnTicker`, {
       headers: {
         'Content-Type': 'application/json',
@@ -52,7 +52,7 @@ module.exports = {
     })
   },
 
-  getNextNonce: async function(address) {
+  getNextNonce: async function(apiKey, address) {
     return await fetch(`${HTTPS_API}/returnNextNonce`, {
       headers: {
         'Content-Type': 'application/json',
@@ -67,7 +67,14 @@ module.exports = {
     })
   },
 
-  cancelOrder: async function(web3, address, privateKey, orderHash, nextNonce) {
+  cancelOrder: async function(
+    apiKey,
+    web3,
+    address,
+    privateKey,
+    orderHash,
+    nextNonce
+  ) {
     await fetch(`${HTTPS_API}/cancel`, {
       headers: {
         'Content-Type': 'application/json',
@@ -114,7 +121,14 @@ module.exports = {
     return Object.assign(args, vrs)
   },
 
-  sendOrder: async function(web3, address, privateKey, order, nextNonce) {
+  sendOrder: async function(
+    apiKey,
+    web3,
+    address,
+    privateKey,
+    order,
+    nextNonce
+  ) {
     await fetch(`${HTTPS_API}/order`, {
       headers: {
         'Content-Type': 'application/json',
