@@ -317,8 +317,9 @@ module.exports = {
       w.send(
         JSON.stringify({
           request: 'handshake',
-          payload: `{"version": "${API_VERSION}", "key": "
-            ${process.env.IDEX_API_KEY}
+          payload: `{"version": "${API_VERSION}", "key": "${
+            process.env.IDEX_API_KEY
+          }
           "}`
         })
       )
