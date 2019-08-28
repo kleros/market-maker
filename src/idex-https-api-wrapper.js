@@ -11,10 +11,11 @@ const { mapValues } = require('lodash')
 const IDEX_CONTRACT = '0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208'
 
 module.exports = {
-  getOpenOrders: async function(address, count = 100, cursor = 0) {
+  getOpenOrders: async function(apiKey, address, count = 100, cursor = 0) {
     return await fetch(`${HTTPS_API}/returnOpenOrders`, {
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'API-Key': apiKey
       },
       method: 'POST',
       body: JSON.stringify({ address: address, count: count, cursor: cursor })
@@ -26,7 +27,8 @@ module.exports = {
   getBalances: async function(address) {
     return await fetch(`${HTTPS_API}/returnBalances`, {
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'API-Key': apiKey
       },
       method: 'POST',
       body: JSON.stringify({ address: address })
@@ -38,7 +40,8 @@ module.exports = {
   getTicker: async function(market) {
     return await fetch(`${HTTPS_API}/returnTicker`, {
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'API-Key': apiKey
       },
       method: 'POST',
       body: JSON.stringify({
@@ -52,7 +55,8 @@ module.exports = {
   getNextNonce: async function(address) {
     return await fetch(`${HTTPS_API}/returnNextNonce`, {
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'API-Key': apiKey
       },
       method: 'POST',
       body: JSON.stringify({
@@ -64,23 +68,20 @@ module.exports = {
   },
 
   cancelOrder: async function(web3, address, privateKey, orderHash, nextNonce) {
-    await fetch(
-      `${HTTPS_API}/cancel`,
-      {
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        method: 'POST',
-        body: JSON.stringify(
-          this.signCancel(web3, privateKey, {
-            orderHash: orderHash,
-            address: address,
-            nonce: nextNonce.nonce
-          })
-        )
+    await fetch(`${HTTPS_API}/cancel`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'API-Key': apiKey
       },
-      3
-    )
+      method: 'POST',
+      body: JSON.stringify(
+        this.signCancel(web3, privateKey, {
+          orderHash: orderHash,
+          address: address,
+          nonce: nextNonce.nonce
+        })
+      )
+    })
       .catch(function(error) {
         console.error(error)
       })
@@ -116,7 +117,8 @@ module.exports = {
   sendOrder: async function(web3, address, privateKey, order, nextNonce) {
     await fetch(`${HTTPS_API}/order`, {
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'API-Key': apiKey
       },
       method: 'POST',
       body: JSON.stringify(

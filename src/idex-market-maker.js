@@ -71,7 +71,10 @@ module.exports = {
     while (true) {
       console.log('Clearing previous orders...')
       try {
-        const openOrders = await idexWrapper.getOpenOrders(address)
+        const openOrders = await idexWrapper.getOpenOrders(
+          process.env.API_KEY,
+          address
+        )
 
         if (Array.isArray(openOrders) && openOrders.length == 0) {
           console.log('No open order left.')
@@ -81,11 +84,15 @@ module.exports = {
         console.log(`Number of open orders: ${openOrders.length}`)
 
         for (let i = 0; i < openOrders.length; i++) {
-          const nonce = await idexWrapper.getNextNonce(address)
+          const nonce = await idexWrapper.getNextNonce(
+            process.env.API_KEY,
+            address
+          )
           assert(typeof nonce.nonce === 'number')
           assert(typeof openOrders[i].orderHash === 'string')
 
           await idexWrapper.cancelOrder(
+            process.env.API_KEY,
             web3,
             address,
             process.env.IDEX_SECRET,
@@ -106,11 +113,17 @@ module.exports = {
     size,
     reserve
   ) {
-    if ((await idexWrapper.getOpenOrders(address)).length == 0) {
+    if (
+      (await idexWrapper.getOpenOrders(process.env.API_KEY, address)).length ==
+      0
+    ) {
       var orders = module.exports.getOrders(steps, size, reserve)
       console.log('Placing orders...')
       for (let i = 0; i < orders.length; i++) {
-        const nonce = await idexWrapper.getNextNonce(address)
+        const nonce = await idexWrapper.getNextNonce(
+          process.env.API_KEY,
+          address
+        )
         if (typeof nonce.nonce !== 'number') {
           console.log(
             `Failed to retrieve nonce, cannot send ${orders[
@@ -120,6 +133,7 @@ module.exports = {
         } else
           try {
             await idexWrapper.sendOrder(
+              process.env.API_KEY,
               web3,
               address,
               process.env.IDEX_SECRET,
@@ -202,11 +216,14 @@ module.exports = {
           checksumAddress,
           process.env.IDEX_SECRET
         )
-        const ticker = await idexWrapper.getTicker(MARKET)
+        const ticker = await idexWrapper.getTicker(process.env.API_KEY, MARKET)
         console.log(ticker)
         const highestBid = new BigNumber(ticker.highestBid)
         const lowestAsk = new BigNumber(ticker.lowestAsk)
-        const balances = await idexWrapper.getBalances(checksumAddress)
+        const balances = await idexWrapper.getBalances(
+          process.env.API_KEY,
+          checksumAddress
+        )
         const availableETH = new BigNumber(balances['ETH'])
         const availablePNK = new BigNumber(balances['PNK'])
 
@@ -297,9 +314,9 @@ module.exports = {
       w.send(
         JSON.stringify({
           request: 'handshake',
-          payload: `{"version": "${API_VERSION}", "key": "${
-            process.env.API_KEY
-          }"}`
+          payload: `{"version": "${API_VERSION}", "key": "
+            KT3b-FfY6sGj_Je7NQ5E-
+          "}`
         })
       )
       keepAlive()
