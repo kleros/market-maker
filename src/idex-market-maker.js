@@ -7,6 +7,7 @@ const Mutex = require('async-mutex').Mutex
 BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
 const API_VERSION = '1.0.0'
+const IDEX_API_KEY = process.env.IDEX_API_KEY
 
 const PINAKION = '0x93ED3FBe21207Ec2E8f2d3c3de6e058Cb73Bc04d'
 const ETHER = '0x0000000000000000000000000000000000000000'
@@ -72,7 +73,7 @@ module.exports = {
       console.log('Clearing previous orders...')
       try {
         const openOrders = await idexWrapper.getOpenOrders(
-          process.env.IDEX_API_KEY,
+          IDEX_API_KEY,
           address
         )
 
@@ -84,15 +85,12 @@ module.exports = {
         console.log(`Number of open orders: ${openOrders.length}`)
 
         for (let i = 0; i < openOrders.length; i++) {
-          const nonce = await idexWrapper.getNextNonce(
-            process.env.IDEX_API_KEY,
-            address
-          )
+          const nonce = await idexWrapper.getNextNonce(IDEX_API_KEY, address)
           assert(typeof nonce.nonce === 'number')
           assert(typeof openOrders[i].orderHash === 'string')
 
           await idexWrapper.cancelOrder(
-            process.env.IDEX_API_KEY,
+            IDEX_API_KEY,
             web3,
             address,
             process.env.IDEX_SECRET,
@@ -113,17 +111,11 @@ module.exports = {
     size,
     reserve
   ) {
-    if (
-      (await idexWrapper.getOpenOrders(process.env.IDEX_API_KEY, address))
-        .length == 0
-    ) {
+    if ((await idexWrapper.getOpenOrders(IDEX_API_KEY, address)).length == 0) {
       var orders = module.exports.getOrders(steps, size, reserve)
       console.log('Placing orders...')
       for (let i = 0; i < orders.length; i++) {
-        const nonce = await idexWrapper.getNextNonce(
-          process.env.IDEX_API_KEY,
-          address
-        )
+        const nonce = await idexWrapper.getNextNonce(IDEX_API_KEY, address)
         if (typeof nonce.nonce !== 'number') {
           console.log(
             `Failed to retrieve nonce, cannot send ${orders[
@@ -133,7 +125,7 @@ module.exports = {
         } else
           try {
             await idexWrapper.sendOrder(
-              process.env.IDEX_API_KEY,
+              IDEX_API_KEY,
               web3,
               address,
               process.env.IDEX_SECRET,
@@ -216,15 +208,12 @@ module.exports = {
           checksumAddress,
           process.env.IDEX_SECRET
         )
-        const ticker = await idexWrapper.getTicker(
-          process.env.IDEX_API_KEY,
-          MARKET
-        )
+        const ticker = await idexWrapper.getTicker(IDEX_API_KEY, MARKET)
         console.log(ticker)
         const highestBid = new BigNumber(ticker.highestBid)
         const lowestAsk = new BigNumber(ticker.lowestAsk)
         const balances = await idexWrapper.getBalances(
-          process.env.IDEX_API_KEY,
+          IDEX_API_KEY,
           checksumAddress
         )
         const availableETH = new BigNumber(balances['ETH'])
@@ -317,10 +306,7 @@ module.exports = {
       w.send(
         JSON.stringify({
           request: 'handshake',
-          payload: `{"version": "${API_VERSION}", "key": "${
-            process.env.IDEX_API_KEY
-          }
-          "}`
+          payload: `{"version": "${API_VERSION}", "key": "${IDEX_API_KEY}"}`
         })
       )
       keepAlive()
