@@ -6,7 +6,6 @@ const Mutex = require('async-mutex').Mutex
 
 BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
-const API_KEY = '17paIsICur8sA0OBqG6dH5G1rmrHNMwt4oNk4iX9'
 const API_VERSION = '1.0.0'
 
 const PINAKION = '0x93ED3FBe21207Ec2E8f2d3c3de6e058Cb73Bc04d'
@@ -298,7 +297,9 @@ module.exports = {
       w.send(
         JSON.stringify({
           request: 'handshake',
-          payload: `{"version": "${API_VERSION}", "key": "${API_KEY}"}`
+          payload: `{"version": "${API_VERSION}", "key": "${
+            process.env.API_KEY
+          }"}`
         })
       )
       keepAlive()
