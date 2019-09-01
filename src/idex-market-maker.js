@@ -279,6 +279,13 @@ module.exports = {
         fs.writeFile('idex_reserve.txt', JSON.stringify(reserve), err => {
           if (err) console.log(err)
           console.log('Reserve saved to file.')
+          console.log(
+            `${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
+              reserve.pnk
+            )} ETH: ${reserve.eth} | PNK: ${
+              reserve.pnk
+            } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
+          )
         })
 
         if (!mutex.isLocked()) {
