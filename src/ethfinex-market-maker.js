@@ -178,18 +178,18 @@ module.exports = {
           if (err) console.log(err)
           console.log('Reserve saved to file.')
         })
+      }
 
-        if (!initialOrdersPlaced) {
-          const orders = module.exports.getOrders(
-            parseInt(steps),
-            MIN_ETH_SIZE,
-            reserve
-          )
+      if (reserve && !initialOrdersPlaced) {
+        const orders = module.exports.getOrders(
+          parseInt(steps),
+          MIN_ETH_SIZE,
+          reserve
+        )
 
-          console.log('Placing orders...')
-          for (batch of orders) w.send(JSON.stringify(batch))
-          initialOrdersPlaced = true
-        }
+        console.log('Placing orders...')
+        for (batch of orders) w.send(JSON.stringify(batch))
+        initialOrdersPlaced = true
       }
 
       if (parsed.event == 'info') {
