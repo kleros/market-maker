@@ -271,11 +271,6 @@ module.exports = {
 
         const newInvariant = reserve.eth.times(reserve.pnk)
 
-        assert(
-          newInvariant.gte(oldInvariant),
-          `New Invariant: ${newInvariant}  Old Invariant: ${oldInvariant}\nInvariant should not decrease. Check bounding curve implemention.`
-        )
-
         fs.writeFile('idex_reserve.txt', JSON.stringify(reserve), err => {
           if (err) console.log(err)
           console.log('Reserve saved to file.')
@@ -287,6 +282,12 @@ module.exports = {
             } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
           )
         })
+
+        const TOLERANCE = 0.99999
+        assert(
+          newInvariant.gte(oldInvariant.times(TOLERANCE)),
+          `New Invariant: ${newInvariant}  Old Invariant: ${oldInvariant}\nInvariant should not decrease. Check bounding curve implemention.`
+        )
 
         if (!mutex.isLocked()) {
           // If in the middle of replacing, skip this trigger.
