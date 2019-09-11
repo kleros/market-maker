@@ -222,11 +222,12 @@ module.exports = {
         console.log('Account balance:')
         console.log(balances)
 
-        const reserve = utils.calculateMaximumReserve(
-          availableETH,
-          availablePNK,
-          lowestAsk.plus(highestBid).div(2)
-        )
+        if (!reserve)
+          reserve = utils.calculateMaximumReserve(
+            availableETH,
+            availablePNK,
+            lowestAsk.plus(highestBid).div(2)
+          )
 
         fs.writeFile('idex_reserve.txt', JSON.stringify(reserve), err => {
           if (err) console.log(err)
