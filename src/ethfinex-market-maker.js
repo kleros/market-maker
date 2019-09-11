@@ -224,8 +224,15 @@ module.exports = {
         reserve.eth = reserve.eth.plus(etherAmount)
         reserve.pnk = reserve.pnk.plus(pinakionAmount)
 
-        const newInvariant = reserve.eth.times(reserve.pnk)
+        console.log(
+          `${date.getDate()}:${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
+            reserve.pnk
+          )} ETH: ${reserve.eth} | PNK: ${
+            reserve.pnk
+          } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
+        )
 
+        const newInvariant = reserve.eth.times(reserve.pnk)
         assert(
           newInvariant.gte(oldInvariant),
           'Invariant should not decrease. Check bounding curve implemention.'
@@ -244,7 +251,8 @@ module.exports = {
         console.log('Placing orders...')
 
         for (batch of orders) w.send(JSON.stringify(batch))
-        await sleep(2000)
+        await new Promise(resolve => setTimeout(resolve, 2000))
+
         release()
         flag++
         if (flag > 20) {
