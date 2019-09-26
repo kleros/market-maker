@@ -62,6 +62,7 @@ module.exports = {
   },
 
   autoMarketMake: async steps => {
+    const date = new Date()
     const mutex = new Mutex()
     let flag = 0
 
@@ -133,8 +134,6 @@ module.exports = {
         parsed[1] != 'bu'
       ) {
         if (reserve) {
-          const date = new Date()
-
           console.log(
             `${date.getDate()}:${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
               reserve.pnk
