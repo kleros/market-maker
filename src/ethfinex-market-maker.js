@@ -231,10 +231,11 @@ module.exports = {
           } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
         )
 
+        const TOLERANCE = 0.99999
         const newInvariant = reserve.eth.times(reserve.pnk)
         assert(
-          newInvariant.gte(oldInvariant),
-          'Invariant should not decrease. Check bounding curve implemention.'
+          newInvariant.gte(oldInvariant.times(TOLERANCE)),
+          `New Invariant: ${newInvariant}  Old Invariant: ${oldInvariant}\nInvariant should not decrease. Check bounding curve implemention.`
         )
 
         fs.writeFile('ethfinex_reserve.txt', JSON.stringify(reserve), err => {
