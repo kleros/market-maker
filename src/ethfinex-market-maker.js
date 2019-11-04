@@ -231,7 +231,7 @@ module.exports = {
           } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
         );
 
-        const TOLERANCE = 0.99999;
+        const TOLERANCE = 0.9999;
         const newInvariant = reserve.eth.times(reserve.pnk);
         assert(
           newInvariant.gte(oldInvariant.times(TOLERANCE)),
