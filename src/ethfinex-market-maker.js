@@ -106,7 +106,7 @@ module.exports = {
       clearTimeout(client.pingTimeout);
       client.pingTimeout = setTimeout(function() {
         process.exit(utils.WEBSOCKET_CONNECTION_DOWN);
-      }, 60000);
+      }, 50000);
     };
     w.on("open", () => {
       heartbeat(w);
