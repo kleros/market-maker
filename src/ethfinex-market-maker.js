@@ -143,9 +143,8 @@ module.exports = {
           );
         }
         console.log(parsed);
-      } else {
-        heartbeat(w);
       }
+      heartbeat(w);
 
       if (Array.isArray(parsed) && parsed[1] == "wu") {
         const payload = parsed[2];
