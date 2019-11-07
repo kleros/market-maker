@@ -97,7 +97,7 @@ module.exports = {
       typeof process.env.ETHFINEX_KEY === "undefined" ||
       typeof process.env.ETHFINEX_SECRET === "undefined"
     ) {
-      console.error(
+      console.log(
         "Please export ETHFINEX_KEY and ETHFINEX_SECRET environment variables."
       );
       process.exit(2);
@@ -114,12 +114,14 @@ module.exports = {
     });
 
     w.on("error", async event => {
-      console.error(event);
-      await new Promise(resolve => setTimeout(resolve, 30000));
+      console.log("onerror");
+      console.log(event);
+      await new Promise(resolve => setTimeout(resolve, 10000));
       module.exports.autoMarketMake(steps);
     });
 
     w.on("close", function clear() {
+      console.log("onclose");
       clearTimeout(this.pingTimeout);
     });
 
