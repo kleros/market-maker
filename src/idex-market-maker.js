@@ -270,6 +270,12 @@ module.exports = {
           reserve.eth = reserve.eth.plus(new BigNumber(ethAmount))
         }
 
+        console.log('Account balance:')
+        console.log(await idexWrapper.getBalances(
+          IDEX_API_KEY,
+          checksumAddress
+        ))
+
         const newInvariant = reserve.eth.times(reserve.pnk)
 
         fs.writeFile('idex_reserve.txt', JSON.stringify(reserve), err => {
