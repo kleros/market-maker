@@ -16,7 +16,7 @@ BigNumber.config({ EXPONENTIAL_AT: [-30, 40] });
 
 const SYMBOL = "tPNKETH";
 const ORDER_INTERVAL = new BigNumber(0.0005);
-const MIN_ETH_SIZE = new BigNumber(0.03);
+const MIN_ETH_SIZE = new BigNumber(0.10);
 const WEBSOCKET_CONNECTION_DOWN = 123;
 
 module.exports = {
