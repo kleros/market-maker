@@ -120,8 +120,9 @@ module.exports = {
       module.exports.autoMarketMake(steps);
     });
 
-    w.on("close", function clear() {
+    w.on("close", function (e) {
       console.log("onclose");
+      console.log(e)
       clearTimeout(this.pingTimeout);
     });
 
