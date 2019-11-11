@@ -123,7 +123,14 @@ module.exports = {
     w.on("close", function (e) {
       console.log("onclose");
       console.log(e)
-      clearTimeout(this.pingTimeout);
+      if(e == 1001) // Code: Going Away 
+      {
+        module.exports.autoMarketMake(steps) // Restart
+      }
+      else{
+        clearTimeout(this.pingTimeout);
+      }
+
     });
 
     w.on("message", async msg => {
