@@ -178,7 +178,7 @@ module.exports = {
       if (reserve) {
         date = new Date();
 
-        utils.logStats(availableETH, availablePNK, reserve);
+        utils.logStats("undefined", "undefined", reserve);
       }
       const parsed = JSON.parse(msg);
       console.log(parsed);
