@@ -16,10 +16,23 @@ BigNumber.config({ EXPONENTIAL_AT: [-30, 40] });
 
 const SYMBOL = "tPNKETH";
 const ORDER_INTERVAL = new BigNumber(0.0005);
-const MIN_ETH_SIZE = new BigNumber(0.10);
+const MIN_ETH_SIZE = new BigNumber(0.1);
 const WEBSOCKET_CONNECTION_DOWN = 123;
 
 module.exports = {
+  logStats: function(availableETH, availablePNK, reserve) {
+    console.log(
+      `${date.getYear()}:${date.getMonth()}:${date.getDate()} - ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
+        reserve.pnk
+      )} ETH: ${reserve.eth} | PNK: ${reserve.pnk} | ETH/PNK: ${reserve.eth.div(
+        reserve.pnk
+      )}`
+    );
+    console.log(
+      `Wallet ETH Balance: ${availableETH} | Wallet PNK Balance: ${availablePNK}`
+    );
+  },
+
   getOrders: function(steps, sizeInEther, reserve) {
     const rawOrders = utils.getBoundingCurveStaircaseOrders(
       steps,
@@ -120,17 +133,15 @@ module.exports = {
       module.exports.autoMarketMake(steps);
     });
 
-    w.on("close", function (e) {
+    w.on("close", function(e) {
       console.log("onclose");
-      console.log(e)
-      if(e == 1001) // Code: Going Away 
-      {
-        module.exports.autoMarketMake(steps) // Restart
-      }
-      else{
+      console.log(e);
+      if (e == 1001) {
+        // Code: Going Away
+        module.exports.autoMarketMake(steps); // Restart
+      } else {
         clearTimeout(this.pingTimeout);
       }
-
     });
 
     w.on("message", async msg => {
@@ -143,15 +154,7 @@ module.exports = {
         parsed[1] != "hb" &&
         parsed[1] != "bu"
       ) {
-        if (reserve) {
-          console.log(
-            `${date.getDate()}:${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
-              reserve.pnk
-            )} ETH: ${reserve.eth} | PNK: ${
-              reserve.pnk
-            } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
-          );
-        }
+        if (reserve) module.exports.logStats(reserve);
         console.log(parsed);
       }
       heartbeat(w);
@@ -166,6 +169,7 @@ module.exports = {
       }
 
       if (!reserve && availableETH && availablePNK && lowestAsk && highestBid) {
+        console.log("Reserve not found, calculating...");
         reserve = utils.calculateMaximumReserve(
           availableETH,
           availablePNK,
@@ -174,13 +178,7 @@ module.exports = {
 
         const date = new Date();
 
-        console.log(
-          `${date.getDate()}:${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
-            reserve.pnk
-          )} ETH: ${reserve.eth} | PNK: ${
-            reserve.pnk
-          } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
-        );
+        module.exports.logStats(reserve);
 
         fs.writeFile("ethfinex_reserve.txt", JSON.stringify(reserve), err => {
           if (err) console.log(err);
@@ -232,13 +230,7 @@ module.exports = {
         reserve.eth = reserve.eth.plus(etherAmount);
         reserve.pnk = reserve.pnk.plus(pinakionAmount);
 
-        console.log(
-          `${date.getDate()}:${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
-            reserve.pnk
-          )} ETH: ${reserve.eth} | PNK: ${
-            reserve.pnk
-          } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
-        );
+        module.exports.logStats(reserve);
 
         const TOLERANCE = 0.9999;
         const newInvariant = reserve.eth.times(reserve.pnk);
