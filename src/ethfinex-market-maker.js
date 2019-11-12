@@ -5,7 +5,6 @@ const WS = require("ws");
 const BigNumber = require("bignumber.js");
 const ethfinexRestWrapper = require("./ethfinex-rest-api-wrapper");
 const { chunk } = require("lodash");
-const calculateMaximumReserve = require("./utils").calculateMaximumReserve;
 const utils = require("./utils");
 const Mutex = require("async-mutex").Mutex;
 const fs = require("fs");
@@ -20,20 +19,6 @@ const MIN_ETH_SIZE = new BigNumber(0.1);
 const WEBSOCKET_CONNECTION_DOWN = 123;
 
 module.exports = {
-  logStats: function(availableETH, availablePNK, reserve) {
-    const date = new Date();
-    console.log(
-      `${date.getFullYear()}:${date.getMonth()}:${date.getDate()} - ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
-        reserve.pnk
-      )} ETH: ${reserve.eth} | PNK: ${reserve.pnk} | ETH/PNK: ${reserve.eth.div(
-        reserve.pnk
-      )}`
-    );
-    console.log(
-      `Wallet ETH Balance: ${availableETH} | Wallet PNK Balance: ${availablePNK}`
-    );
-  },
-
   getOrders: function(steps, sizeInEther, reserve) {
     const rawOrders = utils.getBoundingCurveStaircaseOrders(
       steps,
@@ -154,8 +139,7 @@ module.exports = {
         parsed[1] != "hb" &&
         parsed[1] != "bu"
       ) {
-        if (reserve)
-          module.exports.logStats(availableETH, availablePNK, reserve);
+        if (reserve) utils.logStats(availableETH, availablePNK, reserve);
         console.log(parsed);
       }
       heartbeat(w);
@@ -179,7 +163,7 @@ module.exports = {
 
         const date = new Date();
 
-        module.exports.logStats(availableETH, availablePNK, reserve);
+        utils.logStats(availableETH, availablePNK, reserve);
 
         fs.writeFile("ethfinex_reserve.txt", JSON.stringify(reserve), err => {
           if (err) console.log(err);
@@ -231,7 +215,7 @@ module.exports = {
         reserve.eth = reserve.eth.plus(etherAmount);
         reserve.pnk = reserve.pnk.plus(pinakionAmount);
 
-        module.exports.logStats(availableETH, availablePNK, reserve);
+        utils.logStats(availableETH, availablePNK, reserve);
 
         const TOLERANCE = 0.9999;
         const newInvariant = reserve.eth.times(reserve.pnk);
@@ -259,7 +243,7 @@ module.exports = {
         flag++;
         if (flag > 20) {
           console.log("Kill switch...");
-          process.exit(5);
+          process.exit(0);
         }
       }
     });
