@@ -21,6 +21,7 @@ const WEBSOCKET_CONNECTION_DOWN = 123;
 
 module.exports = {
   logStats: function(availableETH, availablePNK, reserve) {
+    const date = new Date();
     console.log(
       `${date.getYear()}:${date.getMonth()}:${date.getDate()} - ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
         reserve.pnk
@@ -75,7 +76,6 @@ module.exports = {
   },
 
   autoMarketMake: async steps => {
-    const date = new Date();
     const mutex = new Mutex();
     let flag = 0;
 
