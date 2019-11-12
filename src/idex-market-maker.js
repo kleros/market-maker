@@ -277,24 +277,20 @@ module.exports = {
           `New Invariant: ${newInvariant}  Old Invariant: ${oldInvariant}\nInvariant should not decrease. Check bounding curve implemention.`
         );
 
-        if (!mutex.isLocked()) {
-          // If in the middle of replacing, skip this trigger.
-          const release = await mutex.acquire();
-          await module.exports.clearOrders(
-            checksumAddress,
-            process.env.IDEX_SECRET
-          );
+        // If in the middle of replacing, skip this trigger.
+        const release = await mutex.acquire();
+        await module.exports.clearOrders(
+          checksumAddress,
+          process.env.IDEX_SECRET
+        );
 
-          await module.exports.placeStaircaseOrders(
-            checksumAddress,
-            process.env.IDEX_SECRET,
-            parseInt(steps),
-            MIN_ETH_SIZE,
-            reserve
-          );
-
-          release();
-        }
+        await module.exports.placeStaircaseOrders(
+          checksumAddress,
+          process.env.IDEX_SECRET,
+          parseInt(steps),
+          MIN_ETH_SIZE,
+          reserve
+        );
       }
     });
 
