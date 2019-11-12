@@ -118,11 +118,10 @@ module.exports = {
       module.exports.autoMarketMake(steps);
     });
 
-    w.on("close", function(e) {
+    w.on("close", function(errorCode) {
       console.log("onclose");
-      console.log(e);
-      if (e == 1001) {
-        // Code: Going Away
+      console.log(errorCode);
+      if (errorCode == 1001 || errorCode == 1006) {
         module.exports.autoMarketMake(steps); // Restart
       } else {
         clearTimeout(this.pingTimeout);
