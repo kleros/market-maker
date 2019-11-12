@@ -154,7 +154,8 @@ module.exports = {
         parsed[1] != "hb" &&
         parsed[1] != "bu"
       ) {
-        if (reserve) module.exports.logStats(reserve);
+        if (reserve)
+          module.exports.logStats(availableETH, availablePNK, reserve);
         console.log(parsed);
       }
       heartbeat(w);
@@ -178,7 +179,7 @@ module.exports = {
 
         const date = new Date();
 
-        module.exports.logStats(reserve);
+        module.exports.logStats(availableETH, availablePNK, reserve);
 
         fs.writeFile("ethfinex_reserve.txt", JSON.stringify(reserve), err => {
           if (err) console.log(err);
@@ -230,7 +231,7 @@ module.exports = {
         reserve.eth = reserve.eth.plus(etherAmount);
         reserve.pnk = reserve.pnk.plus(pinakionAmount);
 
-        module.exports.logStats(reserve);
+        module.exports.logStats(availableETH, availablePNK, reserve);
 
         const TOLERANCE = 0.9999;
         const newInvariant = reserve.eth.times(reserve.pnk);
