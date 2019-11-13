@@ -119,7 +119,7 @@ module.exports = {
         if (typeof nonce.nonce !== "number") {
           console.log(
             `Failed to retrieve nonce, cannot send ${orders[
-              i
+              orders.length - 1 - i
             ].toString()}. Skipping...`
           );
         } else
@@ -129,7 +129,7 @@ module.exports = {
               web3,
               address,
               process.env.IDEX_SECRET,
-              orders[i],
+              orders[orders.length - 1 - i],
               nonce
             );
           } catch (e) {
