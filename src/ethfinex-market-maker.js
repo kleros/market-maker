@@ -197,7 +197,6 @@ module.exports = {
         parsed[1] == "te" &&
         parsed[2][1] == SYMBOL
       ) {
-        const release = await mutex.acquire();
         console.log("Cancelling orders...");
         w.send(CANCEL_ALL_ORDERS);
 
@@ -238,7 +237,6 @@ module.exports = {
         for (batch of orders) w.send(JSON.stringify(batch));
         await new Promise(resolve => setTimeout(resolve, 2000));
 
-        release();
         flag++;
         if (flag > 20) {
           console.log("Kill switch...");
