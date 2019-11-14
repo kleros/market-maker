@@ -152,6 +152,10 @@ module.exports = {
           `Account has ${payload[2]} ${payload[1]} and ${payload[2] -
             payload[4]} on open orders.`
         );
+      } else if (parsed.length == 10) {
+        console.log(
+          `Bid: ${parsed[0]} | Ask: ${parsed[2]} | Last: ${parsed[6]}`
+        );
       } else {
         console.log(parsed);
         if (reserve) utils.logStats(availableETH, availablePNK, reserve);
