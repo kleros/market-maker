@@ -140,7 +140,7 @@ module.exports = {
         parsed[1] == "bu"
       ) {
       } else if (parsed[1] == "os") {
-        console.log(`Number of open orders: ${parsed[3].length}`);
+        console.log(`Number of open orders: ${parsed[2].length}`);
       } else {
         console.log(parsed);
         if (reserve) utils.logStats(availableETH, availablePNK, reserve);
