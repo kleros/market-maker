@@ -129,19 +129,23 @@ module.exports = {
     });
 
     w.on("message", async msg => {
+      heartbeat(w);
       const parsed = JSON.parse(msg);
 
       if (
-        parsed[1] != "on" &&
-        parsed[1] != "n" &&
-        parsed[1] != "oc" &&
-        parsed[1] != "hb" &&
-        parsed[1] != "bu"
+        parsed[1] == "on" ||
+        parsed[1] == "n" ||
+        parsed[1] == "oc" ||
+        parsed[1] == "hb" ||
+        parsed[1] == "bu"
       ) {
-        if (reserve) utils.logStats(availableETH, availablePNK, reserve);
+        console.log(".");
+      } else if (parsed[1] == "os") {
+        console.log(`Number of open orders: ${parsed[3].length}`);
+      } else {
         console.log(parsed);
       }
-      heartbeat(w);
+      if (reserve) utils.logStats(availableETH, availablePNK, reserve);
 
       if (Array.isArray(parsed) && parsed[1] == "wu") {
         const payload = parsed[2];
