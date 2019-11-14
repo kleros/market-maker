@@ -141,18 +141,20 @@ module.exports = {
       ) {
       } else if (parsed[1] == "os") {
         console.log(`Number of open orders: ${parsed[2].length}`);
-      } else {
-        console.log(parsed);
-        if (reserve) utils.logStats(availableETH, availablePNK, reserve);
-      }
-
-      if (Array.isArray(parsed) && parsed[1] == "wu") {
+      } else if (parsed[1] == "wu") {
         const payload = parsed[2];
         if (payload[1] == "PNK") {
           availablePNK = new BigNumber(payload[2]);
         } else if (payload[1] == "ETH") {
           availableETH = new BigNumber(payload[2]);
-        } else console.log("Unhandled wallet update.");
+        }
+        console.log(
+          `Account has ${payload[2]} ${payload[1]} and ${payload[2] -
+            payload[4]} on open orders.`
+        );
+      } else {
+        console.log(parsed);
+        if (reserve) utils.logStats(availableETH, availablePNK, reserve);
       }
 
       if (!reserve && availableETH && availablePNK && lowestAsk && highestBid) {
