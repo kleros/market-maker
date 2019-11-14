@@ -139,7 +139,6 @@ module.exports = {
         parsed[1] == "hb" ||
         parsed[1] == "bu"
       ) {
-        console.log(".");
       } else if (parsed[1] == "os") {
         console.log(`Number of open orders: ${parsed[3].length}`);
       } else {
