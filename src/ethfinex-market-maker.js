@@ -143,8 +143,8 @@ module.exports = {
         console.log(`Number of open orders: ${parsed[3].length}`);
       } else {
         console.log(parsed);
+        if (reserve) utils.logStats(availableETH, availablePNK, reserve);
       }
-      if (reserve) utils.logStats(availableETH, availablePNK, reserve);
 
       if (Array.isArray(parsed) && parsed[1] == "wu") {
         const payload = parsed[2];
