@@ -32,7 +32,8 @@ module.exports = {
         cid: Math.floor(Math.random() * 2 ** 45),
         price,
         symbol: SYMBOL,
-        type: "EXCHANGE LIMIT"
+        type: "EXCHANGE LIMIT",
+        tif: "2030-01-01 10:45:23"
       }
     ];
 
@@ -247,7 +248,7 @@ module.exports = {
         await new Promise(resolve => setTimeout(resolve, 2000));
 
         flag++;
-        if (flag > 20) {
+        if (flag > 50) {
           console.log("Kill switch...");
           process.exit(0);
         }
