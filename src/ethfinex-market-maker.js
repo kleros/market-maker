@@ -209,6 +209,7 @@ module.exports = {
       ) {
         console.log("Cancelling orders...");
         w.send(CANCEL_ALL_ORDERS);
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         const tradeExecutionLog = parsed[2];
         const pinakionAmount = new BigNumber(tradeExecutionLog[4]);
@@ -245,9 +246,9 @@ module.exports = {
         console.log("Placing orders...");
 
         for (batch of orders) w.send(JSON.stringify(batch));
-        await new Promise(resolve => setTimeout(resolve, 2000));
 
         flag++;
+        console.log(`Flag: ${flag}`);
         if (flag > 50) {
           console.log("Kill switch...");
           process.exit(0);
