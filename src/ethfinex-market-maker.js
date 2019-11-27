@@ -154,7 +154,7 @@ module.exports = {
             payload[4]} on open orders.`
         );
 
-        if (payload[2] - payload[4] == 0) {
+        if (payload[1] == "PNK" && payload[2] - payload[4] == 0) {
           const orders = module.exports.getOrders(
             parseInt(steps),
             MIN_ETH_SIZE,
