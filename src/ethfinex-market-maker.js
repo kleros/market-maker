@@ -153,6 +153,17 @@ module.exports = {
           `Account has ${payload[2]} ${payload[1]} and ${payload[2] -
             payload[4]} on open orders.`
         );
+
+        if (payload[2] - payload[4] == 0) {
+          const orders = module.exports.getOrders(
+            parseInt(steps),
+            MIN_ETH_SIZE,
+            reserve
+          );
+          console.log("Orders got cancelled it seems... Placing orders...");
+
+          for (batch of orders) w.send(JSON.stringify(batch));
+        }
       } else if (parsed.length == 10) {
         console.log(
           `Bid: ${parsed[0]} | Ask: ${parsed[2]} | Last: ${parsed[6]}`
