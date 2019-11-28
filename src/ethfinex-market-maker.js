@@ -119,10 +119,11 @@ module.exports = {
       module.exports.autoMarketMake(steps);
     });
 
-    w.on("close", function(errorCode) {
+    w.on("close", async function(errorCode) {
       console.log("onclose");
       console.log(errorCode);
       if (errorCode == 1001 || errorCode == 1006) {
+        await new Promise(resolve => setTimeout(resolve, 10000));
         module.exports.autoMarketMake(steps); // Restart
       } else {
         clearTimeout(this.pingTimeout);
@@ -160,8 +161,12 @@ module.exports = {
             MIN_ETH_SIZE,
             reserve
           );
-          console.log("Orders got cancelled it seems... Placing orders...");
-
+          console.log(
+            "Orders got cancelled it seems... Placing orders again..."
+          );
+          console.log("Cancelling orders...");
+          w.send(CANCEL_ALL_ORDERS);
+          console.log("Placing...");
           for (batch of orders) w.send(JSON.stringify(batch));
         }
       } else if (parsed.length == 10) {
