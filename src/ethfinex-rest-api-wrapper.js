@@ -43,7 +43,17 @@ module.exports = {
     )
   },
   orders: async function(symbol = 'tPNKETH') {
-    return await fetch(`https://api.bitfinex.com/v2/auth/r/orders/${symbol}`).then(
+    return await fetch(`https://api.bitfinex.com/v2/auth/r/orders/${symbol}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'bfx-nonce': nonce,
+        'bfx-apikey': 'V1F4WqaK7DAxtfS3kV5l6KtSd4d0h5zltYv7BjYoKD2',
+        'bfx-signature': module.exports.getSignatureHash()
+      },
+      json: true,
+      method: 'POST',
+      body: JSON.stringify(body)
+    }).then(
       function(response) {
         return response.json()
       }
