@@ -16,7 +16,7 @@ module.exports = {
       .update(signature)
     return (shex = sig.digest('hex'))
   },
-  getBalance: async function() {
+  wallets: async function() {
     return await fetch(
       `https://api.bitfinex.com/v2/auth/r/wallets?type=price`,
       {
@@ -35,8 +35,15 @@ module.exports = {
     })
   },
 
-  getTicker: async function(symbol = 'tPNKETH') {
-    return await fetch(`https://api-pub.bitfinex.com/v2/ticker/tPNKETH`).then(
+  ticker: async function(symbol = 'tPNKETH') {
+    return await fetch(`https://api-pub.bitfinex.com/v2/ticker/${symbol}`).then(
+      function(response) {
+        return response.json()
+      }
+    )
+  },
+  orders: async function(symbol = 'tPNKETH') {
+    return await fetch(`https://api.bitfinex.com/v2/auth/r/orders/${symbol}`).then(
       function(response) {
         return response.json()
       }

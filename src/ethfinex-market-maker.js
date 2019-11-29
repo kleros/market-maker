@@ -166,8 +166,14 @@ module.exports = {
           );
           console.log("Cancelling orders...");
           w.send(CANCEL_ALL_ORDERS);
-          console.log("Placing...");
-          for (batch of orders) w.send(JSON.stringify(batch));
+          const openOrders = await ethfinexRestWrapper.orders()
+          if(orders.length == 0){
+            console.log("Placing...");
+            for (batch of orders) w.send(JSON.stringify(batch));
+          }
+          else{
+            console.log("There are open orders still, skip placing...")
+          }
         }
       } else if (parsed.length == 10) {
         console.log(
@@ -209,7 +215,7 @@ module.exports = {
       }
 
       if (parsed.event == "info") {
-        const ticker = await ethfinexRestWrapper.getTicker();
+        const ticker = await ethfinexRestWrapper.ticker();
         console.log(ticker);
         highestBid = new BigNumber(ticker[0]);
         lowestAsk = new BigNumber(ticker[2]);
