@@ -17,6 +17,7 @@ const SYMBOL = "tPNKETH";
 const ORDER_INTERVAL = new BigNumber(0.0005);
 const MIN_ETH_SIZE = new BigNumber(0.1);
 const WEBSOCKET_CONNECTION_DOWN = 123;
+let orderGroupID = 0
 
 module.exports = {
   getOrders: function(steps, sizeInEther, reserve) {
@@ -29,6 +30,7 @@ module.exports = {
       "on",
       {
         amount,
+        gid: ++orderGroupID
         cid: Math.floor(Math.random() * 2 ** 45),
         price,
         symbol: SYMBOL,
@@ -75,6 +77,14 @@ module.exports = {
       null,
       {
         all: 1
+      }
+    ]);
+    const CANCEL_ORDERS_FROM_GROUP = (gid) => JSON.stringify([
+      0,
+      "oc_multi",
+      null,
+      {
+        gid: gid
       }
     ]);
     let highestBid;
@@ -164,9 +174,11 @@ module.exports = {
           console.log(
             "Orders got cancelled it seems... Placing orders again..."
           );
-          console.log("Cancelling orders...");
-          w.send(CANCEL_ALL_ORDERS);
           const openOrders = await ethfinexRestWrapper.orders()
+          const gid = openOrders[0][1]
+          console.log(`Cancelling orders from group ${gid} ...`);
+
+          w.send(CANCEL_ORDERS_FROM_GROUP(orderGroupID));
           if(orders.length == 0){
             console.log("Placing...");
             for (batch of orders) w.send(JSON.stringify(batch));
