@@ -30,7 +30,7 @@ module.exports = {
       "on",
       {
         amount,
-        gid: ++orderGroupID
+        gid: ++orderGroupID,
         cid: Math.floor(Math.random() * 2 ** 45),
         price,
         symbol: SYMBOL,
