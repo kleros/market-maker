@@ -175,18 +175,17 @@ module.exports = {
             "Orders got cancelled it seems... Placing orders again..."
           );
           const openOrders = await ethfinexRestWrapper.orders((Date.now()*1000).toString())
-          const gid = openOrders[0][1]
+
+          console.log("Open Orders:");
           console.log(openOrders);
           console.log(`Cancelling orders `)
 
           w.send(CANCEL_ALL_ORDERS);
-          if(openOrders.length == 0){
+          if(Date.now()%10 == 0){
             console.log("Placing...");
             for (batch of orders) w.send(JSON.stringify(batch));
           }
-          else{
-            console.log("There are open orders still, skip placing...")
-          }
+
         }
       } else if (parsed.length == 10) {
         console.log(

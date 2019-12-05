@@ -12,6 +12,15 @@ module.exports = {
       .update(signature)
     return (shex = sig.digest('hex'))
   },
+
+  ticker: async function(symbol = 'tPNKETH') {
+    return await fetch(`${PUBLIC}/v2/ticker/${symbol}`).then(
+      function(response) {
+        return response.json()
+      }
+    )
+  },
+  
   wallets: async function(nonce) {
     return await fetch(
       `${AUTHENTICATED}/v2/auth/r/wallets?type=price`,
@@ -31,13 +40,6 @@ module.exports = {
     })
   },
 
-  ticker: async function(symbol = 'tPNKETH') {
-    return await fetch(`${PUBLIC}/v2/ticker/${symbol}`).then(
-      function(response) {
-        return response.json()
-      }
-    )
-  },
   orders: async function(nonce, symbol = 'tPNKETH') {
     return await fetch(`${AUTHENTICATED}/v2/auth/r/orders/${symbol}`, {
       headers: {
