@@ -4,6 +4,7 @@ BigNumber.config({ EXPONENTIAL_AT: [-30, 40] });
 
 module.exports = {
   WEBSOCKET_CONNECTION_DOWN: 123,
+  NO_OPEN_ORDERS_LEFT: 432,
   logStats: function(availableETH, availablePNK, reserve) {
     const date = new Date();
     console.log(

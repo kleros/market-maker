@@ -165,26 +165,16 @@ module.exports = {
             payload[4]} on open orders.`
         );
 
-        if (payload[1] == "PNK" && payload[2] - payload[4] == 0) {
+        if (payload[2] - payload[4] == 0) {
           const orders = module.exports.getOrders(
             parseInt(steps),
             MIN_ETH_SIZE,
             reserve
           );
           console.log(
-            "Orders got cancelled it seems... Placing orders again..."
+            "Orders got cancelled it seems... Restarting..."
           );
-          const openOrders = await ethfinexRestWrapper.orders((Date.now()*1000).toString())
-
-          console.log("Open Orders:");
-          console.log(openOrders);
-          console.log(`Cancelling orders `)
-
-          w.send(CANCEL_ALL_ORDERS);
-          if(Date.now()%10 == 0){
-            console.log("Placing...");
-            for (batch of orders) w.send(JSON.stringify(batch));
-          }
+          process.exit(utils.WEBSOCKET_CONNECTION_DOWN)
 
         }
       } else if (parsed.length == 10) {
