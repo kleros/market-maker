@@ -14,7 +14,7 @@ module.exports = {
   },
   wallets: async function(nonce) {
     return await fetch(
-      `${REST_API}/v2/auth/r/wallets?type=price`,
+      `${AUTHENTICATED}/v2/auth/r/wallets?type=price`,
       {
         headers: {
           'Content-Type': 'application/json',
@@ -39,7 +39,7 @@ module.exports = {
     )
   },
   orders: async function(symbol = 'tPNKETH', nonce) {
-    return await fetch(`${REST_API}/v2/auth/r/orders/${symbol}`, {
+    return await fetch(`${AUTHENTICATED}/v2/auth/r/orders/${symbol}`, {
       headers: {
         'Content-Type': 'application/json',
         'bfx-nonce': nonce,
