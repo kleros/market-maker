@@ -179,7 +179,7 @@ module.exports = {
           console.log(`Cancelling orders from group ${gid} ...`);
 
           w.send(CANCEL_ORDERS_FROM_GROUP(orderGroupID));
-          if(orders.length == 0){
+          if(openOrders.length == 0){
             console.log("Placing...");
             for (batch of orders) w.send(JSON.stringify(batch));
           }
