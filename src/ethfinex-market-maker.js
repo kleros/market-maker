@@ -174,7 +174,7 @@ module.exports = {
           console.log(
             "Orders got cancelled it seems... Placing orders again..."
           );
-          const openOrders = await ethfinexRestWrapper.orders(Date.now()*1000)
+          const openOrders = await ethfinexRestWrapper.orders((Date.now()*1000).toString())
           const gid = openOrders[0][1]
           console.log(openOrders);
           console.log(`Cancelling orders `)
