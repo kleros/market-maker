@@ -176,6 +176,7 @@ module.exports = {
           );
           const openOrders = await ethfinexRestWrapper.orders()
           const gid = openOrders[0][1]
+          console.log(openOrders[0]);
           console.log(`Cancelling orders from group ${gid} ...`);
 
           w.send(CANCEL_ORDERS_FROM_GROUP(orderGroupID));
