@@ -1,30 +1,26 @@
-const REST_API = 'https://api.bitfinex.com'
+const AUTHENTICATED = 'https://api.bitfinex.com'
+const PUBLIC = 'https://api-pub.bitfinex.com'
+
 const fetch = require('node-fetch')
 const crypto = require('crypto')
 
-const apiPath = 'v2/auth/r/wallets'
-const nonce = Date.now() * 1000
-
-const queryParams = 'type=price'
-const body = {}
-let signature = `/api/${apiPath}${nonce}${JSON.stringify(body)}`
-
 module.exports = {
-  getSignatureHash: function() {
+  getSignatureHash: function(apiPath, body, nonce) {
+    const signature = `/api/${apiPath}${nonce}${JSON.stringify(body)}`
     const sig = crypto
       .createHmac('SHA384', process.env.ETHFINEX_SECRET)
       .update(signature)
     return (shex = sig.digest('hex'))
   },
-  wallets: async function() {
+  wallets: async function(nonce) {
     return await fetch(
-      `https://api.bitfinex.com/v2/auth/r/wallets?type=price`,
+      `${REST_API}/v2/auth/r/wallets?type=price`,
       {
         headers: {
           'Content-Type': 'application/json',
           'bfx-nonce': nonce,
           'bfx-apikey': process.env.ETHFINEX_KEY,
-          'bfx-signature': module.exports.getSignatureHash()
+          'bfx-signature': module.exports.getSignatureHash("v2/auth/r/wallets", {}, nonce)
         },
         json: true,
         method: 'POST',
@@ -36,23 +32,23 @@ module.exports = {
   },
 
   ticker: async function(symbol = 'tPNKETH') {
-    return await fetch(`https://api-pub.bitfinex.com/v2/ticker/${symbol}`).then(
+    return await fetch(`${PUBLIC}/v2/ticker/${symbol}`).then(
       function(response) {
         return response.json()
       }
     )
   },
-  orders: async function(symbol = 'tPNKETH') {
-    return await fetch(`https://api.bitfinex.com/v2/auth/r/orders/${symbol}`, {
+  orders: async function(symbol = 'tPNKETH', nonce) {
+    return await fetch(`${REST_API}/v2/auth/r/orders/${symbol}`, {
       headers: {
         'Content-Type': 'application/json',
         'bfx-nonce': nonce,
         'bfx-apikey': process.env.ETHFINEX_KEY,
-        'bfx-signature': module.exports.getSignatureHash()
+        'bfx-signature': module.exports.getSignatureHash("v2/auth/r/orders", {}, nonce)
       },
       json: true,
       method: 'POST',
-      body: JSON.stringify(body)
+      body: JSON.stringify({})
     }).then(
       function(response) {
         return response.json()
