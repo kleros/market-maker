@@ -23,7 +23,7 @@ module.exports = {
         headers: {
           'Content-Type': 'application/json',
           'bfx-nonce': nonce,
-          'bfx-apikey': 'V1F4WqaK7DAxtfS3kV5l6KtSd4d0h5zltYv7BjYoKD2',
+          'bfx-apikey': process.env.ETHFINEX_KEY,
           'bfx-signature': module.exports.getSignatureHash()
         },
         json: true,
@@ -47,7 +47,7 @@ module.exports = {
       headers: {
         'Content-Type': 'application/json',
         'bfx-nonce': nonce,
-        'bfx-apikey': 'V1F4WqaK7DAxtfS3kV5l6KtSd4d0h5zltYv7BjYoKD2',
+        'bfx-apikey': process.env.ETHFINEX_KEY,
         'bfx-signature': module.exports.getSignatureHash()
       },
       json: true,
