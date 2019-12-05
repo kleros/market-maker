@@ -176,10 +176,10 @@ module.exports = {
           );
           const openOrders = await ethfinexRestWrapper.orders()
           const gid = openOrders[0][1]
-          console.log(openOrders[0]);
-          console.log(`Cancelling orders from group ${gid} ...`);
+          console.log(openOrders);
+          console.log(`Cancelling orders `)
 
-          w.send(CANCEL_ORDERS_FROM_GROUP(orderGroupID));
+          w.send(CANCEL_ALL_ORDERS);
           if(openOrders.length == 0){
             console.log("Placing...");
             for (batch of orders) w.send(JSON.stringify(batch));
