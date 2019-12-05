@@ -38,7 +38,7 @@ module.exports = {
       }
     )
   },
-  orders: async function(symbol = 'tPNKETH', nonce) {
+  orders: async function(nonce, symbol = 'tPNKETH') {
     return await fetch(`${AUTHENTICATED}/v2/auth/r/orders/${symbol}`, {
       headers: {
         'Content-Type': 'application/json',
