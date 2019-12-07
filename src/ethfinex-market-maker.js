@@ -266,10 +266,7 @@ module.exports = {
           `New Invariant: ${newInvariant}  Old Invariant: ${oldInvariant}\nInvariant should not decrease. Check bounding curve implemention.`
         );
 
-        fs.writeFile("ethfinex_reserve.txt", JSON.stringify(reserve), err => {
-          if (err) console.log(err);
-          console.log("Reserve saved to file.");
-        });
+        fs.writeFileSync("ethfinex_reserve.txt", JSON.stringify(reserve)) 
 
         const orders = module.exports.getOrders(
           parseInt(steps),
