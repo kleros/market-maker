@@ -17,7 +17,7 @@ const SYMBOL = "tPNKETH";
 const ORDER_INTERVAL = new BigNumber(0.0005);
 const MIN_ETH_SIZE = new BigNumber(0.1);
 const WEBSOCKET_CONNECTION_DOWN = 123;
-let orderGroupID = 0
+let orderGroupID = 0;
 
 module.exports = {
   getOrders: function(steps, sizeInEther, reserve) {
@@ -79,14 +79,15 @@ module.exports = {
         all: 1
       }
     ]);
-    const CANCEL_ORDERS_FROM_GROUP = (gid) => JSON.stringify([
-      0,
-      "oc_multi",
-      null,
-      {
-        gid: gid
-      }
-    ]);
+    const CANCEL_ORDERS_FROM_GROUP = gid =>
+      JSON.stringify([
+        0,
+        "oc_multi",
+        null,
+        {
+          gid: gid
+        }
+      ]);
     let highestBid;
     let lowestAsk;
     let orders;
@@ -174,17 +175,18 @@ module.exports = {
           console.log(
             "Orders got cancelled it seems... Placing orders again..."
           );
-          const openOrders = await ethfinexRestWrapper.orders((Date.now()*1000).toString())
+          const openOrders = await ethfinexRestWrapper.orders(
+            (Date.now() * 1000).toString()
+          );
           console.log("Open Orders:");
           console.log(openOrders);
-          console.log(`Cancelling orders `)
+          console.log(`Cancelling orders `);
 
           w.send(CANCEL_ALL_ORDERS);
           await new Promise(resolve => setTimeout(resolve, 5000));
 
           console.log("Placing...");
           for (batch of orders) w.send(JSON.stringify(batch));
-
         }
       } else if (parsed.length == 10) {
         console.log(
@@ -261,12 +263,17 @@ module.exports = {
 
         const TOLERANCE = 0.9999;
         const newInvariant = reserve.eth.times(reserve.pnk);
-        assert(
-          newInvariant.gte(oldInvariant.times(TOLERANCE)),
-          `New Invariant: ${newInvariant}  Old Invariant: ${oldInvariant}\nInvariant should not decrease. Check bounding curve implemention.`
-        );
 
-        fs.writeFileSync("ethfinex_reserve.txt", JSON.stringify(reserve)) 
+        try {
+          assert(
+            newInvariant.gte(oldInvariant.times(TOLERANCE)),
+            `New Invariant: ${newInvariant}  Old Invariant: ${oldInvariant}\nInvariant should not decrease. Check bounding curve implemention.`
+          );
+        } catch (err) {
+          process.exit(3);
+        }
+
+        fs.writeFileSync("ethfinex_reserve.txt", JSON.stringify(reserve));
 
         const orders = module.exports.getOrders(
           parseInt(steps),
