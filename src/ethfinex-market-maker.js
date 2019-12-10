@@ -68,7 +68,7 @@ module.exports = {
     let flag = 0;
 
     assert(steps <= 128, "You exceeded Ethfinex maximum order limit.");
-    let initialOrdersPlaced = false;
+    let initialOrdersPlaced = true;
 
     const w = new WS(ETHFINEX_WEBSOCKET_API);
     const CANCEL_ALL_ORDERS = JSON.stringify([
