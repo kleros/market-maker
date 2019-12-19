@@ -194,7 +194,8 @@ module.exports = {
         );
       } else {
         console.log(parsed);
-        if (reserve) utils.logStats(availableETH, availablePNK, reserve);
+        if (reserve && availableETH && availablePNK)
+          utils.logStats(availableETH, availablePNK, reserve);
       }
 
       if (!reserve && availableETH && availablePNK && lowestAsk && highestBid) {
