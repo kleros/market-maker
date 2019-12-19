@@ -287,7 +287,7 @@ module.exports = {
 
         flag++;
         console.log(`Flag: ${flag}`);
-        if (flag > 50) {
+        if (flag > 100) {
           console.log("Kill switch...");
           process.exit(0);
         }
