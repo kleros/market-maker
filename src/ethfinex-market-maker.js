@@ -126,16 +126,16 @@ module.exports = {
     w.on("error", async event => {
       console.log("onerror");
       console.log(event);
-      await new Promise(resolve => setTimeout(resolve, 10000));
-      module.exports.autoMarketMake(steps);
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      await module.exports.autoMarketMake(steps);
     });
 
     w.on("close", async function(errorCode) {
       console.log("onclose");
       console.log(errorCode);
       if (errorCode == 1001 || errorCode == 1006) {
-        await new Promise(resolve => setTimeout(resolve, 10000));
-        module.exports.autoMarketMake(steps); // Restart
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        await module.exports.autoMarketMake(steps); // Restart
       } else {
         clearTimeout(this.pingTimeout);
       }
