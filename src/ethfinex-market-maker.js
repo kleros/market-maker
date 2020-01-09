@@ -126,8 +126,6 @@ module.exports = {
     w.on("error", async event => {
       console.log("onerror");
       console.log(event);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      await module.exports.autoMarketMake(steps);
     });
 
     w.on("close", async function(errorCode) {
