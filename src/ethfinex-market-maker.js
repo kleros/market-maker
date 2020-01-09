@@ -132,7 +132,7 @@ module.exports = {
       console.log("onclose");
       console.log(errorCode);
       if (errorCode == 1001 || errorCode == 1006) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        await new Promise(resolve => setTimeout(resolve, 10000));
         await module.exports.autoMarketMake(steps); // Restart
       } else {
         clearTimeout(this.pingTimeout);
