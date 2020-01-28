@@ -65,7 +65,7 @@ module.exports = {
 
   autoMarketMake: async steps => {
     const mutex = new Mutex();
-    let flag = 0;
+    let noOfTrades = 0;
 
     assert(steps <= 128, "You exceeded Ethfinex maximum order limit.");
     let initialOrdersPlaced = true;
@@ -283,12 +283,8 @@ module.exports = {
 
         for (batch of orders) w.send(JSON.stringify(batch));
 
-        flag++;
-        console.log(`Flag: ${flag}`);
-        if (flag > 100) {
-          console.log("Kill switch...");
-          process.exit(0);
-        }
+        noOfTrades++;
+        console.log(`Number of trades done: ${noOfTrades}`);
       }
     });
     const authenticationPayload = function() {
