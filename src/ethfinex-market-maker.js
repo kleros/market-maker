@@ -243,7 +243,6 @@ module.exports = {
       ) {
         console.log("Cancelling orders...");
         w.send(CANCEL_ALL_ORDERS);
-        await new Promise(resolve => setTimeout(resolve, 2000));
 
         const tradeExecutionLog = parsed[2];
         const pinakionAmount = new BigNumber(tradeExecutionLog[4]);
@@ -269,10 +268,12 @@ module.exports = {
             `New Invariant: ${newInvariant}  Old Invariant: ${oldInvariant}\nInvariant should not decrease. Check bounding curve implemention.`
           );
         } catch (err) {
-          process.exit(3);
+          process.exit(0); // This exit code doesn't get restarted.
         }
 
         fs.writeFileSync("ethfinex_reserve.txt", JSON.stringify(reserve));
+
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         const orders = module.exports.getOrders(
           parseInt(steps),
