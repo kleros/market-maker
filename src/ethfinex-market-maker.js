@@ -282,6 +282,9 @@ module.exports = {
         );
         console.log("Placing orders...");
 
+        w.send(CANCEL_ALL_ORDERS);
+        await new Promise(resolve => setTimeout(resolve, 5000));
+
         for (batch of orders) w.send(JSON.stringify(batch));
 
         noOfTrades++;
