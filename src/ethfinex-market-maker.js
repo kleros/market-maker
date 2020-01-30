@@ -32,6 +32,11 @@ const MsgCodes = Object.freeze({
   HEARTBEAT: "hb"
 });
 
+const WSCloseCodes = Object.freeze({
+  CLOSE_GOING_AWAY: 1001,
+  CLOSE_ABNORMAL: 1006
+});
+
 module.exports = {
   getOrders: function(steps, sizeInEther, reserve) {
     const rawOrders = utils.getBoundingCurveStaircaseOrders(
@@ -134,7 +139,10 @@ module.exports = {
     w.on("close", async function(errorCode) {
       console.log("onclose");
       console.log(errorCode);
-      if (errorCode == 1001 || errorCode == 1006) {
+      if (
+        errorCode == WSCloseCodes.CLOSE_GOING_AWAY ||
+        errorCode == WSCloseCodes.CLOSE_ABNORMAL
+      ) {
         await new Promise(resolve => setTimeout(resolve, 10000));
         await module.exports.autoMarketMake(steps); // Restart
       } else {
