@@ -41,8 +41,8 @@ module.exports = {
     });
   },
 
-  orders: async function(nonce, symbol = "tPNKETH") {
-    return await fetch(`${AUTHENTICATED}/v2/auth/r/orders/${symbol}`, {
+  orders: async function(nonce) {
+    return await fetch(`${AUTHENTICATED}/v2/auth/r/orders`, {
       headers: {
         "Content-Type": "application/json",
         "bfx-nonce": nonce,
