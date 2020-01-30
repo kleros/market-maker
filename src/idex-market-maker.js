@@ -2,7 +2,6 @@ const WS = require("ws");
 const Web3 = require("web3");
 const assert = require("assert");
 const BigNumber = require("bignumber.js");
-const Mutex = require("async-mutex").Mutex;
 
 BigNumber.config({ EXPONENTIAL_AT: [-30, 40] });
 
@@ -156,7 +155,7 @@ module.exports = {
       reserve.eth = new BigNumber(reserve.eth);
       console.log("Found a reserve file, loading...");
     });
-    const mutex = new Mutex();
+
     const tradeAmounts = { buy: new BigNumber(0), sell: new BigNumber(0) };
     const checksumAddress = web3.utils.toChecksumAddress(
       process.env.IDEX_ADDRESS
