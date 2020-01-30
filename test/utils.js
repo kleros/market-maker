@@ -1,3 +1,4 @@
+/* global describe, it */
 const assert = require('chai').assert
 
 const utils = require('../src/utils')

@@ -1,8 +1,9 @@
+/* global describe, it */
 const assert = require('chai').assert
+const BigNumber = require('bignumber.js')
+
 const getStaircaseOrders = require('../src/idex-market-maker.js')
   .getStaircaseOrders
-
-const BigNumber = require('bignumber.js')
 
 BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 

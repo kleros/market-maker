@@ -1,3 +1,5 @@
+/* global describe, it */
+
 const assert = require('chai').assert
 const getBoundingCurveStaircaseOrders = require('../src/utils')
   .getBoundingCurveStaircaseOrders
@@ -6,7 +8,8 @@ const BigNumber = require('bignumber.js')
 
 BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
-const testCases_old = [
+// eslint-disable-next-line no-unused-vars
+const testCasesOld = [
   {
     args: {
       steps: 3,
