@@ -6,7 +6,6 @@ const BigNumber = require("bignumber.js");
 const ethfinexRestWrapper = require("./ethfinex-rest-api-wrapper");
 const { chunk } = require("lodash");
 const utils = require("./utils");
-const Mutex = require("async-mutex").Mutex;
 const fs = require("fs");
 
 const ETHFINEX_WEBSOCKET_API = "wss://api.bitfinex.com/ws/2/";
@@ -18,6 +17,20 @@ const ORDER_INTERVAL = new BigNumber(0.0005);
 const MIN_ETH_SIZE = new BigNumber(0.1);
 const WEBSOCKET_CONNECTION_DOWN = 123;
 let orderGroupID = 0;
+
+const MsgCodes = Object.freeze({
+  ORDER_SNAPSHOT: "os",
+  ORDER_NEW: "on",
+  ORDER_UPDATE: "ou",
+  ORDER_CANCEL: "oc",
+  BALANCE_UPDATE: "bu",
+  WALLET_SNAPSHOT: "ws",
+  WALLET_UPDATE: "wu",
+  TRADE_EXECUTED: "te",
+  TRADE_EXECUTION_UPDATE: "tu",
+  NOTIFICATIONS: "n",
+  HEARTBEAT: "hb"
+});
 
 module.exports = {
   getOrders: function(steps, sizeInEther, reserve) {
@@ -64,11 +77,9 @@ module.exports = {
   },
 
   autoMarketMake: async steps => {
-    const mutex = new Mutex();
     let noOfTrades = 0;
 
     assert(steps <= 128, "You exceeded Ethfinex maximum order limit.");
-    let initialOrdersPlaced = true;
 
     const w = new WS(ETHFINEX_WEBSOCKET_API);
     const CANCEL_ALL_ORDERS = JSON.stringify([
@@ -79,21 +90,13 @@ module.exports = {
         all: 1
       }
     ]);
-    const CANCEL_ORDERS_FROM_GROUP = gid =>
-      JSON.stringify([
-        0,
-        "oc_multi",
-        null,
-        {
-          gid: gid
-        }
-      ]);
+
     let highestBid;
     let lowestAsk;
     let orders;
     let reserve;
-    let availableETH;
-    let availablePNK;
+
+    const available = {};
 
     fs.readFile("ethfinex_reserve.txt", "utf-8", (err, data) => {
       if (err) return;
@@ -144,21 +147,25 @@ module.exports = {
       const parsed = JSON.parse(msg);
 
       if (
-        parsed[1] == "on" ||
-        parsed[1] == "n" ||
-        parsed[1] == "oc" ||
-        parsed[1] == "hb" ||
-        parsed[1] == "bu"
+        parsed[1] == MsgCodes.ORDER_NEW ||
+        parsed[1] == MsgCodes.NOTIFICATIONS ||
+        parsed[1] == MsgCodes.ORDER_CANCEL ||
+        parsed[1] == MsgCodes.HEARTBEAT ||
+        parsed[1] == MsgCodes.BALANCE_UPDATE
       ) {
-      } else if (parsed[1] == "os") {
+      } else if (parsed[1] == MsgCodes.ORDER_SNAPSHOT) {
         console.log(`Number of open orders: ${parsed[2].length}`);
-      } else if (parsed[1] == "wu") {
+      } else if (parsed[1] == MsgCodes.WALLET_SNAPSHOT) {
         const payload = parsed[2];
-        if (payload[1] == "PNK") {
-          availablePNK = new BigNumber(payload[2]);
-        } else if (payload[1] == "ETH") {
-          availableETH = new BigNumber(payload[2]);
+        for (const array of payload) {
+          available[array[1]] = array[2];
         }
+      } else if (parsed[1] == MsgCodes.WALLET_UPDATE) {
+        // Wallet update
+        const payload = parsed[2];
+
+        available[payload[1]] = new BigNumber(payload[2]);
+
         console.log(
           `Account has ${payload[2]} ${payload[1]} and ${payload[2] -
             payload[4]} on open orders.`
@@ -184,7 +191,7 @@ module.exports = {
           await new Promise(resolve => setTimeout(resolve, 5000));
 
           console.log("Placing...");
-          for (batch of orders) w.send(JSON.stringify(batch));
+          //for (batch of orders) w.send(JSON.stringify(batch));
         }
       } else if (parsed.length == 10) {
         console.log(
@@ -192,38 +199,32 @@ module.exports = {
         );
       } else {
         console.log(parsed);
-        if (reserve && availableETH && availablePNK)
-          utils.logStats(availableETH, availablePNK, reserve);
+        if (reserve && available.ETH && available.PNK)
+          utils.logStats(available.ETH, available.PNK, reserve);
       }
 
-      if (!reserve && availableETH && availablePNK && lowestAsk && highestBid) {
+      if (
+        !reserve &&
+        available.ETH &&
+        available.PNK &&
+        lowestAsk &&
+        highestBid
+      ) {
         console.log("Reserve not found, calculating...");
         reserve = utils.calculateMaximumReserve(
-          availableETH,
-          availablePNK,
+          available.ETH,
+          available.PNK,
           highestBid.plus(lowestAsk).div(2)
         );
 
         const date = new Date();
 
-        utils.logStats(availableETH, availablePNK, reserve);
+        utils.logStats(available.ETH, available.PNK, reserve);
 
         fs.writeFile("ethfinex_reserve.txt", JSON.stringify(reserve), err => {
           if (err) console.log(err);
           console.log("Reserve saved to file.");
         });
-      }
-
-      if (reserve && !initialOrdersPlaced) {
-        const orders = module.exports.getOrders(
-          parseInt(steps),
-          MIN_ETH_SIZE,
-          reserve
-        );
-
-        console.log("Placing orders...");
-        for (batch of orders) w.send(JSON.stringify(batch));
-        initialOrdersPlaced = true;
       }
 
       if (parsed.event == "info") {
@@ -238,12 +239,12 @@ module.exports = {
 
       if (
         Array.isArray(parsed) &&
-        parsed[1] == "te" &&
+        parsed[1] == MsgCodes.TRADE_EXECUTED &&
         parsed[2][1] == SYMBOL
       ) {
         noOfTrades++;
         console.log(`Number of trades done: ${noOfTrades}`);
-        if (noOfTrades > 500) process.exit(0); // Code zero doesn't get restarted.
+        if (noOfTrades > 5) process.exit(0); // Code zero doesn't get restarted.
 
         console.log("Cancelling orders...");
         w.send(CANCEL_ALL_ORDERS);
@@ -261,7 +262,7 @@ module.exports = {
         reserve.eth = reserve.eth.plus(etherAmount);
         reserve.pnk = reserve.pnk.plus(pinakionAmount);
 
-        utils.logStats(availableETH, availablePNK, reserve);
+        utils.logStats(available.ETH, available.PNK, reserve);
 
         const TOLERANCE = 0.9999;
         const newInvariant = reserve.eth.times(reserve.pnk);
@@ -290,7 +291,7 @@ module.exports = {
         w.send(CANCEL_ALL_ORDERS);
         await new Promise(resolve => setTimeout(resolve, 5000));
 
-        for (batch of orders) w.send(JSON.stringify(batch));
+        //for (batch of orders) w.send(JSON.stringify(batch));
       }
     });
     const authenticationPayload = function() {
