@@ -147,7 +147,8 @@ module.exports = {
     const w = new WS("wss://datastream.idex.market");
     let date;
     let priceCenter;
-    let reserve;
+    let reserve, availableETH, availablePNK;
+
     fs.readFile("idex_reserve.txt", "utf-8", (err, data) => {
       if (err) return;
       reserve = JSON.parse(data);
@@ -209,8 +210,8 @@ module.exports = {
           IDEX_API_KEY,
           checksumAddress
         );
-        const availableETH = new BigNumber(balances["ETH"]);
-        const availablePNK = new BigNumber(balances["PNK"]);
+        availableETH = new BigNumber(balances["ETH"]);
+        availablePNK = new BigNumber(balances["PNK"]);
 
         console.log("Account balance:");
         console.log(balances);
