@@ -241,6 +241,10 @@ module.exports = {
         parsed[1] == "te" &&
         parsed[2][1] == SYMBOL
       ) {
+        noOfTrades++;
+        console.log(`Number of trades done: ${noOfTrades}`);
+        if (noOfTrades > 500) process.exit(0); // Code zero doesn't get restarted.
+
         console.log("Cancelling orders...");
         w.send(CANCEL_ALL_ORDERS);
 
@@ -268,7 +272,8 @@ module.exports = {
             `New Invariant: ${newInvariant}  Old Invariant: ${oldInvariant}\nInvariant should not decrease. Check bounding curve implemention.`
           );
         } catch (err) {
-          process.exit(0); // This exit code doesn't get restarted.
+          await console.log(err);
+          process.exit(0); // Code zero doesn't get restarted.
         }
 
         fs.writeFileSync("ethfinex_reserve.txt", JSON.stringify(reserve));
@@ -286,9 +291,6 @@ module.exports = {
         await new Promise(resolve => setTimeout(resolve, 5000));
 
         for (batch of orders) w.send(JSON.stringify(batch));
-
-        noOfTrades++;
-        console.log(`Number of trades done: ${noOfTrades}`);
       }
     });
     const authenticationPayload = function() {
