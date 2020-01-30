@@ -14,47 +14,48 @@ module.exports = {
   },
 
   ticker: async function(symbol = 'tPNKETH') {
-    return await fetch(`${PUBLIC}/v2/ticker/${symbol}`).then(
-      function(response) {
-        return response.json()
-      }
-    )
+    return fetch(`${PUBLIC}/v2/ticker/${symbol}`).then(function(response) {
+      return response.json()
+    })
   },
-  
+
   wallets: async function(nonce) {
-    return await fetch(
-      `${AUTHENTICATED}/v2/auth/r/wallets?type=price`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'bfx-nonce': nonce,
-          'bfx-apikey': process.env.ETHFINEX_KEY,
-          'bfx-signature': module.exports.getSignatureHash("v2/auth/r/wallets", {}, nonce)
-        },
-        json: true,
-        method: 'POST',
-        body: JSON.stringify(body)
-      }
-    ).then(function(response) {
+    return fetch(`${AUTHENTICATED}/v2/auth/r/wallets?type=price`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'bfx-nonce': nonce,
+        'bfx-apikey': process.env.ETHFINEX_KEY,
+        'bfx-signature': module.exports.getSignatureHash(
+          'v2/auth/r/wallets',
+          {},
+          nonce
+        )
+      },
+      json: true,
+      method: 'POST',
+      body: JSON.stringify(body)
+    }).then(function(response) {
       return response.json()
     })
   },
 
   orders: async function(nonce, symbol = 'tPNKETH') {
-    return await fetch(`${AUTHENTICATED}/v2/auth/r/orders/${symbol}`, {
+    return fetch(`${AUTHENTICATED}/v2/auth/r/orders/${symbol}`, {
       headers: {
         'Content-Type': 'application/json',
         'bfx-nonce': nonce,
         'bfx-apikey': process.env.ETHFINEX_KEY,
-        'bfx-signature': module.exports.getSignatureHash("v2/auth/r/orders", {}, nonce)
+        'bfx-signature': module.exports.getSignatureHash(
+          'v2/auth/r/orders',
+          {},
+          nonce
+        )
       },
       json: true,
       method: 'POST',
       body: JSON.stringify({})
-    }).then(
-      function(response) {
-        return response.json()
-      }
-    )
+    }).then(function(response) {
+      return response.json()
+    })
   }
 }
