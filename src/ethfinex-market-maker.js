@@ -158,39 +158,19 @@ module.exports = {
         parsed[1] == MsgCodes.ORDER_NEW ||
         parsed[1] == MsgCodes.NOTIFICATIONS ||
         parsed[1] == MsgCodes.ORDER_CANCEL ||
-        parsed[1] == MsgCodes.HEARTBEAT ||
         parsed[1] == MsgCodes.BALANCE_UPDATE
       ) {
+        // LOG THE CODE AND DO NOTHING
         console.log(parsed[1]);
-      } else if (parsed[1] == MsgCodes.ORDER_SNAPSHOT) {
-        console.log(`Number of open orders: ${parsed[2].length}`);
-      } else if (
-        parsed[1] == MsgCodes.WALLET_SNAPSHOT ||
-        parsed[1] == MsgCodes.WALLET_UPDATE
-      ) {
-        const payload = parsed[2];
-        if (Array.isArray(payload[0]))
-          for (const array of payload) {
-            available[array[1]] = new BigNumber(array[2]);
-          }
-        else {
-          available[payload[1]] = new BigNumber(payload[2]);
-        }
-      } else if (parsed.length == 10) {
-        console.log(
-          `Bid: ${parsed[0]} | Ask: ${parsed[2]} | Last: ${parsed[6]}`
-        );
-      } else {
-        console.log(parsed);
+      } else if (parsed[1] == MsgCodes.HEARTBEAT) {
         if (reserve && available.ETH && available.PNK) {
           utils.logStats(available.ETH, available.PNK, reserve);
 
           const openOrders = await ethfinexRestWrapper.orders(
             (Date.now() * 1000).toString()
           );
-          console.log("Open Orders:");
-          console.log(openOrders);
           if (openOrders.length == 0) {
+            console.log("Placing orders as there are none.");
             const orders = module.exports.getOrders(
               parseInt(steps),
               MIN_ETH_SIZE,
@@ -199,6 +179,29 @@ module.exports = {
             for (batch of orders) w.send(JSON.stringify(batch));
           }
         }
+      } else if (parsed[1] == MsgCodes.ORDER_SNAPSHOT) {
+        console.log(`Number of open orders: ${parsed[2].length}`);
+      } else if (
+        parsed[1] == MsgCodes.WALLET_SNAPSHOT ||
+        parsed[1] == MsgCodes.WALLET_UPDATE
+      ) {
+        const payload = parsed[2];
+        if (Array.isArray(payload[0]))
+          // WALLET SNAPSHOT
+          for (const array of payload) {
+            available[array[1]] = new BigNumber(array[2]);
+          }
+        else {
+          // WALLET UPDATE
+          available[payload[1]] = new BigNumber(payload[2]);
+        }
+      } else if (parsed.length == 10) {
+        console.log(
+          `Bid: ${parsed[0]} | Ask: ${parsed[2]} | Last: ${parsed[6]}`
+        );
+      } else {
+        // CATCH ALL - LOG RAW MESSAGE
+        console.log(parsed);
       }
 
       if (
