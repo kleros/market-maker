@@ -16,6 +16,7 @@ const SYMBOL = "tPNKETH";
 const ORDER_INTERVAL = new BigNumber(0.0005);
 const MIN_ETH_SIZE = new BigNumber(0.1);
 const WEBSOCKET_CONNECTION_DOWN = 123;
+const API_REQUEST_FAILED = 135;
 let orderGroupID = 0;
 
 const MsgCodes = Object.freeze({
@@ -288,9 +289,16 @@ module.exports = {
 
         w.send(CANCEL_ALL_ORDERS);
         await new Promise(resolve => setTimeout(resolve, 5000));
-        const openOrders = await ethfinexRestWrapper.orders(
-          (Date.now() * 1000).toString()
-        );
+        let openOrders;
+
+        try {
+          openOrders = await ethfinexRestWrapper.orders(
+            (Date.now() * 1000).toString()
+          );
+        } catch (err) {
+          console.log(err);
+          process.exit(API_REQUEST_FAILED);
+        }
         console.log("Open Orders:");
         console.log(openOrders);
         if (openOrders.length == 0)
