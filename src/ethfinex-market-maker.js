@@ -174,7 +174,9 @@ module.exports = {
             console.log(err);
             process.exit(API_REQUEST_FAILED);
           }
-          console.log(`HB | Number of open orders: ${openOrders}`);
+          console.log(
+            `${MsgCodes} | Number of open orders: ${openOrders.length}`
+          );
           if (Array.isArray(openOrders) && openOrders.length == 0) {
             console.log("Placing orders as there are none.");
             const orders = module.exports.getOrders(
@@ -186,7 +188,7 @@ module.exports = {
           }
         }
       } else if (parsed[1] == MsgCodes.ORDER_SNAPSHOT) {
-        console.log(`Number of open orders: ${parsed[2].length}`);
+        console.log(`${MsgCodes} | Number of open orders: ${parsed[2].length}`);
       } else if (
         parsed[1] == MsgCodes.WALLET_SNAPSHOT ||
         parsed[1] == MsgCodes.WALLET_UPDATE
