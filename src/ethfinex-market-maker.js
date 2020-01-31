@@ -181,14 +181,16 @@ module.exports = {
               (Date.now() * 1000).toString()
             );
           } catch (err) {
-            console.log(err);
+            console.log(`${MsgCodes.HEARTBEAT} | ${err}`);
             process.exit(ExitCodes.API_REQUEST_FAILED);
           }
           console.log(
             `${MsgCodes.HEARTBEAT} | Number of open orders: ${openOrders.length}`
           );
           if (Array.isArray(openOrders) && openOrders.length == 0) {
-            console.log("Placing orders as there are none.");
+            console.log(
+              `${MsgCodes.HEARTBEAT} | Placing orders as there are none.`
+            );
             const orders = module.exports.getOrders(
               parseInt(steps),
               MIN_ETH_SIZE,
