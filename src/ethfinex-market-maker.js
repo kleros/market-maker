@@ -163,9 +163,7 @@ module.exports = {
         // LOG THE CODE AND DO NOTHING
         console.log(parsed[1]);
       } else if (parsed[1] == MsgCodes.HEARTBEAT) {
-        if (reserve && available.ETH && available.PNK) {
-          utils.logStats(available.ETH, available.PNK, reserve);
-
+        if (reserve) {
           const openOrders = await ethfinexRestWrapper.orders(
             (Date.now() * 1000).toString()
           );
