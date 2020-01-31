@@ -164,9 +164,16 @@ module.exports = {
         // DO NOTHING
       } else if (parsed[1] == MsgCodes.HEARTBEAT) {
         if (reserve) {
-          const openOrders = await ethfinexRestWrapper.orders(
-            (Date.now() * 1000).toString()
-          );
+          let openOrders;
+
+          try {
+            openOrders = await ethfinexRestWrapper.orders(
+              (Date.now() * 1000).toString()
+            );
+          } catch (err) {
+            console.log(err);
+            process.exit(API_REQUEST_FAILED);
+          }
           console.log(`HB: OPEN-ORDERS: ${openOrders}`);
           if (openOrders === []) {
             console.log("Placing orders as there are none.");
