@@ -275,14 +275,19 @@ module.exports = {
         const pinakionAmount = new BigNumber(tradeExecutionLog[4]);
         const price = new BigNumber(tradeExecutionLog[5]);
 
+        const tradeFee = new BigNumber(tradeExecutionLog[9]);
+        const tradeFeeCurrency = tradeExecutionLog[10];
+        const fee = { ETH: 0, PNK: 0 };
+        fee[tradeFeeCurrency] = tradeFee;
+
         const oldInvariant = reserve.eth.times(reserve.pnk);
 
         const etherAmount = pinakionAmount
           .times(price)
           .times(new BigNumber("-1"));
 
-        reserve.eth = reserve.eth.plus(etherAmount);
-        reserve.pnk = reserve.pnk.plus(pinakionAmount);
+        reserve.eth = reserve.eth.plus(etherAmount).plus(fee.ETH);
+        reserve.pnk = reserve.pnk.plus(pinakionAmount).plus(fee.PNK);
 
         const newInvariant = reserve.eth.times(reserve.pnk);
         const TOLERANCE = 0.9999;
