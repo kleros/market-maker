@@ -168,7 +168,7 @@ module.exports = {
         parsed[1] == MsgCodes.WALLET_UPDATE
       ) {
         const payload = parsed[2];
-        if (Array.isArray(payload))
+        if (Array.isArray(payload[0]))
           for (const array of payload) {
             available[array[1]] = array[2];
           }
