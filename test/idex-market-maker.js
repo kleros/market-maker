@@ -1,3 +1,4 @@
+/* global describe, it */
 const assert = require('chai').assert
 const getStaircaseOrders = require('../src/idex-market-maker.js')
   .getStaircaseOrders
