@@ -4,8 +4,12 @@ const BigNumber = require('bignumber.js')
 BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
 module.exports = {
-  WEBSOCKET_CONNECTION_DOWN: 123,
-  NO_OPEN_ORDERS_LEFT: 432,
+  ExitCodes: Object.freeze({
+    WEBSOCKET_CONNECTION_DOWN: 123,
+    API_REQUEST_FAILED: 135,
+    NON_MAKER_TRADE_OCCURRED: 721,
+    UTIL_ASSERTION_FAILED: 999
+  }),
   logStats: function(availableETH, availablePNK, reserve) {
     const date = new Date()
     console.log(
@@ -84,9 +88,14 @@ module.exports = {
   },
 
   getBoundingCurveStaircaseOrders: function(steps, sizeInEther, reserve) {
-    assert(reserve.eth.gt(sizeInEther.times(steps)))
-    assert(sizeInEther.gt(0) && sizeInEther.lt(100))
-    assert(reserve.eth.gt(0) && reserve.pnk.gt(0))
+    if (
+      reserve.eth.gt(sizeInEther.times(steps)) ||
+      sizeInEther.lt(0) ||
+      sizeInEther.gt(100) ||
+      reserve.eth.lte(0) ||
+      reserve.pnk.lte(0)
+    )
+      process.kill(this.UTIL_ASSERTION_FAILED)
 
     const orders = []
     for (let i = 0; i < steps; i++) {
