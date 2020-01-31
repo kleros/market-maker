@@ -15,7 +15,7 @@ module.exports = {
       )}`
     );
     console.log(
-      `Wallet ETH Balance: ${availableETH} | Wallet PNK Balance: ${availablePNK}`
+      `${date.getFullYear()}:${date.getMonth()}:${date.getDate()} - ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()} # Wallet ETH Balance: ${availableETH} | Wallet PNK Balance: ${availablePNK}`
     );
   },
   calculateMaximumReserve: function(availableETH, availablePNK, initialPrice) {

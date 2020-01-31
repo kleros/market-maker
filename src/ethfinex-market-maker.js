@@ -286,7 +286,7 @@ module.exports = {
         console.log(`pinakionAmountAfterFee: ${pinakionAmountAfterFee}`);
         const oldInvariant = reserve.eth.times(reserve.pnk);
 
-        const etherAmountAfterFee = pinakionAmountAfterFee
+        const etherAmountAfterFee = pinakionAmount
           .times(price)
           .times(new BigNumber("-1"))
           .plus(fee.ETH);
@@ -296,7 +296,7 @@ module.exports = {
         utils.logStats(available.ETH, available.PNK, reserve);
 
         const newInvariant = reserve.eth.times(reserve.pnk);
-        const TOLERANCE = 0.9999;
+        const TOLERANCE = 0.99999;
 
         if (tradeExecutionLog[8] != TradeSide.MAKER)
           // We only trade as maker, if a taker trade happened, that's an anomaly, so kill the bot.
@@ -314,17 +314,13 @@ module.exports = {
 
         fs.writeFileSync("ethfinex_reserve.txt", JSON.stringify(reserve));
 
-        await new Promise(resolve => setTimeout(resolve, 1000));
-
         const orders = module.exports.getOrders(
           parseInt(steps),
           MIN_ETH_SIZE,
           reserve
         );
-        console.log("Placing orders...");
 
         w.send(CANCEL_ALL_ORDERS);
-        await new Promise(resolve => setTimeout(resolve, 5000));
         let openOrders;
 
         try {
@@ -335,10 +331,13 @@ module.exports = {
           console.log(err);
           process.exit(API_REQUEST_FAILED);
         }
-        console.log("Open Orders:");
-        console.log(openOrders);
-        if (Array.isArray(openOrders) && openOrders.length == 0)
+        console.log(
+          `${MsgCodes.TRADE_EXECUTION_UPDATE} | Number of open orders: ${openOrders.length}`
+        );
+        if (Array.isArray(openOrders) && openOrders.length == 0) {
+          console.log("Placing orders...");
           for (batch of orders) w.send(JSON.stringify(batch));
+        }
       }
     });
     const authenticationPayload = function() {
