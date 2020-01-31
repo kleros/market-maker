@@ -1,7 +1,8 @@
+/* global describe, it */
 const assert = require('chai').assert
+const BigNumber = require('bignumber.js')
 
 const utils = require('../src/utils')
-const BigNumber = require('bignumber.js')
 
 BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
