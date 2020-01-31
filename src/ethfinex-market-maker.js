@@ -47,13 +47,8 @@ const WSCloseCodes = Object.freeze({
 })
 
 module.exports = {
-  getOrders: function(steps, sizeInEther, reserve) {
-    const rawOrders = utils.getBoundingCurveStaircaseOrders(
-      steps,
-      sizeInEther,
-      reserve
-    )
-    const newExchangeLimitOrder = (amount, price) => [
+  newExchangeLimitOrder: function(amount, price) {
+    return [
       'on',
       {
         amount,
@@ -65,6 +60,14 @@ module.exports = {
         tif: '2030-01-01 10:45:23'
       }
     ]
+  },
+
+  getOrders: function(steps, sizeInEther, reserve) {
+    const rawOrders = utils.getBoundingCurveStaircaseOrders(
+      steps,
+      sizeInEther,
+      reserve
+    )
 
     const orders = []
     const equilibrium = reserve.eth.div(reserve.pnk)

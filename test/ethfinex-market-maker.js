@@ -158,8 +158,6 @@ describe('Bounding Curve Staircase Order Test', () => {
       const actual = getBoundingCurveStaircaseOrders(
         testCase.args.steps,
         testCase.args.sizeInEther,
-        testCase.args.spread,
-        testCase.args.interval,
         testCase.args.reserve
       )
 

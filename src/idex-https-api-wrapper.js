@@ -12,7 +12,7 @@ const IDEX_CONTRACT = '0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208'
 
 module.exports = {
   getOpenOrders: async function(apiKey, address, count = 100, cursor = 0) {
-    return await fetch(`${HTTPS_API}/returnOpenOrders`, {
+    return fetch(`${HTTPS_API}/returnOpenOrders`, {
       headers: {
         'Content-Type': 'application/json',
         'API-Key': apiKey
@@ -25,7 +25,7 @@ module.exports = {
   },
 
   getBalances: async function(apiKey, address) {
-    return await fetch(`${HTTPS_API}/returnBalances`, {
+    return fetch(`${HTTPS_API}/returnBalances`, {
       headers: {
         'Content-Type': 'application/json',
         'API-Key': apiKey
@@ -38,7 +38,7 @@ module.exports = {
   },
 
   getTicker: async function(apiKey, market) {
-    return await fetch(`${HTTPS_API}/returnTicker`, {
+    return fetch(`${HTTPS_API}/returnTicker`, {
       headers: {
         'Content-Type': 'application/json',
         'API-Key': apiKey
@@ -53,7 +53,7 @@ module.exports = {
   },
 
   getNextNonce: async function(apiKey, address) {
-    return await fetch(`${HTTPS_API}/returnNextNonce`, {
+    return fetch(`${HTTPS_API}/returnNextNonce`, {
       headers: {
         'Content-Type': 'application/json',
         'API-Key': apiKey
@@ -89,8 +89,8 @@ module.exports = {
         })
       )
     })
-      .catch(function(error) {
-        console.error(error)
+      .catch(function(err) {
+        console.error(err)
       })
       .then(function(response) {
         return response.json()
@@ -149,8 +149,8 @@ module.exports = {
         2
       )
     })
-      .catch(function(error) {
-        console.error(error)
+      .catch(function(err) {
+        console.error(err)
       })
       .then(function(response) {
         return response.json()
@@ -202,11 +202,5 @@ module.exports = {
       key === 'v' ? value : bufferToHex(value)
     )
     return Object.assign(args, vrs)
-  },
-
-  fetch_retry: (url, options, n) =>
-    fetch(url, options).catch(function(error) {
-      if (n === 1) throw error
-      return fetch_retry(url, options, n - 1)
-    })
+  }
 }

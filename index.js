@@ -13,6 +13,7 @@ console.log(`_  _ _    ____ ____ ____ ____    _  _ ____ ____ _  _ ____ ___    _ 
 | \\_ |___ |___ |  \\ |__| ___]    |  | |  | |  \\ | \\_ |___  |     |  | |  | | \\_ |___ |  \\`)
 
 console.log(`v ${require('./package.json').version}`)
+
 console.log('\n')
 
 commander
