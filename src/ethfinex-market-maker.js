@@ -94,6 +94,7 @@ module.exports = {
   },
 
   autoMarketMake: async steps => {
+    const date = new Date()
     let noOfTrades = 0
 
     assert(steps <= 128, 'You exceeded Ethfinex maximum order limit.')
@@ -182,12 +183,14 @@ module.exports = {
             console.log(`${MsgCodes.HEARTBEAT} | ${err}`)
             process.exit(ExitCodes.API_REQUEST_FAILED)
           }
-          // console.log(
-          // `${MsgCodes.HEARTBEAT} | Number of open orders: ${openOrders.length}`
-          // );
+          console.log(
+            `${date.toISOString()} # ${
+              MsgCodes.HEARTBEAT
+            } | Number of open orders: ${openOrders.length}`
+          )
           if (Array.isArray(openOrders) && openOrders.length == 0) {
             console.log(
-              `${MsgCodes.HEARTBEAT} | Placing orders as there are none.`
+              `${date.toISOString()} #    | Placing orders as there are none...`
             )
             const orders = module.exports.getOrders(
               parseInt(steps),
@@ -195,11 +198,29 @@ module.exports = {
               reserve
             )
             for (const batch of orders) w.send(JSON.stringify(batch))
+
+            let openOrders
+
+            try {
+              openOrders = await ethfinexRestWrapper.orders(
+                (Date.now() * 1000).toString()
+              )
+            } catch (err) {
+              console.log(`   | ${err}`)
+              process.exit(ExitCodes.API_REQUEST_FAILED)
+            }
+            console.log(
+              `${date.toISOString()} #    | ...number of open orders: ${
+                openOrders.length
+              }`
+            )
           }
         }
       } else if (parsed[1] == MsgCodes.ORDER_SNAPSHOT)
         console.log(
-          `${MsgCodes.ORDER_SNAPSHOT} | Number of open orders: ${parsed[2].length}`
+          `${date.toISOString()} # ${
+            MsgCodes.ORDER_SNAPSHOT
+          } | Number of open orders: ${parsed[2].length}`
         )
       else if (
         parsed[1] == MsgCodes.WALLET_SNAPSHOT ||

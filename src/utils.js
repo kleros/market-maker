@@ -54,9 +54,14 @@ module.exports = {
     interval,
     priceCenter
   ) {
-    assert(sizeInEther.gt(0) && sizeInEther.lt(100))
-    assert(spread.gt(0.001) && spread.lt(1))
-    assert(interval.gt(0) && interval.lt(spread))
+    try {
+      assert(sizeInEther.gt(0) && sizeInEther.lt(100))
+      assert(spread.gt(0.001) && spread.lt(1))
+      assert(interval.gt(0) && interval.lt(spread))
+    } catch (err) {
+      console.error(err)
+      process.exit(this.ExitCodes.UTIL_ASSERTION_FAILED)
+    }
 
     const orders = []
     for (let i = 0; i < steps; i++) {
@@ -88,14 +93,14 @@ module.exports = {
   },
 
   getBoundingCurveStaircaseOrders: function(steps, sizeInEther, reserve) {
-    if (
-      reserve.eth.gt(sizeInEther.times(steps)) ||
-      sizeInEther.lt(0) ||
-      sizeInEther.gt(100) ||
-      reserve.eth.lte(0) ||
-      reserve.pnk.lte(0)
-    )
-      process.kill(this.UTIL_ASSERTION_FAILED)
+    try {
+      assert(reserve.eth.gt(sizeInEther.times(steps)))
+      assert(sizeInEther.gt(0) && sizeInEther.lt(100))
+      assert(reserve.eth.gt(0) && reserve.pnk.gt(0))
+    } catch (err) {
+      console.error(err)
+      process.exit(this.ExitCodes.UTIL_ASSERTION_FAILED)
+    }
 
     const orders = []
     for (let i = 0; i < steps; i++) {
