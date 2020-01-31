@@ -175,7 +175,7 @@ module.exports = {
             process.exit(API_REQUEST_FAILED);
           }
           console.log(openOrders);
-          if (openOrders === []) {
+          if (Array.isArray(openOrders) && openOrders.length == 0) {
             console.log("Placing orders as there are none.");
             const orders = module.exports.getOrders(
               parseInt(steps),
@@ -309,7 +309,7 @@ module.exports = {
         }
         console.log("Open Orders:");
         console.log(openOrders);
-        if (openOrders === [])
+        if (Array.isArray(openOrders) && openOrders.length == 0)
           for (batch of orders) w.send(JSON.stringify(batch));
       }
     });
