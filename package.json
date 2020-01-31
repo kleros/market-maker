@@ -13,6 +13,7 @@
     "bignumber.js": "^9.0.0",
     "commander": "^2.20.0",
     "ethereumjs-util": "^6.1.0",
+    "lodash": "^4.17.15",
     "node-fetch": "^2.6.0",
     "web3": "1.0.0-beta.39",
     "ws": "^7.0.1"
