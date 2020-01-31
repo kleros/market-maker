@@ -181,21 +181,22 @@ module.exports = {
         );
       } else {
         console.log(parsed);
-        if (reserve && available.ETH && available.PNK)
+        if (reserve && available.ETH && available.PNK) {
           utils.logStats(available.ETH, available.PNK, reserve);
 
-        const openOrders = await ethfinexRestWrapper.orders(
-          (Date.now() * 1000).toString()
-        );
-        console.log("Open Orders:");
-        console.log(openOrders);
-        if (openOrders.length == 0) {
-          const orders = module.exports.getOrders(
-            parseInt(steps),
-            MIN_ETH_SIZE,
-            reserve
+          const openOrders = await ethfinexRestWrapper.orders(
+            (Date.now() * 1000).toString()
           );
-          for (batch of orders) w.send(JSON.stringify(batch));
+          console.log("Open Orders:");
+          console.log(openOrders);
+          if (openOrders.length == 0) {
+            const orders = module.exports.getOrders(
+              parseInt(steps),
+              MIN_ETH_SIZE,
+              reserve
+            );
+            for (batch of orders) w.send(JSON.stringify(batch));
+          }
         }
       }
 
