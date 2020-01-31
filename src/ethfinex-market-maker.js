@@ -279,17 +279,20 @@ module.exports = {
 
         const tradeFee = new BigNumber(tradeExecutionLog[9]);
         const tradeFeeCurrency = tradeExecutionLog[10];
-        const fee = { ETH: 0, PNK: 0 };
+        const fee = { ETH: 0, PNK: 0 }; // Fees are always negative
         fee[tradeFeeCurrency] = tradeFee;
 
+        const pinakionAmountAfterFee = pinakionAmount.plus(fee.PNK);
+        console.log(`pinakionAmountAfterFee: ${pinakionAmountAfterFee}`);
         const oldInvariant = reserve.eth.times(reserve.pnk);
 
-        const etherAmount = pinakionAmount
+        const etherAmountAfterFee = pinakionAmountAfterFee
           .times(price)
-          .times(new BigNumber("-1"));
-
-        reserve.eth = reserve.eth.plus(etherAmount).plus(fee.ETH);
-        reserve.pnk = reserve.pnk.plus(pinakionAmount).plus(fee.PNK);
+          .times(new BigNumber("-1"))
+          .plus(fee.ETH);
+        console.log(`etherAmountAfterFee: ${etherAmountAfterFee}`);
+        reserve.eth = reserve.eth.plus(etherAmountAfterFee);
+        reserve.pnk = reserve.pnk.plus(pinakionAmountAfterFee);
         utils.logStats(available.ETH, available.PNK, reserve);
 
         const newInvariant = reserve.eth.times(reserve.pnk);
