@@ -19,7 +19,8 @@ let orderGroupID = 0
 const ExitCodes = Object.freeze({
   WEBSOCKET_CONNECTION_DOWN: 123,
   API_REQUEST_FAILED: 135,
-  NON_MAKER_TRADE_OCCURRED: 721
+  NON_MAKER_TRADE_OCCURRED: 721,
+  INCORRECT_NUMBER_OF_ORDERS: 567
 })
 
 const MsgCodes = Object.freeze({
@@ -214,6 +215,12 @@ module.exports = {
                 openOrders.length
               }`
             )
+          } else if (
+            Array.isArray(openOrders) &&
+            openOrders.length != steps * 2
+          ) {
+            console.error(ExitCodes.INCORRECT_NUMBER_OF_ORDERS)
+            process.exit(ExitCodes.INCORRECT_NUMBER_OF_ORDERS)
           }
         }
       } else if (parsed[1] == MsgCodes.ORDER_SNAPSHOT)
