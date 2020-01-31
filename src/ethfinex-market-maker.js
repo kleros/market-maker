@@ -161,6 +161,7 @@ module.exports = {
         parsed[1] == MsgCodes.HEARTBEAT ||
         parsed[1] == MsgCodes.BALANCE_UPDATE
       ) {
+        console.log(parsed[1]);
       } else if (parsed[1] == MsgCodes.ORDER_SNAPSHOT) {
         console.log(`Number of open orders: ${parsed[2].length}`);
       } else if (
