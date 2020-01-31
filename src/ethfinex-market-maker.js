@@ -1,6 +1,5 @@
 const assert = require("assert");
 const crypto = require("crypto");
-const program = require("commander");
 const WS = require("ws");
 const BigNumber = require("bignumber.js");
 const ethfinexRestWrapper = require("./ethfinex-rest-api-wrapper");
@@ -13,7 +12,6 @@ const ETHFINEX_WEBSOCKET_API = "wss://api.bitfinex.com/ws/2/";
 BigNumber.config({ EXPONENTIAL_AT: [-30, 40] });
 
 const SYMBOL = "tPNKETH";
-const ORDER_INTERVAL = new BigNumber(0.0005);
 const MIN_ETH_SIZE = new BigNumber(0.1);
 
 let orderGroupID = 0;
@@ -109,7 +107,6 @@ module.exports = {
 
     let highestBid;
     let lowestAsk;
-    let orders;
     let reserve;
 
     const available = {};
@@ -239,8 +236,6 @@ module.exports = {
           available.PNK,
           highestBid.plus(lowestAsk).div(2)
         );
-
-        const date = new Date();
 
         utils.logStats(available.ETH, available.PNK, reserve);
 

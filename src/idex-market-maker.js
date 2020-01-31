@@ -18,7 +18,6 @@ const fs = require("fs");
 const web3 = new Web3(
   new Web3.providers.HttpProvider(process.env.ETHEREUM_PROVIDER)
 );
-const ORDER_INTERVAL = new BigNumber(0.0005);
 const MIN_ETH_SIZE = new BigNumber(0.15);
 const decimals = new BigNumber("10").pow(new BigNumber("18"));
 
@@ -65,7 +64,7 @@ module.exports = {
 
     return orders;
   },
-  clearOrders: async function(address, privateKey) {
+  clearOrders: async function(address) {
     assert(web3.utils.checkAddressChecksum(address));
 
     while (true) {
@@ -145,8 +144,6 @@ module.exports = {
 
   autoMarketMake: async function(steps) {
     const w = new WS("wss://datastream.idex.market");
-    let date;
-    let priceCenter;
     let reserve, availableETH, availablePNK;
 
     fs.readFile("idex_reserve.txt", "utf-8", (err, data) => {
@@ -157,7 +154,6 @@ module.exports = {
       console.log("Found a reserve file, loading...");
     });
 
-    const tradeAmounts = { buy: new BigNumber(0), sell: new BigNumber(0) };
     const checksumAddress = web3.utils.toChecksumAddress(
       process.env.IDEX_ADDRESS
     );
@@ -176,8 +172,6 @@ module.exports = {
       heartbeat(w);
 
       if (reserve) {
-        date = new Date();
-
         utils.logStats("undefined", "undefined", reserve);
       }
       const parsed = JSON.parse(msg);
@@ -196,8 +190,6 @@ module.exports = {
         parsed.request === "subscribeToAccounts" &&
         parsed.result === "success"
       ) {
-        date = new Date();
-
         await module.exports.clearOrders(
           checksumAddress,
           process.env.IDEX_SECRET
@@ -237,8 +229,6 @@ module.exports = {
           MIN_ETH_SIZE,
           reserve
         );
-
-        date = new Date();
       }
 
       if (parsed.event === "account_trades") {

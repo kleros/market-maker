@@ -14,7 +14,7 @@ module.exports = {
   },
 
   ticker: async function(symbol = "tPNKETH") {
-    return await fetch(`${PUBLIC}/v2/ticker/${symbol}`).then(function(
+    return fetch(`${PUBLIC}/v2/ticker/${symbol}`).then(function(
       response
     ) {
       return response.json();
@@ -22,7 +22,7 @@ module.exports = {
   },
 
   wallets: async function(nonce) {
-    return await fetch(`${AUTHENTICATED}/v2/auth/r/wallets?type=price`, {
+    return fetch(`${AUTHENTICATED}/v2/auth/r/wallets?type=price`, {
       headers: {
         "Content-Type": "application/json",
         "bfx-nonce": nonce,
@@ -42,7 +42,7 @@ module.exports = {
   },
 
   orders: async function(nonce) {
-    return await fetch(`${AUTHENTICATED}/v2/auth/r/orders`, {
+    return fetch(`${AUTHENTICATED}/v2/auth/r/orders`, {
       headers: {
         "Content-Type": "application/json",
         "bfx-nonce": nonce,

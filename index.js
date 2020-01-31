@@ -17,11 +17,11 @@ console.log('\n')
 
 commander
   .command('ethfinex <steps>')
-  .action((steps, spread) => ethfinexAutoMarketMake(steps))
+  .action((steps) => ethfinexAutoMarketMake(steps))
 
 commander
   .command('idex <steps>')
-  .action((steps, spread) => idexAutoMarketMake(steps))
+  .action((steps) => idexAutoMarketMake(steps))
 
 // Handle unknown commands
 commander.on('command:*', () => {
