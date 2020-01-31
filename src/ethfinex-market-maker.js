@@ -170,10 +170,10 @@ module.exports = {
         const payload = parsed[2];
         if (Array.isArray(payload[0]))
           for (const array of payload) {
-            available[array[1]] = array[2];
+            available[array[1]] = new BigNumber(array[2]);
           }
         else {
-          available[payload[1]] = payload[2];
+          available[payload[1]] = new BigNumber(payload[2]);
         }
       } else if (parsed.length == 10) {
         console.log(
