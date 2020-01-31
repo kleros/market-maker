@@ -167,7 +167,7 @@ module.exports = {
           const openOrders = await ethfinexRestWrapper.orders(
             (Date.now() * 1000).toString()
           );
-          if (openOrders.length == 0) {
+          if (openOrders === []) {
             console.log("Placing orders as there are none.");
             const orders = module.exports.getOrders(
               parseInt(steps),
@@ -301,7 +301,7 @@ module.exports = {
         }
         console.log("Open Orders:");
         console.log(openOrders);
-        if (openOrders.length == 0)
+        if (openOrders === [])
           for (batch of orders) w.send(JSON.stringify(batch));
       }
     });
