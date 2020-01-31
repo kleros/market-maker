@@ -165,41 +165,12 @@ module.exports = {
         console.log(`Number of open orders: ${parsed[2].length}`);
       } else if (parsed[1] == MsgCodes.WALLET_SNAPSHOT) {
         const payload = parsed[2];
-        for (const array of payload) {
-          available[array[1]] = array[2];
-        }
-      } else if (parsed[1] == MsgCodes.WALLET_UPDATE) {
-        // Wallet update
-        const payload = parsed[2];
-
-        available[payload[1]] = new BigNumber(payload[2]);
-
-        console.log(
-          `Account has ${payload[2]} ${payload[1]} and ${payload[2] -
-            payload[4]} on open orders.`
-        );
-
-        if (payload[1] == "PNK" && payload[2] - payload[4] == 0) {
-          const orders = module.exports.getOrders(
-            parseInt(steps),
-            MIN_ETH_SIZE,
-            reserve
-          );
-          console.log(
-            "Orders got cancelled it seems... Placing orders again..."
-          );
-          const openOrders = await ethfinexRestWrapper.orders(
-            (Date.now() * 1000).toString()
-          );
-          console.log("Open Orders:");
-          console.log(openOrders);
-          console.log(`Cancelling orders `);
-
-          w.send(CANCEL_ALL_ORDERS);
-          await new Promise(resolve => setTimeout(resolve, 5000));
-
-          console.log("Placing...");
-          //for (batch of orders) w.send(JSON.stringify(batch));
+        if (Array.isArray(payload))
+          for (const array of payload) {
+            available[array[1]] = array[2];
+          }
+        else {
+          available[payload[1]] = payload[2];
         }
       } else if (parsed.length == 10) {
         console.log(
