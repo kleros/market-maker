@@ -15,9 +15,14 @@ BigNumber.config({ EXPONENTIAL_AT: [-30, 40] });
 const SYMBOL = "tPNKETH";
 const ORDER_INTERVAL = new BigNumber(0.0005);
 const MIN_ETH_SIZE = new BigNumber(0.1);
-const WEBSOCKET_CONNECTION_DOWN = 123;
-const API_REQUEST_FAILED = 135;
+
 let orderGroupID = 0;
+
+const ExitCodes = Object.freeze({
+  WEBSOCKET_CONNECTION_DOWN: 123,
+  API_REQUEST_FAILED: 135,
+  NON_MAKER_TRADE_OCCURRED: 721
+});
 
 const MsgCodes = Object.freeze({
   ORDER_SNAPSHOT: "os",
@@ -31,6 +36,11 @@ const MsgCodes = Object.freeze({
   TRADE_EXECUTION_UPDATE: "tu",
   NOTIFICATIONS: "n",
   HEARTBEAT: "hb"
+});
+
+const TradeSide = Object.freeze({
+  MAKER: 1,
+  TAKER: -1
 });
 
 const WSCloseCodes = Object.freeze({
@@ -124,7 +134,7 @@ module.exports = {
     const heartbeat = client => {
       clearTimeout(client.pingTimeout);
       client.pingTimeout = setTimeout(function() {
-        process.exit(utils.WEBSOCKET_CONNECTION_DOWN);
+        process.exit(ExitCodes.WEBSOCKET_CONNECTION_DOWN);
       }, 50000);
     };
     w.on("open", () => {
@@ -172,7 +182,7 @@ module.exports = {
             );
           } catch (err) {
             console.log(err);
-            process.exit(API_REQUEST_FAILED);
+            process.exit(ExitCodes.API_REQUEST_FAILED);
           }
           console.log(
             `${MsgCodes.HEARTBEAT} | Number of open orders: ${openOrders.length}`
@@ -250,7 +260,7 @@ module.exports = {
 
       if (
         Array.isArray(parsed) &&
-        parsed[1] == MsgCodes.TRADE_EXECUTED &&
+        parsed[1] == MsgCodes.TRADE_EXECUTION_UPDATE &&
         parsed[2][1] == SYMBOL
       ) {
         noOfTrades++;
@@ -261,6 +271,7 @@ module.exports = {
         w.send(CANCEL_ALL_ORDERS);
 
         const tradeExecutionLog = parsed[2];
+
         const pinakionAmount = new BigNumber(tradeExecutionLog[4]);
         const price = new BigNumber(tradeExecutionLog[5]);
 
@@ -273,10 +284,12 @@ module.exports = {
         reserve.eth = reserve.eth.plus(etherAmount);
         reserve.pnk = reserve.pnk.plus(pinakionAmount);
 
-        utils.logStats(available.ETH, available.PNK, reserve);
-
-        const TOLERANCE = 0.9999;
         const newInvariant = reserve.eth.times(reserve.pnk);
+        const TOLERANCE = 0.9999;
+
+        if (tradeExecutionLog[8] != TradeSide.MAKER)
+          // We only trade as maker, if a taker trade happened, that's an anomaly, so kill the bot.
+          process.exit(ExitCodes.NON_MAKER_TRADE_OCCURRED);
 
         try {
           assert(
