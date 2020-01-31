@@ -160,8 +160,7 @@ module.exports = {
         parsed[1] == MsgCodes.ORDER_CANCEL ||
         parsed[1] == MsgCodes.BALANCE_UPDATE
       ) {
-        // LOG THE CODE AND DO NOTHING
-        console.log(parsed[1]);
+        // DO NOTHING
       } else if (parsed[1] == MsgCodes.HEARTBEAT) {
         if (reserve) {
           const openOrders = await ethfinexRestWrapper.orders(
