@@ -163,7 +163,10 @@ module.exports = {
       ) {
       } else if (parsed[1] == MsgCodes.ORDER_SNAPSHOT) {
         console.log(`Number of open orders: ${parsed[2].length}`);
-      } else if (parsed[1] == MsgCodes.WALLET_SNAPSHOT) {
+      } else if (
+        parsed[1] == MsgCodes.WALLET_SNAPSHOT ||
+        parsed[1] == MsgCodes.WALLET_UPDATE
+      ) {
         const payload = parsed[2];
         if (Array.isArray(payload))
           for (const array of payload) {
