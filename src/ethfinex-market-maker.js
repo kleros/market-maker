@@ -80,7 +80,7 @@ module.exports = {
       else assert(orderPrice.gt(equilibrium), orderPrice.toString())
 
       orders.push(
-        newExchangeLimitOrder(
+        this.newExchangeLimitOrder(
           element.pnk.toString(),
           element.eth
             .div(element.pnk)
