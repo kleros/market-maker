@@ -167,6 +167,7 @@ module.exports = {
           const openOrders = await ethfinexRestWrapper.orders(
             (Date.now() * 1000).toString()
           );
+          console.log(`HB: OPEN-ORDERS: ${openOrders}`);
           if (openOrders === []) {
             console.log("Placing orders as there are none.");
             const orders = module.exports.getOrders(
