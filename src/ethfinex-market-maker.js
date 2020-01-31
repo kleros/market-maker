@@ -290,6 +290,7 @@ module.exports = {
 
         reserve.eth = reserve.eth.plus(etherAmount).plus(fee.ETH);
         reserve.pnk = reserve.pnk.plus(pinakionAmount).plus(fee.PNK);
+        utils.logStats(available.ETH, available.PNK, reserve);
 
         const newInvariant = reserve.eth.times(reserve.pnk);
         const TOLERANCE = 0.9999;
