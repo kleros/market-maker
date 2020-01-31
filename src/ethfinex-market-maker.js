@@ -174,7 +174,7 @@ module.exports = {
             console.log(err);
             process.exit(API_REQUEST_FAILED);
           }
-          console.log(`HB: OPEN-ORDERS: ${openOrders}`);
+          console.log(openOrders);
           if (openOrders === []) {
             console.log("Placing orders as there are none.");
             const orders = module.exports.getOrders(
