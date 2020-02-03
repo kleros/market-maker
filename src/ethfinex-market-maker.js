@@ -184,9 +184,7 @@ module.exports = {
             console.log(`${MsgCodes.HEARTBEAT} | ${err}`);
             process.exit(ExitCodes.API_REQUEST_FAILED);
           }
-          console.log(
-            `${MsgCodes.HEARTBEAT} | Number of open orders: ${openOrders.length}`
-          );
+
           if (Array.isArray(openOrders) && openOrders.length == 0) {
             console.log(
               `${MsgCodes.HEARTBEAT} | Placing orders as there are none.`
@@ -267,7 +265,7 @@ module.exports = {
       ) {
         noOfTrades++;
         console.log(`Number of trades done: ${noOfTrades}`);
-        if (noOfTrades > 5) process.exit(0); // Code zero doesn't get restarted.
+        if (noOfTrades > 500) process.exit(0); // Code zero doesn't get restarted.
 
         console.log("Cancelling orders...");
         w.send(CANCEL_ALL_ORDERS);
