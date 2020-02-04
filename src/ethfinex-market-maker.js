@@ -290,6 +290,8 @@ module.exports = {
         parsed[1] == MsgCodes.TRADE_EXECUTION_UPDATE &&
         parsed[2][1] == SYMBOL
       ) {
+        const tradeExecutionLog = parsed[2]
+
         let openOrders
         try {
           openOrders = await ethfinexRestWrapper.orders(
@@ -309,8 +311,6 @@ module.exports = {
 
         console.log('Cancelling orders...')
         w.send(CANCEL_ALL_ORDERS)
-
-        const tradeExecutionLog = parsed[2]
 
         const pinakionAmount = new BigNumber(tradeExecutionLog[4])
         const price = new BigNumber(tradeExecutionLog[5])
