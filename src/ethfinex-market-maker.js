@@ -65,6 +65,15 @@ module.exports = {
     ]
   },
 
+  getOpenOrders: async function() {
+    try {
+      return await ethfinexRestWrapper.orders((Date.now() * 1000).toString())
+    } catch (err) {
+      console.log(err)
+      process.exit(MsgCodes.API_REQUEST_FAILED)
+    }
+  },
+
   getOrders: function(steps, sizeInEther, reserve) {
     const rawOrders = utils.getBoundingCurveStaircaseOrders(
       steps,
@@ -183,16 +192,8 @@ module.exports = {
         // DO NOTHING
       } else if (parsed[1] == MsgCodes.HEARTBEAT) {
         if (reserve) {
-          let openOrders
+          let openOrders = await this.getOpenOrders()
 
-          try {
-            openOrders = await ethfinexRestWrapper.orders(
-              (Date.now() * 1000).toString()
-            )
-          } catch (err) {
-            console.log(`${MsgCodes.HEARTBEAT} | ${err}`)
-            process.exit(ExitCodes.API_REQUEST_FAILED)
-          }
           console.log(
             `${new Date().toISOString()} # ${
               MsgCodes.HEARTBEAT
@@ -209,14 +210,7 @@ module.exports = {
             )
             for (const batch of orders) w.send(JSON.stringify(batch))
 
-            try {
-              openOrders = await ethfinexRestWrapper.orders(
-                (Date.now() * 1000).toString()
-              )
-            } catch (err) {
-              console.log(`   | ${err}`)
-              process.exit(ExitCodes.API_REQUEST_FAILED)
-            }
+            openOrders = await this.getOpenOrders()
             console.log(
               `${new Date().toISOString()} #    | ...number of open orders: ${
                 openOrders.length
@@ -298,15 +292,7 @@ module.exports = {
           process.exit(ExitCodes.DONT_RESTART)
 
         let filledPartially
-        let openOrders
-        try {
-          openOrders = await ethfinexRestWrapper.orders(
-            (Date.now() * 1000).toString()
-          )
-        } catch (err) {
-          console.log(err)
-          process.exit(MsgCodes.API_REQUEST_FAILED)
-        }
+        let openOrders = await this.getOpenOrders()
 
         const orderID = tradeExecutionLog[3]
         if (openOrders.find(order => order[0] == orderID) != undefined) {
@@ -373,17 +359,10 @@ module.exports = {
             console.log(
               `${MsgCodes.TRADE_EXECUTION_UPDATE} | There are ${openOrders.length}, cancelling...`
             )
-            try {
-              openOrders = await ethfinexRestWrapper.orders(
-                (Date.now() * 1000).toString()
-              )
-            } catch (err) {
-              console.log(err)
-              process.exit(MsgCodes.API_REQUEST_FAILED)
-            }
+            openOrders = await this.getOpenOrders()
           }
           console.log(
-            `${MsgCodes.TRADE_EXECUTION_UPDATE} | Placing new ${orders.length} orders`
+            `${MsgCodes.TRADE_EXECUTION_UPDATE} | Placing new ${steps} orders`
           )
           for (const batch of orders) w.send(JSON.stringify(batch))
         }
