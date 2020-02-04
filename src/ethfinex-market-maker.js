@@ -13,6 +13,7 @@ BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
 const SYMBOL = 'tPNKETH'
 const MIN_ETH_SIZE = new BigNumber(0.1)
+const HEARTBEAT_TIMEOUT = 90000 // 90 Seconds
 
 let orderGroupID = 0
 
@@ -147,7 +148,7 @@ module.exports = {
       clearTimeout(client.pingTimeout)
       client.pingTimeout = setTimeout(function() {
         process.exit(ExitCodes.WEBSOCKET_CONNECTION_DOWN)
-      }, 50000)
+      }, HEARTBEAT_TIMEOUT)
     }
     w.on('open', () => {
       heartbeat(w)
