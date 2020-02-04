@@ -294,7 +294,7 @@ module.exports = {
         utils.logStats(available.ETH, available.PNK, reserve);
 
         const newInvariant = reserve.eth.times(reserve.pnk);
-        const TOLERANCE = 0.99999;
+        const TOLERANCE = 0.9999; // We need to tolerate a bit, in practice, invariant get lower a bit when multiple orders are taken at once.
 
         if (tradeExecutionLog[8] != TradeSide.MAKER)
           // We only trade as maker, if a taker trade happened, that's an anomaly, so kill the bot.
