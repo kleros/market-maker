@@ -359,13 +359,16 @@ module.exports = {
           while (!Array.isArray(openOrders) || openOrders.length != 0) {
             w.send(CANCEL_ALL_ORDERS)
             console.log(
-              `${MsgCodes.TRADE_EXECUTION_UPDATE} | There are ${openOrders.length} leftover orders, cancelling...`
+              `${new Date().toISOString()} # ${
+                MsgCodes.TRADE_EXECUTION_UPDATE
+              } | There are ${openOrders.length} leftover orders, cancelling...`
             )
             openOrders = await module.exports.getOpenOrders()
           }
           console.log(
-            `${MsgCodes.TRADE_EXECUTION_UPDATE} | Placing new ${steps *
-              2} orders`
+            `${new Date().toISOString()} # ${
+              MsgCodes.TRADE_EXECUTION_UPDATE
+            } | Placing new ${steps * 2} orders`
           )
           for (const batch of orders) w.send(JSON.stringify(batch))
         }
