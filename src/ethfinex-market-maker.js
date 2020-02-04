@@ -192,6 +192,7 @@ module.exports = {
             console.log(`${MsgCodes.HEARTBEAT} | ${err}`)
             process.exit(ExitCodes.API_REQUEST_FAILED)
           }
+          console.log(openOrders.find(order => order[1] == 1))
           console.log(
             `${new Date().toISOString()} # ${
               MsgCodes.HEARTBEAT
@@ -292,6 +293,19 @@ module.exports = {
         parsed[1] == MsgCodes.TRADE_EXECUTION_UPDATE &&
         parsed[2][1] == SYMBOL
       ) {
+        let openOrders
+        try {
+          openOrders = await ethfinexRestWrapper.orders(
+            (Date.now() * 1000).toString()
+          )
+        } catch (err) {
+          console.log(err)
+          process.exit(MsgCodes.API_REQUEST_FAILED)
+        }
+
+        const orderID = tradeExecutionLog[3]
+        console.log(openOrders.find(order => order[0] == orderID)) // If fully executed, we should not be able to find.
+
         noOfTrades++
         console.log(`Number of trades done: ${noOfTrades}`)
         if (noOfTrades > 50) process.exit(0) // Code zero doesn't get restarted.
