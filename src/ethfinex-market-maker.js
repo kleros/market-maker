@@ -44,7 +44,8 @@ const TradeSide = Object.freeze({
 
 const WSCloseCodes = Object.freeze({
   CLOSE_GOING_AWAY: 1001,
-  CLOSE_ABNORMAL: 1006
+  CLOSE_ABNORMAL: 1006,
+  NO_STATUS_RECEIVED: 1005
 })
 
 module.exports = {
@@ -150,15 +151,23 @@ module.exports = {
     })
 
     w.on('close', async function(errorCode) {
-      console.log('onclose')
-      console.log(errorCode)
+      console.log(`${date.toISOString()} # WS.ONCLOSE`)
+      console.log(
+        `${date.toISOString()} # WS${errorCode} | Expected error. Restarting...`
+      )
       if (
         errorCode == WSCloseCodes.CLOSE_GOING_AWAY ||
-        errorCode == WSCloseCodes.CLOSE_ABNORMAL
+        errorCode == WSCloseCodes.CLOSE_ABNORMAL ||
+        WSCloseCodes.NO_STATUS_RECEIVED
       ) {
         await new Promise(resolve => setTimeout(resolve, 10000))
         await module.exports.autoMarketMake(steps) // Restart
-      } else clearTimeout(this.pingTimeout)
+      } else {
+        console.log(
+          `${date.toISOString()} # WS${errorCode} | Unexpected error. Shutting down...`
+        )
+        clearTimeout(this.pingTimeout)
+      }
     })
 
     w.on('message', async msg => {
