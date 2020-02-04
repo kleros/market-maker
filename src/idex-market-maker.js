@@ -213,7 +213,6 @@ module.exports = {
 
         await module.exports.placeStaircaseOrders(
           checksumAddress,
-          process.env.IDEX_SECRET,
           parseInt(steps),
           MIN_ETH_SIZE,
           reserve
@@ -263,7 +262,6 @@ module.exports = {
 
         await module.exports.placeStaircaseOrders(
           checksumAddress,
-          process.env.IDEX_SECRET,
           parseInt(steps),
           MIN_ETH_SIZE,
           reserve
