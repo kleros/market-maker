@@ -20,7 +20,8 @@ const ExitCodes = Object.freeze({
   WEBSOCKET_CONNECTION_DOWN: 123,
   API_REQUEST_FAILED: 135,
   NON_MAKER_TRADE_OCCURRED: 721,
-  INCORRECT_NUMBER_OF_ORDERS: 567
+  INCORRECT_NUMBER_OF_ORDERS: 567,
+  DONT_RESTART: 0 // Use this exit code when it's an unsafe error.
 })
 
 const MsgCodes = Object.freeze({
@@ -292,6 +293,11 @@ module.exports = {
       ) {
         const tradeExecutionLog = parsed[2]
 
+        if (tradeExecutionLog[8] != TradeSide.MAKER)
+          // We only trade as maker, if a taker trade happened, that's an anomaly, so kill the bot.
+          process.exit(ExitCodes.DONT_RESTART)
+
+        let filledPartially
         let openOrders
         try {
           openOrders = await ethfinexRestWrapper.orders(
@@ -303,20 +309,19 @@ module.exports = {
         }
 
         const orderID = tradeExecutionLog[3]
-        console.log(openOrders.find(order => order[0] == orderID)) // If fully executed, we should not be able to find.
-
-        noOfTrades++
-        console.log(`Number of trades done: ${noOfTrades}`)
-        if (noOfTrades > 50) process.exit(0) // Code zero doesn't get restarted.
-
-        console.log('Cancelling orders...')
-        w.send(CANCEL_ALL_ORDERS)
+        if (openOrders.find(order => order[0] == orderID) != undefined) {
+          // If we find the exact order in the list, it means it wasn't removed from the list thus was partially filled
+          console.log(
+            `${new Date().toISOString()} # tu | Order ${orderID} was partially filled.`
+          )
+          filledPartially = true
+        }
 
         const pinakionAmount = new BigNumber(tradeExecutionLog[4])
         const price = new BigNumber(tradeExecutionLog[5])
-
         const tradeFee = new BigNumber(tradeExecutionLog[9])
         const tradeFeeCurrency = tradeExecutionLog[10]
+
         const fee = { ETH: 0, PNK: 0 } // Fees are always negative
         fee[tradeFeeCurrency] = tradeFee
 
@@ -336,10 +341,6 @@ module.exports = {
         const newInvariant = reserve.eth.times(reserve.pnk)
         const TOLERANCE = 0.9999 // When multiple orders are taken invariant gets lowered a bit, so we need to tolerate tiny amounts.
 
-        if (tradeExecutionLog[8] != TradeSide.MAKER)
-          // We only trade as maker, if a taker trade happened, that's an anomaly, so kill the bot.
-          process.exit(ExitCodes.NON_MAKER_TRADE_OCCURRED)
-
         try {
           assert(
             newInvariant.gte(oldInvariant.times(TOLERANCE)),
@@ -347,32 +348,35 @@ module.exports = {
           )
         } catch (err) {
           await console.log(err)
-          process.exit(0) // Code zero doesn't get restarted.
+          process.exit(ExitCodes.DONT_RESTART)
         }
 
         fs.writeFileSync('ethfinex_reserve.txt', JSON.stringify(reserve))
 
-        const orders = module.exports.getOrders(
-          parseInt(steps),
-          MIN_ETH_SIZE,
-          reserve
-        )
+        if (!filledPartially) {
+          noOfTrades++
+          console.log(`Number of trades done: ${noOfTrades}`)
+          if (noOfTrades > 50) process.exit(ExitCodes.DONT_RESTART)
 
-        w.send(CANCEL_ALL_ORDERS)
-
-        try {
-          openOrders = await ethfinexRestWrapper.orders(
-            (Date.now() * 1000).toString()
+          console.log(
+            `${new Date().toISOString()} # tu | Order filled fully. Cancelling orders in order to replace all...`
           )
-        } catch (err) {
-          console.log(err)
-          process.exit(MsgCodes.API_REQUEST_FAILED)
-        }
-        console.log(
-          `${MsgCodes.TRADE_EXECUTION_UPDATE} | Number of open orders: ${openOrders.length}`
-        )
-        if (Array.isArray(openOrders) && openOrders.length == 0) {
-          console.log('Placing orders...')
+
+          const orders = module.exports.getOrders(
+            parseInt(steps),
+            MIN_ETH_SIZE,
+            reserve
+          )
+
+          while (!Array.isArray(openOrders) || openOrders.length != 0) {
+            w.send(CANCEL_ALL_ORDERS)
+            console.log(
+              `${MsgCodes.TRADE_EXECUTION_UPDATE} | There are ${openOrders.length}, cancelling...`
+            )
+          }
+          console.log(
+            `${MsgCodes.TRADE_EXECUTION_UPDATE} | Placing new ${orders.length} orders`
+          )
           for (const batch of orders) w.send(JSON.stringify(batch))
         }
       }
