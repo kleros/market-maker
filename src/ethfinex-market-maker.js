@@ -96,7 +96,6 @@ module.exports = {
   },
 
   autoMarketMake: async steps => {
-    const date = new Date()
     let noOfTrades = 0
 
     assert(steps <= 128, 'You exceeded Ethfinex maximum order limit.')
@@ -151,9 +150,9 @@ module.exports = {
     })
 
     w.on('close', async function(errorCode) {
-      console.log(`${date.toISOString()} # WS.ONCLOSE`)
+      console.log(`${new Date().toISOString()} # WS.ONCLOSE`)
       console.log(
-        `${date.toISOString()} # WS${errorCode} | Expected error. Restarting...`
+        `${new Date().toISOString()} # WS${errorCode} | Expected error. Restarting...`
       )
       if (
         errorCode == WSCloseCodes.CLOSE_GOING_AWAY ||
@@ -164,7 +163,7 @@ module.exports = {
         await module.exports.autoMarketMake(steps) // Restart
       } else {
         console.log(
-          `${date.toISOString()} # WS${errorCode} | Unexpected error. Shutting down...`
+          `${new Date().toISOString()} # WS${errorCode} | Unexpected error. Shutting down...`
         )
         clearTimeout(this.pingTimeout)
       }
@@ -194,13 +193,13 @@ module.exports = {
             process.exit(ExitCodes.API_REQUEST_FAILED)
           }
           console.log(
-            `${date.toISOString()} # ${
+            `${new Date().toISOString()} # ${
               MsgCodes.HEARTBEAT
             } | Number of open orders: ${openOrders.length}`
           )
           if (Array.isArray(openOrders) && openOrders.length == 0) {
             console.log(
-              `${date.toISOString()} #    | Placing orders as there are none...`
+              `${new Date().toISOString()} #    | Placing orders as there are none...`
             )
             const orders = module.exports.getOrders(
               parseInt(steps),
@@ -213,14 +212,14 @@ module.exports = {
 
             try {
               openOrders = await ethfinexRestWrapper.orders(
-                (Date.now() * 1000).toString()
+                (new Date().now() * 1000).toString()
               )
             } catch (err) {
               console.log(`   | ${err}`)
               process.exit(ExitCodes.API_REQUEST_FAILED)
             }
             console.log(
-              `${date.toISOString()} #    | ...number of open orders: ${
+              `${new Date().toISOString()} #    | ...number of open orders: ${
                 openOrders.length
               }`
             )
@@ -234,7 +233,7 @@ module.exports = {
         }
       } else if (parsed[1] == MsgCodes.ORDER_SNAPSHOT)
         console.log(
-          `${date.toISOString()} # ${
+          `${new Date().toISOString()} # ${
             MsgCodes.ORDER_SNAPSHOT
           } | Number of open orders: ${parsed[2].length}`
         )
