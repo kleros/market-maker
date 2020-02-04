@@ -192,7 +192,7 @@ module.exports = {
         // DO NOTHING
       } else if (parsed[1] == MsgCodes.HEARTBEAT) {
         if (reserve) {
-          let openOrders = await this.getOpenOrders()
+          let openOrders = await module.exports.getOpenOrders()
 
           console.log(
             `${new Date().toISOString()} # ${
@@ -210,7 +210,7 @@ module.exports = {
             )
             for (const batch of orders) w.send(JSON.stringify(batch))
 
-            openOrders = await this.getOpenOrders()
+            openOrders = await module.exports.getOpenOrders()
             console.log(
               `${new Date().toISOString()} #    | ...number of open orders: ${
                 openOrders.length
@@ -292,7 +292,7 @@ module.exports = {
           process.exit(ExitCodes.DONT_RESTART)
 
         let filledPartially
-        let openOrders = await this.getOpenOrders()
+        let openOrders = await module.exports.getOpenOrders()
 
         const orderID = tradeExecutionLog[3]
         if (openOrders.find(order => order[0] == orderID) != undefined) {
@@ -359,7 +359,7 @@ module.exports = {
             console.log(
               `${MsgCodes.TRADE_EXECUTION_UPDATE} | There are ${openOrders.length}, cancelling...`
             )
-            openOrders = await this.getOpenOrders()
+            openOrders = await module.exports.getOpenOrders()
           }
           console.log(
             `${MsgCodes.TRADE_EXECUTION_UPDATE} | Placing new ${steps} orders`
