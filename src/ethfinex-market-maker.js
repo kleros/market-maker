@@ -192,7 +192,6 @@ module.exports = {
             console.log(`${MsgCodes.HEARTBEAT} | ${err}`)
             process.exit(ExitCodes.API_REQUEST_FAILED)
           }
-          console.log(openOrders.find(order => order[1] == 1))
           console.log(
             `${new Date().toISOString()} # ${
               MsgCodes.HEARTBEAT
@@ -208,8 +207,6 @@ module.exports = {
               reserve
             )
             for (const batch of orders) w.send(JSON.stringify(batch))
-
-            let openOrders
 
             try {
               openOrders = await ethfinexRestWrapper.orders(
@@ -362,7 +359,6 @@ module.exports = {
         )
 
         w.send(CANCEL_ALL_ORDERS)
-        let openOrders
 
         try {
           openOrders = await ethfinexRestWrapper.orders(
