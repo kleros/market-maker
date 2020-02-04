@@ -24,8 +24,13 @@ module.exports = {
     )
   },
   calculateMaximumReserve: function(availableETH, availablePNK, initialPrice) {
-    assert(availableETH.gt(0) && availablePNK.gt(0))
-    assert(initialPrice.gt(0.000004) && initialPrice.lt(0.0004))
+    try {
+      assert(availableETH.gt(0) && availablePNK.gt(0))
+      assert(initialPrice.gt(0.000004) && initialPrice.lt(0.0004))
+    } catch (err) {
+      console.error(err)
+      process.exit(this.ExitCodes.UTIL_ASSERTION_FAILED)
+    }
 
     const etherValueOfAvailablePinakion = availablePNK.times(initialPrice)
     const isEtherTheLimitingResource = !!etherValueOfAvailablePinakion.gt(
@@ -33,13 +38,23 @@ module.exports = {
     )
 
     if (isEtherTheLimitingResource) {
-      assert(availableETH.gt(0) && availableETH.div(initialPrice).gt(0))
+      try {
+        assert(availableETH.gt(0) && availableETH.div(initialPrice).gt(0))
+      } catch (err) {
+        console.error(err)
+        process.exit(this.ExitCodes.UTIL_ASSERTION_FAILED)
+      }
       return {
         eth: availableETH,
         pnk: availableETH.div(initialPrice)
       }
     } else {
-      assert(availableETH.times(initialPrice).gt(0) && availablePNK.gt(0))
+      try {
+        assert(availableETH.times(initialPrice).gt(0) && availablePNK.gt(0))
+      } catch (err) {
+        console.error(err)
+        process.exit(this.ExitCodes.UTIL_ASSERTION_FAILED)
+      }
       return {
         eth: availablePNK.times(initialPrice),
         pnk: availablePNK
@@ -68,7 +83,12 @@ module.exports = {
       const sellOrderPrice = priceCenter.times(
         new BigNumber(1).plus(spread.div(2)).plus(interval.times(i))
       )
-      assert(sellOrderPrice.gt(priceCenter))
+      try {
+        assert(sellOrderPrice.gt(priceCenter))
+      } catch (err) {
+        console.error(err)
+        process.exit(this.ExitCodes.UTIL_ASSERTION_FAILED)
+      }
 
       const sellOrder = {
         pnk: sizeInEther.div(sellOrderPrice).times(-1),
@@ -84,7 +104,12 @@ module.exports = {
         eth: sizeInEther.times(-1)
       }
 
-      assert(buyOrderPrice.lt(priceCenter))
+      try {
+        assert(buyOrderPrice.lt(priceCenter))
+      } catch (err) {
+        console.error(err)
+        process.exit(this.ExitCodes.UTIL_ASSERTION_FAILED)
+      }
 
       orders.push(sellOrder)
       orders.push(buyOrder)
@@ -109,7 +134,12 @@ module.exports = {
         .pow(2)
         .div(reserve.pnk.times(reserve.eth))
 
-      assert(sellOrderPrice.gt(reserve.eth.div(reserve.pnk)))
+      try {
+        assert(sellOrderPrice.gt(reserve.eth.div(reserve.pnk)))
+      } catch (err) {
+        console.error(err)
+        process.exit(this.ExitCodes.UTIL_ASSERTION_FAILED)
+      }
 
       let sizeInPinakion = sizeInEther.div(sellOrderPrice)
       const sellOrder = {
@@ -122,12 +152,17 @@ module.exports = {
         .pow(2)
         .div(reserve.pnk.times(reserve.eth))
 
-      assert(
-        buyOrderPrice.lt(reserve.eth.div(reserve.pnk)),
-        `Buy order price: ${buyOrderPrice}; equilibrium: ${reserve.eth.div(
-          reserve.pnk
-        )}`
-      )
+      try {
+        assert(
+          buyOrderPrice.lt(reserve.eth.div(reserve.pnk)),
+          `Buy order price: ${buyOrderPrice}; equilibrium: ${reserve.eth.div(
+            reserve.pnk
+          )}`
+        )
+      } catch (err) {
+        console.error(err)
+        process.exit(this.ExitCodes.UTIL_ASSERTION_FAILED)
+      }
 
       sizeInPinakion = sizeInEther.div(buyOrderPrice)
 
