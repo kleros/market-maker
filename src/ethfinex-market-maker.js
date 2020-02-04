@@ -352,7 +352,7 @@ module.exports = {
 
         try {
           openOrders = await ethfinexRestWrapper.orders(
-            (Date.now() * 1000).toString()
+            (new Date().now() * 1000).toString()
           )
         } catch (err) {
           console.log(err)
