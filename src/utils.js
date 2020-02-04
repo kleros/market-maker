@@ -25,6 +25,8 @@ module.exports = {
   },
   calculateMaximumReserve: function(availableETH, availablePNK, initialPrice) {
     assert(availableETH.gt(0) && availablePNK.gt(0))
+    // The bounds feel pretty loose. I think we can tighten them a little. If price fluctuates to anywhere close to these ranges we can make a manual update to the bot.
+    // Also make bounds a constant to make it easier to change.
     assert(initialPrice.gt(0.000004) && initialPrice.lt(0.0004))
 
     const etherValueOfAvailablePinakion = availablePNK.times(initialPrice)
@@ -136,6 +138,7 @@ module.exports = {
         eth: sizeInEther.times(-1)
       }
 
+      // Would be cleaner to return orders as object of buys and sells instead of having them mixed like this.
       orders.push(sellOrder)
       orders.push(buyOrder)
     }

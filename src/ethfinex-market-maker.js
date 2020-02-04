@@ -117,6 +117,7 @@ module.exports = {
 
     const available = {}
 
+    // why read from file? I assume we have a reserve amount in account balance. Why not just look it up?
     fs.readFile('ethfinex_reserve.txt', 'utf-8', (err, data) => {
       if (err) return
       reserve = JSON.parse(data)
@@ -174,6 +175,7 @@ module.exports = {
       heartbeat(w)
       const parsed = JSON.parse(msg)
 
+      // TIP: This seems unnessary. Can just do conditionals for what you are looking for and not specify the ones you are not.
       if (
         parsed[1] == MsgCodes.ORDER_NEW ||
         parsed[1] == MsgCodes.NOTIFICATIONS ||
@@ -202,12 +204,14 @@ module.exports = {
             console.log(
               `${date.toISOString()} #    | Placing orders as there are none...`
             )
+            // TIP: Could define functions normally and export at EOF to avoid this messy syntax
             const orders = module.exports.getOrders(
               parseInt(steps),
               MIN_ETH_SIZE,
               reserve
             )
-            for (const batch of orders) w.send(JSON.stringify(batch))
+            // RENAME: batch == single order correct?
+            for (const order of orders) w.send(JSON.stringify(order))
 
             let openOrders
 
@@ -272,6 +276,7 @@ module.exports = {
 
         utils.logStats(available.ETH, available.PNK, reserve)
 
+        // I don't understand the point of saving this to a file. Can't we just calculate this on start (so values are in memory). Less error prone to get balances from web3 or from bfx api
         fs.writeFile('ethfinex_reserve.txt', JSON.stringify(reserve), err => {
           if (err) console.log(err)
           console.log('Reserve saved to file.')
@@ -285,9 +290,11 @@ module.exports = {
         lowestAsk = new BigNumber(ticker[2])
       }
 
+      // remove
       if (parsed.event == 'auth') {
       }
 
+      // If I understand this correctly every time an order is filled we cancel all orders and replace steps. Why not just place more orders to fill missing steps?
       if (
         Array.isArray(parsed) &&
         parsed[1] == MsgCodes.TRADE_EXECUTION_UPDATE &&
@@ -295,6 +302,7 @@ module.exports = {
       ) {
         noOfTrades++
         console.log(`Number of trades done: ${noOfTrades}`)
+        // I don't understand this check. Do you have a cronjob or the like to restart?
         if (noOfTrades > 50) process.exit(0) // Code zero doesn't get restarted.
 
         console.log('Cancelling orders...')
@@ -340,6 +348,7 @@ module.exports = {
           process.exit(0) // Code zero doesn't get restarted.
         }
 
+        // This should be moved up before the potential errors. This case shows the danger of using the file. If an error occurs before the write your file will not have correct balances.
         fs.writeFileSync('ethfinex_reserve.txt', JSON.stringify(reserve))
 
         const orders = module.exports.getOrders(
@@ -348,7 +357,9 @@ module.exports = {
           reserve
         )
 
+        // Cancel called twice?
         w.send(CANCEL_ALL_ORDERS)
+        // TIP: This should be encapsulated in it's own function. Same logic used 3 times
         let openOrders
 
         try {

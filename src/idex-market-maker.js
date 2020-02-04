@@ -102,7 +102,7 @@ module.exports = {
   },
   placeStaircaseOrders: async function(address, steps, size, reserve) {
     if ((await idexWrapper.getOpenOrders(IDEX_API_KEY, address)).length == 0) {
-      var orders = module.exports.getOrders(steps, size, reserve)
+      const orders = module.exports.getOrders(steps, size, reserve)
       console.log('Placing orders...')
       for (let i = 0; i < orders.length; i++) {
         const nonce = await idexWrapper.getNextNonce(IDEX_API_KEY, address)
