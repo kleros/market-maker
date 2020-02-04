@@ -373,6 +373,14 @@ module.exports = {
             console.log(
               `${MsgCodes.TRADE_EXECUTION_UPDATE} | There are ${openOrders.length}, cancelling...`
             )
+            try {
+              openOrders = await ethfinexRestWrapper.orders(
+                (Date.now() * 1000).toString()
+              )
+            } catch (err) {
+              console.log(err)
+              process.exit(MsgCodes.API_REQUEST_FAILED)
+            }
           }
           console.log(
             `${MsgCodes.TRADE_EXECUTION_UPDATE} | Placing new ${orders.length} orders`
