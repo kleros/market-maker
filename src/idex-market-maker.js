@@ -152,7 +152,7 @@ module.exports = {
     const heartbeat = client => {
       clearTimeout(client.pingTimeout)
       client.pingTimeout = setTimeout(function() {
-        process.exit(utils.WEBSOCKET_CONNECTION_DOWN)
+        process.exit(utils.ExitCodes.WEBSOCKET_CONNECTION_DOWN)
       }, 60000)
     }
     w.on('ping', () => {
