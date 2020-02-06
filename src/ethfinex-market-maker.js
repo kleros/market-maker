@@ -71,7 +71,7 @@ module.exports = {
       return await ethfinexRestWrapper.orders((Date.now() * 1000).toString())
     } catch (err) {
       console.log(err)
-      process.exit(MsgCodes.API_REQUEST_FAILED)
+      process.exit(ExitCodes.API_REQUEST_FAILED)
     }
   },
 
