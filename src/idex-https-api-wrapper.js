@@ -10,13 +10,27 @@ const { mapValues } = require('lodash')
 
 const IDEX_CONTRACT = '0x2a0c0dbecc7e4d658f48e01e3fa353f44050c208'
 
+const getHeader = function(apiKey) {
+  return {
+    'Content-Type': 'application/json',
+    'API-Key': apiKey
+  }
+}
+
 module.exports = {
+  getOrderStatus: async function(apiKey, orderHash) {
+    return fetch(`${HTTPS_API}/returnOrderStatus`, {
+      headers: getHeader(apiKey),
+      method: 'POST',
+      body: JSON.stringify({ orderHash }).then(function(response) {
+        return response.json()
+      })
+    })
+  },
+
   getOpenOrders: async function(apiKey, address, count = 100, cursor = 0) {
     return fetch(`${HTTPS_API}/returnOpenOrders`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'API-Key': apiKey
-      },
+      headers: getHeader(apiKey),
       method: 'POST',
       body: JSON.stringify({ address: address, count: count, cursor: cursor })
     }).then(function(response) {
@@ -26,10 +40,7 @@ module.exports = {
 
   getBalances: async function(apiKey, address) {
     return fetch(`${HTTPS_API}/returnBalances`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'API-Key': apiKey
-      },
+      headers: getHeader(apiKey),
       method: 'POST',
       body: JSON.stringify({ address: address })
     }).then(function(response) {
@@ -39,10 +50,7 @@ module.exports = {
 
   getTicker: async function(apiKey, market) {
     return fetch(`${HTTPS_API}/returnTicker`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'API-Key': apiKey
-      },
+      headers: getHeader(apiKey),
       method: 'POST',
       body: JSON.stringify({
         market: market
@@ -54,10 +62,7 @@ module.exports = {
 
   getNextNonce: async function(apiKey, address) {
     return fetch(`${HTTPS_API}/returnNextNonce`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'API-Key': apiKey
-      },
+      headers: getHeader(apiKey),
       method: 'POST',
       body: JSON.stringify({
         address: address
@@ -76,10 +81,7 @@ module.exports = {
     nextNonce
   ) {
     await fetch(`${HTTPS_API}/cancel`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'API-Key': apiKey
-      },
+      headers: getHeader(apiKey),
       method: 'POST',
       body: JSON.stringify(
         this.signCancel(web3, privateKey, {
@@ -130,10 +132,7 @@ module.exports = {
     nextNonce
   ) {
     await fetch(`${HTTPS_API}/order`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'API-Key': apiKey
-      },
+      headers: getHeader(apiKey),
       method: 'POST',
       body: JSON.stringify(
         this.signOrder(web3, privateKey, {
