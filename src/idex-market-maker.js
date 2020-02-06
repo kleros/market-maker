@@ -255,6 +255,16 @@ module.exports = {
           `New Invariant: ${newInvariant}  Old Invariant: ${oldInvariant}\nInvariant should not decrease. Check bounding curve implemention.`
         )
 
+        try {
+          const orderStatus = await idexWrapper.getOrderStatus(
+            IDEX_API_KEY,
+            trade.orderHash
+          )
+          console.log(orderStatus)
+        } catch (err) {
+          console.log(err)
+        }
+
         await module.exports.clearOrders(
           checksumAddress,
           process.env.IDEX_SECRET
