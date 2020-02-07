@@ -192,10 +192,7 @@ module.exports = {
         availableETH = new BigNumber(balances.ETH)
         availablePNK = new BigNumber(balances.PNK)
 
-        console.log(new Date().toISOString())
-        console.log(
-          await idexWrapper.getBalances(IDEX_API_KEY, checksumAddress)
-        )
+        utils.logBalance(balances.ETH, balances.PNK)
 
         if (!reserve)
           reserve = utils.calculateMaximumReserve(
@@ -209,13 +206,7 @@ module.exports = {
           console.log('Reserve saved to file.')
         })
 
-        console.log(
-          `${new Date().toISOString()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
-            reserve.pnk
-          )} ETH: ${reserve.eth} | PNK: ${
-            reserve.pnk
-          } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
-        )
+        utils.logReserve(reserve)
 
         await module.exports.placeStaircaseOrders(
           checksumAddress,
@@ -252,13 +243,7 @@ module.exports = {
         fs.writeFile('idex_reserve.txt', JSON.stringify(reserve), err => {
           if (err) console.log(err)
           console.log('Reserve saved to file.')
-          console.log(
-            `${new Date().toISOString()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
-              reserve.pnk
-            )} ETH: ${reserve.eth} | PNK: ${
-              reserve.pnk
-            } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
-          )
+          utils.logReserve(reserve)
         })
 
         const TOLERANCE = 0.99999

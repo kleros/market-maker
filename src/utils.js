@@ -11,18 +11,28 @@ module.exports = {
     NON_MAKER_TRADE_OCCURRED: 721,
     UTIL_ASSERTION_FAILED: 999
   }),
-  logStats: function(availableETH, availablePNK, reserve) {
-    const date = new Date()
+
+  logReserve: function(reserve) {
     console.log(
-      `${date.toISOString()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
+      `${new Date().toISOString()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
         reserve.pnk
       )} ETH: ${reserve.eth} | PNK: ${reserve.pnk} | ETH/PNK: ${reserve.eth.div(
         reserve.pnk
       )}`
     )
-    console.log(
-      `${date.toISOString()} # Wallet ETH Balance: ${availableETH} | Wallet PNK Balance: ${availablePNK}`
-    )
+  },
+
+  logBalance: function(availableETH, availablePNK, pnkPrice) {
+    if (pnkPrice)
+      console.log(
+        `${new Date().toISOString()} # ETH: ${availableETH} | PNK: ${availablePNK} | ETH Equivalent: ${new BigNumber(
+          availableETH
+        ).plus(new BigNumber(availablePNK).times(new BigNumber(pnkPrice)))}`
+      )
+    else
+      console.log(
+        `${new Date().toISOString()} # ETH: ${availableETH} | PNK: ${availablePNK}`
+      )
   },
   calculateMaximumReserve: function(availableETH, availablePNK, initialPrice) {
     try {

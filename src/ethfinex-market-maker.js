@@ -132,7 +132,10 @@ module.exports = {
       reserve = JSON.parse(data)
       reserve.pnk = new BigNumber(reserve.pnk)
       reserve.eth = new BigNumber(reserve.eth)
-      console.log('Found a reserve file, loading...')
+      console.log(
+        `${new Date().toISOString()} # Found a reserve file, loading...`
+      )
+      utils.logReserve(reserve)
     })
 
     if (
@@ -243,11 +246,7 @@ module.exports = {
         // WALLET UPDATE
         else available[payload[1]] = new BigNumber(payload[2])
 
-        console.log(
-          `${new Date().toISOString()} # Wallet ETH Balance: ${
-            available.ETH
-          } | Wallet PNK Balance: ${available.PNK}`
-        )
+        utils.logBalance(available.ETH, available.PNK)
       } else if (parsed.length == 10)
         console.log(
           `Bid: ${parsed[0]} | Ask: ${parsed[2]} | Last: ${parsed[6]}`
@@ -269,13 +268,7 @@ module.exports = {
           highestBid.plus(lowestAsk).div(2)
         )
 
-        console.log(
-          `${new Date().toISOString()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
-            reserve.pnk
-          )} ETH: ${reserve.eth} | PNK: ${
-            reserve.pnk
-          } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
-        )
+        utils.logReserve(reserve)
 
         fs.writeFile('ethfinex_reserve.txt', JSON.stringify(reserve), err => {
           if (err) console.log(err)
@@ -335,7 +328,8 @@ module.exports = {
         console.log(`etherAmountAfterFee: ${etherAmountAfterFee}`)
         reserve.eth = reserve.eth.plus(etherAmountAfterFee)
         reserve.pnk = reserve.pnk.plus(pinakionAmountAfterFee)
-
+        utils.logReserve(reserve)
+        fs.writeFileSync('ethfinex_reserve.txt', JSON.stringify(reserve))
         const newInvariant = reserve.eth.times(reserve.pnk)
         const TOLERANCE = 0.9999 // When multiple orders are taken invariant gets lowered a bit, so we need to tolerate tiny amounts.
 
@@ -348,8 +342,6 @@ module.exports = {
           await console.log(err)
           process.exit(ExitCodes.DONT_RESTART)
         }
-
-        fs.writeFileSync('ethfinex_reserve.txt', JSON.stringify(reserve))
 
         if (!filledPartially) {
           noOfTrades++
