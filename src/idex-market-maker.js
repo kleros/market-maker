@@ -252,7 +252,7 @@ module.exports = {
           reserve.eth = reserve.eth.plus(new BigNumber(ethAmount))
         }
 
-        const balances = await idexWrapper.getCompleteBalances()(
+        const balances = await idexWrapper.getCompleteBalances(
           IDEX_API_KEY,
           checksumAddress
         )
