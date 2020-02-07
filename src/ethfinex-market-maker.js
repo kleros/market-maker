@@ -210,7 +210,6 @@ module.exports = {
               reserve
             )
             for (const batch of orders) w.send(JSON.stringify(batch))
-            utils.logStats(available.ETH, available.PNK, reserve)
 
             openOrders = await module.exports.getOpenOrders()
             console.log(
@@ -243,6 +242,12 @@ module.exports = {
             available[array[1]] = new BigNumber(array[2])
         // WALLET UPDATE
         else available[payload[1]] = new BigNumber(payload[2])
+
+        console.log(
+          `${new Date().toISOString()} # Wallet ETH Balance: ${
+            available.ETH
+          } | Wallet PNK Balance: ${available.PNK}`
+        )
       } else if (parsed.length == 10)
         console.log(
           `Bid: ${parsed[0]} | Ask: ${parsed[2]} | Last: ${parsed[6]}`
@@ -264,7 +269,13 @@ module.exports = {
           highestBid.plus(lowestAsk).div(2)
         )
 
-        utils.logStats(available.ETH, available.PNK, reserve)
+        console.log(
+          `${new Date().toISOString()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
+            reserve.pnk
+          )} ETH: ${reserve.eth} | PNK: ${
+            reserve.pnk
+          } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
+        )
 
         fs.writeFile('ethfinex_reserve.txt', JSON.stringify(reserve), err => {
           if (err) console.log(err)
@@ -324,7 +335,6 @@ module.exports = {
         console.log(`etherAmountAfterFee: ${etherAmountAfterFee}`)
         reserve.eth = reserve.eth.plus(etherAmountAfterFee)
         reserve.pnk = reserve.pnk.plus(pinakionAmountAfterFee)
-        utils.logStats(available.ETH, available.PNK, reserve)
 
         const newInvariant = reserve.eth.times(reserve.pnk)
         const TOLERANCE = 0.9999 // When multiple orders are taken invariant gets lowered a bit, so we need to tolerate tiny amounts.
