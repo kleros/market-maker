@@ -22,9 +22,9 @@ module.exports = {
     return fetch(`${HTTPS_API}/returnOrderStatus`, {
       headers: getHeader(apiKey),
       method: 'POST',
-      body: JSON.stringify({ orderHash }).then(function(response) {
-        return response.json()
-      })
+      body: JSON.stringify({ orderHash })
+    }).then(function(response) {
+      return response.json()
     })
   },
 
