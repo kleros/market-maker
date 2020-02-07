@@ -17,14 +17,6 @@ const HEARTBEAT_TIMEOUT = 90000 // 90 Seconds
 
 let orderGroupID = 0
 
-const ExitCodes = Object.freeze({
-  WEBSOCKET_CONNECTION_DOWN: 123,
-  API_REQUEST_FAILED: 135,
-  NON_MAKER_TRADE_OCCURRED: 721,
-  INCORRECT_NUMBER_OF_ORDERS: 567,
-  DONT_RESTART: 0 // Use this exit code when it's an unsafe error.
-})
-
 const MsgCodes = Object.freeze({
   ORDER_SNAPSHOT: 'os',
   ORDER_NEW: 'on',
@@ -71,7 +63,7 @@ module.exports = {
       return await ethfinexRestWrapper.orders((Date.now() * 1000).toString())
     } catch (err) {
       console.log(err)
-      process.exit(ExitCodes.API_REQUEST_FAILED)
+      process.exit(utils.ExitCodes.API_REQUEST_FAILED)
     }
   },
 
@@ -150,7 +142,7 @@ module.exports = {
     const heartbeat = client => {
       clearTimeout(client.pingTimeout)
       client.pingTimeout = setTimeout(function() {
-        process.exit(ExitCodes.WEBSOCKET_CONNECTION_DOWN)
+        process.exit(utils.ExitCodes.WEBSOCKET_CONNECTION_DOWN)
       }, HEARTBEAT_TIMEOUT)
     }
     w.on('open', () => {
@@ -224,8 +216,8 @@ module.exports = {
             Array.isArray(openOrders) &&
             openOrders.length != steps * 2
           ) {
-            console.error(ExitCodes.INCORRECT_NUMBER_OF_ORDERS)
-            process.exit(ExitCodes.INCORRECT_NUMBER_OF_ORDERS)
+            console.error(utils.ExitCodes.INCORRECT_NUMBER_OF_ORDERS)
+            process.exit(utils.ExitCodes.INCORRECT_NUMBER_OF_ORDERS)
           }
         }
       } else if (parsed[1] == MsgCodes.ORDER_SNAPSHOT)
@@ -295,7 +287,7 @@ module.exports = {
 
         if (tradeExecutionLog[8] != TradeSide.MAKER)
           // We only trade as maker, if a taker trade happened, that's an anomaly, so kill the bot.
-          process.exit(ExitCodes.DONT_RESTART)
+          process.exit(utils.ExitCodes.DONT_RESTART)
 
         let filledPartially
         let openOrders = await module.exports.getOpenOrders()
@@ -340,13 +332,13 @@ module.exports = {
           )
         } catch (err) {
           await console.log(err)
-          process.exit(ExitCodes.DONT_RESTART)
+          process.exit(utils.ExitCodes.DONT_RESTART)
         }
 
         if (!filledPartially) {
           noOfTrades++
           console.log(`Number of trades done: ${noOfTrades}`)
-          if (noOfTrades > 50) process.exit(ExitCodes.DONT_RESTART)
+          if (noOfTrades > 50) process.exit(utils.ExitCodes.DONT_RESTART)
 
           console.log(
             `${new Date().toISOString()} # tu | Order filled fully. Cancelling orders in order to replace all...`
