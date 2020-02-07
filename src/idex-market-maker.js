@@ -138,9 +138,9 @@ module.exports = {
     const checksumAddress = web3.utils.toChecksumAddress(
       process.env.IDEX_ADDRESS
     )
-    let reserve
+    let reserve, balances
 
-    const balances = await idexWrapper.getCompleteBalances(
+    balances = await idexWrapper.getCompleteBalances(
       IDEX_API_KEY,
       checksumAddress
     )
@@ -237,26 +237,27 @@ module.exports = {
 
       if (parsed.event === 'account_trades') {
         const payload = JSON.parse(parsed.payload)
-        const trade = payload.trades[0]
-        const pnkAmount = trade.amount
-        const ethAmount = trade.total
-        const isBuy = trade.tokenSell == ETHER
-
         const oldInvariant = reserve.eth.times(reserve.pnk)
 
-        if (isBuy) {
-          reserve.pnk = reserve.pnk.plus(
-            new BigNumber(pnkAmount).minus(new BigNumber(trade.buyerFee))
-          )
-          reserve.eth = reserve.eth.minus(new BigNumber(ethAmount))
-        } else {
-          reserve.pnk = reserve.pnk.minus(new BigNumber(pnkAmount))
-          reserve.eth = reserve.eth.plus(
-            new BigNumber(ethAmount).minus(new BigNumber(trade.sellerFee))
-          )
+        for (const trade of payload.trades) {
+          const pnkAmount = trade.amount
+          const ethAmount = trade.total
+          const isBuy = trade.tokenSell == ETHER
+
+          if (isBuy) {
+            reserve.pnk = reserve.pnk.plus(
+              new BigNumber(pnkAmount).minus(new BigNumber(trade.buyerFee))
+            )
+            reserve.eth = reserve.eth.minus(new BigNumber(ethAmount))
+          } else {
+            reserve.pnk = reserve.pnk.minus(new BigNumber(pnkAmount))
+            reserve.eth = reserve.eth.plus(
+              new BigNumber(ethAmount).minus(new BigNumber(trade.sellerFee))
+            )
+          }
         }
 
-        const balances = await idexWrapper.getCompleteBalances(
+        balances = await idexWrapper.getCompleteBalances(
           IDEX_API_KEY,
           checksumAddress
         )
@@ -269,13 +270,13 @@ module.exports = {
           )
         )
 
-        const newInvariant = reserve.eth.times(reserve.pnk)
-
         fs.writeFile('idex_reserve.txt', JSON.stringify(reserve), err => {
           if (err) console.log(err)
           console.log('Reserve saved to file.')
           utils.logReserve(reserve)
         })
+
+        const newInvariant = reserve.eth.times(reserve.pnk)
 
         const TOLERANCE = 0.99999
         assert(
@@ -284,33 +285,36 @@ module.exports = {
         )
 
         try {
-          const orderStatus = await idexWrapper.getOrderStatus(
-            IDEX_API_KEY,
-            trade.orderHash
-          )
-          console.log(orderStatus)
-
-          if (
-            orderStatus.status == 'complete' ||
-            orderStatus.status == 'cancelled'
-          ) {
-            console.log('Filled completely, replacing...')
-            await module.exports.clearOrders(
-              checksumAddress,
-              process.env.IDEX_SECRET
+          for (const trade of payload.trades) {
+            const orderStatus = await idexWrapper.getOrderStatus(
+              IDEX_API_KEY,
+              trade.orderHash
             )
+            console.log(orderStatus)
 
-            await module.exports.placeStaircaseOrders(
-              checksumAddress,
-              parseInt(steps),
-              MIN_ETH_SIZE,
-              reserve
-            )
-          } else if (orderStatus.status == 'open')
-            console.log('Filled partially, wait an order gets filled fully.')
-          else {
-            console.log('UNEXPECTED ORDER STATUS')
-            process.exit(utils.ExitCodes.DONT_RESTART)
+            if (
+              orderStatus.status == 'complete' ||
+              orderStatus.status == 'cancelled'
+            ) {
+              console.log('Filled completely, replacing...')
+              await module.exports.clearOrders(
+                checksumAddress,
+                process.env.IDEX_SECRET
+              )
+
+              await module.exports.placeStaircaseOrders(
+                checksumAddress,
+                parseInt(steps),
+                MIN_ETH_SIZE,
+                reserve
+              )
+              break
+            } else if (orderStatus.status == 'open')
+              console.log('Filled partially, wait an order gets filled fully.')
+            else {
+              console.log('UNEXPECTED ORDER STATUS')
+              process.exit(utils.ExitCodes.DONT_RESTART)
+            }
           }
         } catch (err) {
           console.log(err)
