@@ -135,7 +135,16 @@ module.exports = {
 
   autoMarketMake: async function(steps) {
     const w = new WS('wss://datastream.idex.market')
-    let reserve, availableETH, availablePNK
+    const checksumAddress = web3.utils.toChecksumAddress(
+      process.env.IDEX_ADDRESS
+    )
+    let reserve
+
+    const balances = await idexWrapper.getBalances(
+      IDEX_API_KEY,
+      checksumAddress
+    )
+    utils.logBalance(balances.ETH, balances.PNK)
 
     fs.readFile('idex_reserve.txt', 'utf-8', (err, data) => {
       if (err) return
@@ -145,10 +154,6 @@ module.exports = {
       console.log('Found a reserve file, loading...')
       utils.logReserve(reserve)
     })
-
-    const checksumAddress = web3.utils.toChecksumAddress(
-      process.env.IDEX_ADDRESS
-    )
 
     const heartbeat = client => {
       clearTimeout(client.pingTimeout)
@@ -190,15 +195,13 @@ module.exports = {
           IDEX_API_KEY,
           checksumAddress
         )
-        availableETH = new BigNumber(balances.ETH)
-        availablePNK = new BigNumber(balances.PNK)
 
         utils.logBalance(balances.ETH, balances.PNK)
 
         if (!reserve)
           reserve = utils.calculateMaximumReserve(
-            availableETH,
-            availablePNK,
+            new BigNumber(balances.ETH),
+            new BigNumber(balances.PNK),
             lowestAsk.plus(highestBid).div(2)
           )
 
@@ -234,10 +237,11 @@ module.exports = {
           reserve.eth = reserve.eth.plus(new BigNumber(ethAmount))
         }
 
-        console.log(new Date().toISOString())
-        console.log(
-          await idexWrapper.getBalances(IDEX_API_KEY, checksumAddress)
+        const balances = await idexWrapper.getBalances(
+          IDEX_API_KEY,
+          checksumAddress
         )
+        utils.logBalance(balances.ETH, balances.PNK)
 
         const newInvariant = reserve.eth.times(reserve.pnk)
 
