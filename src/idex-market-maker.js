@@ -162,8 +162,6 @@ module.exports = {
     w.on('message', async msg => {
       heartbeat(w)
 
-      if (reserve) utils.logStats('undefined', 'undefined', reserve)
-
       const parsed = JSON.parse(msg)
       console.log(parsed)
       if (parsed.request === 'handshake' && parsed.result === 'success')
@@ -194,8 +192,10 @@ module.exports = {
         availableETH = new BigNumber(balances.ETH)
         availablePNK = new BigNumber(balances.PNK)
 
-        console.log('Account balance:')
-        console.log(balances)
+        console.log(new Date().toISOString())
+        console.log(
+          await idexWrapper.getBalances(IDEX_API_KEY, checksumAddress)
+        )
 
         if (!reserve)
           reserve = utils.calculateMaximumReserve(
@@ -209,7 +209,13 @@ module.exports = {
           console.log('Reserve saved to file.')
         })
 
-        utils.logStats(availableETH, availablePNK, reserve)
+        console.log(
+          `${new Date().toISOString()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
+            reserve.pnk
+          )} ETH: ${reserve.eth} | PNK: ${
+            reserve.pnk
+          } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
+        )
 
         await module.exports.placeStaircaseOrders(
           checksumAddress,
@@ -236,7 +242,7 @@ module.exports = {
           reserve.eth = reserve.eth.plus(new BigNumber(ethAmount))
         }
 
-        console.log('Account balance:')
+        console.log(new Date().toISOString())
         console.log(
           await idexWrapper.getBalances(IDEX_API_KEY, checksumAddress)
         )
@@ -246,7 +252,13 @@ module.exports = {
         fs.writeFile('idex_reserve.txt', JSON.stringify(reserve), err => {
           if (err) console.log(err)
           console.log('Reserve saved to file.')
-          utils.logStats(availableETH, availablePNK, reserve)
+          console.log(
+            `${new Date().toISOString()} # RESERVE <> ETH*PNK: ${reserve.eth.times(
+              reserve.pnk
+            )} ETH: ${reserve.eth} | PNK: ${
+              reserve.pnk
+            } | ETH/PNK: ${reserve.eth.div(reserve.pnk)}`
+          )
         })
 
         const TOLERANCE = 0.99999
@@ -261,21 +273,25 @@ module.exports = {
             trade.orderHash
           )
           console.log(orderStatus)
+
+          if (orderStatus.status == 'complete') {
+            console.log('Filled completely, replacing...')
+            await module.exports.clearOrders(
+              checksumAddress,
+              process.env.IDEX_SECRET
+            )
+
+            await module.exports.placeStaircaseOrders(
+              checksumAddress,
+              parseInt(steps),
+              MIN_ETH_SIZE,
+              reserve
+            )
+          } else
+            console.log('Filled partially, wait an order gets filled fully.')
         } catch (err) {
           console.log(err)
         }
-
-        await module.exports.clearOrders(
-          checksumAddress,
-          process.env.IDEX_SECRET
-        )
-
-        await module.exports.placeStaircaseOrders(
-          checksumAddress,
-          parseInt(steps),
-          MIN_ETH_SIZE,
-          reserve
-        )
       }
     })
 
