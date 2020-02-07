@@ -143,6 +143,7 @@ module.exports = {
       reserve.pnk = new BigNumber(reserve.pnk)
       reserve.eth = new BigNumber(reserve.eth)
       console.log('Found a reserve file, loading...')
+      utils.logReserve(reserve)
     })
 
     const checksumAddress = web3.utils.toChecksumAddress(
