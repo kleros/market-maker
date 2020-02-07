@@ -274,7 +274,10 @@ module.exports = {
           )
           console.log(orderStatus)
 
-          if (orderStatus.status == 'complete') {
+          if (
+            orderStatus.status == 'complete' ||
+            orderStatus.status == 'cancelled'
+          ) {
             console.log('Filled completely, replacing...')
             await module.exports.clearOrders(
               checksumAddress,
@@ -287,8 +290,12 @@ module.exports = {
               MIN_ETH_SIZE,
               reserve
             )
-          } else
+          } else if (orderStatus.status == 'open')
             console.log('Filled partially, wait an order gets filled fully.')
+          else {
+            console.log('UNEXPECTED ORDER STATUS')
+            process.exit(utils.ExitCodes.DONT_RESTART)
+          }
         } catch (err) {
           console.log(err)
         }

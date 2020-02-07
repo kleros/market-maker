@@ -5,6 +5,7 @@ BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
 module.exports = {
   ExitCodes: Object.freeze({
+    DONT_RESTART: 0,
     WEBSOCKET_CONNECTION_DOWN: 123,
     API_REQUEST_FAILED: 135,
     NON_MAKER_TRADE_OCCURRED: 721,
