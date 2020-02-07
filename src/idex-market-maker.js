@@ -140,7 +140,7 @@ module.exports = {
     )
     let reserve
 
-    const balances = await idexWrapper.getBalances(
+    const balances = await idexWrapper.getCompleteBalances(
       IDEX_API_KEY,
       checksumAddress
     )
@@ -191,7 +191,7 @@ module.exports = {
         console.log(ticker)
         const highestBid = new BigNumber(ticker.highestBid)
         const lowestAsk = new BigNumber(ticker.lowestAsk)
-        const balances = await idexWrapper.getBalances(
+        const balances = await idexWrapper.getCompleteBalances(
           IDEX_API_KEY,
           checksumAddress
         )
@@ -237,7 +237,7 @@ module.exports = {
           reserve.eth = reserve.eth.plus(new BigNumber(ethAmount))
         }
 
-        const balances = await idexWrapper.getBalances(
+        const balances = await idexWrapper.getCompleteBalances()(
           IDEX_API_KEY,
           checksumAddress
         )

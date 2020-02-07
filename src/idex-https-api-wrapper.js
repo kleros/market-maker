@@ -48,6 +48,16 @@ module.exports = {
     })
   },
 
+  getCompleteBalances: async function(apiKey, address) {
+    return fetch(`${HTTPS_API}/returnCompleteBalances`, {
+      headers: getHeader(apiKey),
+      method: 'POST',
+      body: JSON.stringify({ address: address })
+    }).then(function(response) {
+      return response.json()
+    })
+  },
+
   getTicker: async function(apiKey, market) {
     return fetch(`${HTTPS_API}/returnTicker`, {
       headers: getHeader(apiKey),
