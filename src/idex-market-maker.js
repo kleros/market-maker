@@ -245,11 +245,15 @@ module.exports = {
         const oldInvariant = reserve.eth.times(reserve.pnk)
 
         if (isBuy) {
-          reserve.pnk = reserve.pnk.plus(new BigNumber(pnkAmount))
+          reserve.pnk = reserve.pnk.plus(
+            new BigNumber(pnkAmount).minus(new BigNumber(trade.buyerFee))
+          )
           reserve.eth = reserve.eth.minus(new BigNumber(ethAmount))
         } else {
           reserve.pnk = reserve.pnk.minus(new BigNumber(pnkAmount))
-          reserve.eth = reserve.eth.plus(new BigNumber(ethAmount))
+          reserve.eth = reserve.eth.plus(
+            new BigNumber(ethAmount).minus(new BigNumber(trade.sellerFee))
+          )
         }
 
         const balances = await idexWrapper.getCompleteBalances(
