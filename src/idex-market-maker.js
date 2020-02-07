@@ -144,7 +144,14 @@ module.exports = {
       IDEX_API_KEY,
       checksumAddress
     )
-    utils.logBalance(balances.ETH, balances.PNK)
+    utils.logBalance(
+      new BigNumber(balances.ETH.available).plus(
+        new BigNumber(balances.ETH.onOrders)
+      ),
+      new BigNumber(balances.PNK.available).plus(
+        new BigNumber(balances.PNK.onOrders)
+      )
+    )
 
     fs.readFile('idex_reserve.txt', 'utf-8', (err, data) => {
       if (err) return
@@ -196,12 +203,20 @@ module.exports = {
           checksumAddress
         )
 
-        utils.logBalance(balances.ETH, balances.PNK)
+        const totalETH = new BigNumber(balances.ETH.available).plus(
+          new BigNumber(balances.ETH.onOrders)
+        )
+
+        const totalPNK = new BigNumber(balances.PNK.available).plus(
+          new BigNumber(balances.PNK.onOrders)
+        )
+
+        utils.logBalance(totalETH, totalPNK)
 
         if (!reserve)
           reserve = utils.calculateMaximumReserve(
-            new BigNumber(balances.ETH),
-            new BigNumber(balances.PNK),
+            totalETH,
+            totalPNK,
             lowestAsk.plus(highestBid).div(2)
           )
 
@@ -241,7 +256,14 @@ module.exports = {
           IDEX_API_KEY,
           checksumAddress
         )
-        utils.logBalance(balances.ETH, balances.PNK)
+        utils.logBalance(
+          new BigNumber(balances.ETH.available).plus(
+            new BigNumber(balances.ETH.onOrders)
+          ),
+          new BigNumber(balances.PNK.available).plus(
+            new BigNumber(balances.PNK.onOrders)
+          )
+        )
 
         const newInvariant = reserve.eth.times(reserve.pnk)
 
