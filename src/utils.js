@@ -41,7 +41,7 @@ module.exports = {
       assert(initialPrice.gt(0.00001) && initialPrice.lt(0.0001))
     } catch (err) {
       console.error(err)
-      process.exit(this.ExitCodes.UTIL_ASSERTION_FAILED)
+      process.exit(module.exports.ExitCodes.UTIL_ASSERTION_FAILED)
     }
 
     const etherValueOfAvailablePinakion = availablePNK.times(initialPrice)
@@ -54,7 +54,7 @@ module.exports = {
         assert(availableETH.gt(0) && availableETH.div(initialPrice).gt(0))
       } catch (err) {
         console.error(err)
-        process.exit(this.ExitCodes.UTIL_ASSERTION_FAILED)
+        process.exit(module.exports.ExitCodes.UTIL_ASSERTION_FAILED)
       }
       return {
         eth: availableETH,
@@ -65,7 +65,7 @@ module.exports = {
         assert(availableETH.times(initialPrice).gt(0) && availablePNK.gt(0))
       } catch (err) {
         console.error(err)
-        process.exit(this.ExitCodes.UTIL_ASSERTION_FAILED)
+        process.exit(module.exports.ExitCodes.UTIL_ASSERTION_FAILED)
       }
       return {
         eth: availablePNK.times(initialPrice),
@@ -87,7 +87,7 @@ module.exports = {
       assert(interval.gt(0) && interval.lt(spread))
     } catch (err) {
       console.error(err)
-      process.exit(this.ExitCodes.UTIL_ASSERTION_FAILED)
+      process.exit(module.exports.ExitCodes.UTIL_ASSERTION_FAILED)
     }
 
     const orders = []
@@ -99,7 +99,7 @@ module.exports = {
         assert(sellOrderPrice.gt(priceCenter))
       } catch (err) {
         console.error(err)
-        process.exit(this.ExitCodes.UTIL_ASSERTION_FAILED)
+        process.exit(module.exports.ExitCodes.UTIL_ASSERTION_FAILED)
       }
 
       const sellOrder = {
@@ -120,7 +120,7 @@ module.exports = {
         assert(buyOrderPrice.lt(priceCenter))
       } catch (err) {
         console.error(err)
-        process.exit(this.ExitCodes.UTIL_ASSERTION_FAILED)
+        process.exit(module.exports.ExitCodes.UTIL_ASSERTION_FAILED)
       }
 
       orders.push(sellOrder)
@@ -136,7 +136,7 @@ module.exports = {
       assert(reserve.eth.gt(0) && reserve.pnk.gt(0))
     } catch (err) {
       console.error(err)
-      process.exit(this.ExitCodes.UTIL_ASSERTION_FAILED)
+      process.exit(module.exports.ExitCodes.UTIL_ASSERTION_FAILED)
     }
 
     const orders = []
@@ -150,7 +150,7 @@ module.exports = {
         assert(sellOrderPrice.gt(reserve.eth.div(reserve.pnk)))
       } catch (err) {
         console.error(err)
-        process.exit(this.ExitCodes.UTIL_ASSERTION_FAILED)
+        process.exit(module.exports.ExitCodes.UTIL_ASSERTION_FAILED)
       }
 
       let sizeInPinakion = sizeInEther.div(sellOrderPrice)
@@ -173,7 +173,7 @@ module.exports = {
         )
       } catch (err) {
         console.error(err)
-        process.exit(this.ExitCodes.UTIL_ASSERTION_FAILED)
+        process.exit(module.exports.ExitCodes.UTIL_ASSERTION_FAILED)
       }
 
       sizeInPinakion = sizeInEther.div(buyOrderPrice)
