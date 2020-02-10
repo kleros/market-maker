@@ -30,16 +30,16 @@ module.exports = {
     )
 
     const orders = []
-    for (const element of rawOrders)
-      if (element.pnk.lt(new BigNumber(0)))
+    for (const rawOrder of rawOrders)
+      if (rawOrder.pnk.lt(new BigNumber(0)))
         orders.push({
           tokenBuy: ETHER,
-          amountBuy: element.eth
+          amountBuy: rawOrder.eth
             .times(decimals)
             .toFixed(0, BigNumber.ROUND_UP)
             .toString(),
           tokenSell: PINAKION,
-          amountSell: element.pnk
+          amountSell: rawOrder.pnk
             .absoluteValue()
             .times(decimals)
             .toFixed(0, BigNumber.ROUND_DOWN)
@@ -48,12 +48,12 @@ module.exports = {
       else
         orders.push({
           tokenBuy: PINAKION,
-          amountBuy: element.pnk
+          amountBuy: rawOrder.pnk
             .times(decimals)
             .toFixed(0, BigNumber.ROUND_UP)
             .toString(),
           tokenSell: ETHER,
-          amountSell: element.eth
+          amountSell: rawOrder.eth
             .absoluteValue()
             .times(decimals)
             .toFixed(0, BigNumber.ROUND_DOWN)
@@ -74,23 +74,26 @@ module.exports = {
         )
 
         if (Array.isArray(openOrders) && openOrders.length == 0) {
-          console.log('No open order left.')
+          console.log('No open orders left.')
           break
         }
 
         console.log(`Number of open orders: ${openOrders.length}`)
 
-        for (const element of openOrders) {
+        for (const openOrder of openOrders) {
           const nonce = await idexWrapper.getNextNonce(IDEX_API_KEY, address)
+          // TODO: Add comment explaining why this check is done.
+          // It is not clear under what condition would typeof nonce.nonce !== 'number' or
+          // typeof openOrder.orderHash !== 'string'.
           assert(typeof nonce.nonce === 'number')
-          assert(typeof element.orderHash === 'string')
+          assert(typeof openOrder.orderHash === 'string')
 
           await idexWrapper.cancelOrder(
             IDEX_API_KEY,
             web3,
             address,
             process.env.IDEX_SECRET,
-            element.orderHash,
+            openOrder.orderHash,
             nonce
           )
         }
@@ -102,7 +105,7 @@ module.exports = {
   },
   placeStaircaseOrders: async function(address, steps, size, reserve) {
     if ((await idexWrapper.getOpenOrders(IDEX_API_KEY, address)).length == 0) {
-      var orders = module.exports.getOrders(steps, size, reserve)
+      const orders = module.exports.getOrders(steps, size, reserve)
       console.log('Placing orders...')
       for (let i = 0; i < orders.length; i++) {
         const nonce = await idexWrapper.getNextNonce(IDEX_API_KEY, address)
@@ -132,7 +135,6 @@ module.exports = {
         'There are previous orders to be cleared, skipping placing orders.'
       )
   },
-
   autoMarketMake: async function(steps) {
     const w = new WS('wss://datastream.idex.market')
     const checksumAddress = web3.utils.toChecksumAddress(
@@ -177,7 +179,7 @@ module.exports = {
 
       const parsed = JSON.parse(msg)
       console.log(parsed)
-      if (parsed.request === 'handshake' && parsed.result === 'success')
+      if (parsed.request === 'handshake' && parsed.result === 'success') {
         w.send(
           JSON.stringify({
             sid: parsed.sid,
@@ -185,6 +187,12 @@ module.exports = {
             payload: `{"topics": ["${checksumAddress}"], "events": ["account_trades"] }`
           })
         )
+
+        // Early return to make it clear to the reader that no more code will be executed
+        // in case this block is executed. Otherwise we need to keep reading to make sure
+        // nothing else will be executed.
+        return
+      }
 
       if (
         parsed.request === 'subscribeToAccounts' &&
@@ -198,6 +206,10 @@ module.exports = {
         console.log(ticker)
         const highestBid = new BigNumber(ticker.highestBid)
         const lowestAsk = new BigNumber(ticker.lowestAsk)
+
+        // TODO: his `balances` declaration shadows an earlier declaration.
+        // Use different variable names to differentiate or
+        // add some comments explaning why we are using two variables.
         const balances = await idexWrapper.getCompleteBalances(
           IDEX_API_KEY,
           checksumAddress
@@ -233,8 +245,16 @@ module.exports = {
           MIN_ETH_SIZE,
           reserve
         )
+
+        // As suggested earlier, use early return to assure the reader
+        // that no more code will be executed if the call falls on this block
+        // and there is no need to keep reading.
+        return
       }
 
+      // TODO: Add comment explaining why listen `account_trades` instead of
+      // `account_trade_complete` (since `account_trades` is still pending trades).
+      // Is there a situation where a pending trade could not be executed?
       if (parsed.event === 'account_trades') {
         const payload = JSON.parse(parsed.payload)
         const oldInvariant = reserve.eth.times(reserve.pnk)
