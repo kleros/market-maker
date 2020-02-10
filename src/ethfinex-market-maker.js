@@ -76,9 +76,9 @@ module.exports = {
 
     const orders = []
     const equilibrium = reserve.eth.div(reserve.pnk)
-    for (const element of rawOrders) {
-      const orderAmount = element.pnk
-      const orderPrice = element.eth.div(element.pnk).absoluteValue()
+    for (const rawOrder of rawOrders) {
+      const orderAmount = rawOrder.pnk
+      const orderPrice = rawOrder.eth.div(rawOrder.pnk).absoluteValue()
 
       if (orderAmount.isPositive())
         assert(orderPrice.lt(equilibrium), orderPrice.toString())
@@ -86,9 +86,9 @@ module.exports = {
 
       orders.push(
         this.newExchangeLimitOrder(
-          element.pnk.toString(),
-          element.eth
-            .div(element.pnk)
+          rawOrder.pnk.toString(),
+          rawOrder.eth
+            .div(rawOrder.pnk)
             .absoluteValue()
             .toString()
         )
@@ -268,6 +268,8 @@ module.exports = {
         })
       }
 
+      // TODO: Use early return if there is no code to be executed
+      // after entering an if block
       if (parsed.event == 'info') {
         const ticker = await ethfinexRestWrapper.ticker()
         console.log(ticker)

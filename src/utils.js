@@ -129,6 +129,7 @@ module.exports = {
     return orders
   },
 
+  // TODO: Add comments with formulas used.
   getBoundingCurveStaircaseOrders: function(steps, sizeInEther, reserve) {
     try {
       assert(reserve.eth.gt(sizeInEther.times(steps)))
