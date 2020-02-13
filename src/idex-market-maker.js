@@ -134,6 +134,17 @@ module.exports = {
   },
 
   autoMarketMake: async function(steps) {
+    if (
+      typeof process.env.IDEX_API_KEY === 'undefined' ||
+      typeof process.env.IDEX_SECRET === 'undefined' ||
+      typeof process.env.IDEX_ADDRESS === 'undefined'
+    ) {
+      console.log(
+        'Please export IDEX_ADDRESS, IDEX_API_KEY and IDEX_SECRET environment variables.'
+      )
+      process.exit(utils.ExitCodes.DONT_RESTART)
+    }
+
     const w = new WS('wss://datastream.idex.market')
     const checksumAddress = web3.utils.toChecksumAddress(
       process.env.IDEX_ADDRESS

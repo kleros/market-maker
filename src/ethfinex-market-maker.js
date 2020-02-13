@@ -137,7 +137,7 @@ module.exports = {
       console.log(
         'Please export ETHFINEX_KEY and ETHFINEX_SECRET environment variables.'
       )
-      process.exit(2)
+      process.exit(utils.ExitCodes.DONT_RESTART)
     }
     const heartbeat = client => {
       clearTimeout(client.pingTimeout)
