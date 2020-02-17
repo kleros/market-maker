@@ -287,9 +287,11 @@ module.exports = {
       ) {
         const tradeExecutionLog = parsed[2]
 
-        if (tradeExecutionLog[8] != TradeSide.MAKER)
+        if (tradeExecutionLog[8] != TradeSide.MAKER) {
+          console.log('TAKER TRADE!')
           // We only trade as maker, if a taker trade happened, that's an anomaly, so kill the bot.
           process.exit(utils.ExitCodes.DONT_RESTART)
+        }
 
         let filledPartially
         let openOrders = await module.exports.getOpenOrders()
