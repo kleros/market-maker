@@ -286,17 +286,18 @@ module.exports = {
         parsed[2][1] == SYMBOL
       ) {
         const tradeExecutionLog = parsed[2]
+        const orderID = tradeExecutionLog[3]
 
         if (tradeExecutionLog[8] != TradeSide.MAKER) {
-          console.log('TAKER TRADE!')
-          // We only trade as maker, if a taker trade happened, that's an anomaly, so kill the bot.
-          process.exit(utils.ExitCodes.DONT_RESTART)
+          console.log(
+            `${new Date().toISOString()} # tu | Order ${orderID} was a taker trade.`
+          )
+          console.log(tradeExecutionLog)
         }
 
         let filledPartially
         let openOrders = await module.exports.getOpenOrders()
 
-        const orderID = tradeExecutionLog[3]
         if (openOrders.find(order => order[0] == orderID) != undefined) {
           // If we find the exact order in the list, it means it wasn't removed from the list thus was partially filled
           console.log(
