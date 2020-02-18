@@ -42,6 +42,15 @@ const WSCloseCodes = Object.freeze({
   NO_STATUS_RECEIVED: 1005
 })
 
+const CANCEL_ALL_ORDERS = JSON.stringify([
+  0,
+  'oc_multi',
+  null,
+  {
+    all: 1
+  }
+])
+
 module.exports = {
   newExchangeLimitOrder: function(amount, price) {
     return [
@@ -348,9 +357,7 @@ module.exports = {
           )
 
           while (!Array.isArray(openOrders) || openOrders.length != 0) {
-            await ethfinexRestWrapper.cancelAllOrders(
-              (Date.now() * 1000).toString()
-            )
+            w.send(CANCEL_ALL_ORDERS)
             await new Promise(resolve => setTimeout(resolve, 5000))
             console.log(
               `${new Date().toISOString()} # ${
