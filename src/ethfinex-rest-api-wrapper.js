@@ -93,6 +93,7 @@ module.exports = {
       method: 'POST',
       body: JSON.stringify({})
     }).then(function(response) {
+      console.log(response)
       return response.json()
     })
   }
