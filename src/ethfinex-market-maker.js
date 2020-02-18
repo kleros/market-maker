@@ -104,14 +104,6 @@ module.exports = {
     assert(steps <= 128, 'You exceeded Ethfinex maximum order limit.')
 
     const w = new WS(ETHFINEX_WEBSOCKET_API)
-    const CANCEL_ALL_ORDERS = JSON.stringify([
-      0,
-      'oc_multi',
-      null,
-      {
-        all: 1
-      }
-    ])
 
     let highestBid
     let lowestAsk
@@ -268,13 +260,13 @@ module.exports = {
         })
       }
 
-      // TODO: Use early return if there is no code to be executed
-      // after entering an if block
       if (parsed.event == 'info') {
         const ticker = await ethfinexRestWrapper.ticker()
         console.log(ticker)
         highestBid = new BigNumber(ticker[0])
         lowestAsk = new BigNumber(ticker[2])
+
+        return
       }
 
       if (parsed.event == 'auth') {
@@ -356,7 +348,9 @@ module.exports = {
           )
 
           while (!Array.isArray(openOrders) || openOrders.length != 0) {
-            w.send(CANCEL_ALL_ORDERS)
+            await ethfinexRestWrapper.cancelAllOrders(
+              (Date.now() * 1000).toString()
+            )
             console.log(
               `${new Date().toISOString()} # ${
                 MsgCodes.TRADE_EXECUTION_UPDATE

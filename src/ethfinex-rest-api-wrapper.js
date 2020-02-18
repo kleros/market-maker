@@ -57,5 +57,43 @@ module.exports = {
     }).then(function(response) {
       return response.json()
     })
+  },
+  sendOrders: async function(nonce, orders) {
+    return fetch(`${AUTHENTICATED}/v2/auth/r/order/multi`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'bfx-nonce': nonce,
+        'bfx-apikey': process.env.ETHFINEX_KEY,
+        'bfx-signature': module.exports.getSignatureHash(
+          'v2/auth/r/orders',
+          {},
+          nonce
+        )
+      },
+      json: true,
+      method: 'POST',
+      body: JSON.stringify({ ops: { ...orders } })
+    }).then(function(response) {
+      return response.json()
+    })
+  },
+  cancelAllOrders: async function(nonce) {
+    return fetch(`${AUTHENTICATED}/v2/auth/r/order/cancel/multi`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'bfx-nonce': nonce,
+        'bfx-apikey': process.env.ETHFINEX_KEY,
+        'bfx-signature': module.exports.getSignatureHash(
+          'v2/auth/r/orders',
+          {},
+          nonce
+        )
+      },
+      json: true,
+      method: 'POST',
+      body: JSON.stringify({ all: 1 })
+    }).then(function(response) {
+      return response.json()
+    })
   }
 }

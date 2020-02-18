@@ -82,11 +82,9 @@ module.exports = {
 
         for (const openOrder of openOrders) {
           const nonce = await idexWrapper.getNextNonce(IDEX_API_KEY, address)
-          // TODO: Add comment explaining why this check is done.
-          // It is not clear under what condition would typeof nonce.nonce !== 'number' or
-          // typeof openOrder.orderHash !== 'string'.
-          assert(typeof nonce.nonce === 'number')
-          assert(typeof openOrder.orderHash === 'string')
+
+          assert(typeof nonce.nonce === 'number') // Sanity check. If api returns a fail message, this would not be a number
+          assert(typeof openOrder.orderHash === 'string') // Sanity check. If api returns a fail message, this would not be a number
 
           await idexWrapper.cancelOrder(
             IDEX_API_KEY,
@@ -218,10 +216,7 @@ module.exports = {
         const highestBid = new BigNumber(ticker.highestBid)
         const lowestAsk = new BigNumber(ticker.lowestAsk)
 
-        // TODO: his `balances` declaration shadows an earlier declaration.
-        // Use different variable names to differentiate or
-        // add some comments explaning why we are using two variables.
-        const balances = await idexWrapper.getCompleteBalances(
+        balances = await idexWrapper.getCompleteBalances(
           IDEX_API_KEY,
           checksumAddress
         )
