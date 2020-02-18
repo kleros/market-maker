@@ -59,7 +59,7 @@ module.exports = {
     })
   },
   sendOrders: async function(nonce, orders) {
-    return fetch(`${AUTHENTICATED}/v2/auth/r/order/multi`, {
+    return fetch(`${AUTHENTICATED}/v2/auth/w/order/multi`, {
       headers: {
         'Content-Type': 'application/json',
         'bfx-nonce': nonce,
@@ -78,7 +78,7 @@ module.exports = {
     })
   },
   cancelAllOrders: async function(nonce) {
-    return fetch(`${AUTHENTICATED}/v2/auth/r/order/cancel/multi`, {
+    return fetch(`${AUTHENTICATED}/v2/auth/w/order/cancel/multi`, {
       headers: {
         'Content-Type': 'application/json',
         'bfx-nonce': nonce,
