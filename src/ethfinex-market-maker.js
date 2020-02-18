@@ -351,6 +351,7 @@ module.exports = {
             await ethfinexRestWrapper.cancelAllOrders(
               (Date.now() * 1000).toString()
             )
+            await new Promise(resolve => setTimeout(resolve, 5000))
             console.log(
               `${new Date().toISOString()} # ${
                 MsgCodes.TRADE_EXECUTION_UPDATE
