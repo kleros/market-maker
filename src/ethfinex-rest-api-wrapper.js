@@ -78,7 +78,7 @@ module.exports = {
     })
   },
   cancelAllOrders: async function(nonce) {
-    return fetch(`${AUTHENTICATED}/v2/auth/w/order/cancel/all`, {
+    return fetch(`${AUTHENTICATED}/v2/auth/w/order/cancel`, {
       headers: {
         'Content-Type': 'application/json',
         'bfx-nonce': nonce,
@@ -91,7 +91,7 @@ module.exports = {
       },
       json: true,
       method: 'POST',
-      body: JSON.stringify({})
+      body: JSON.stringify({ all: 1 })
     }).then(function(response) {
       console.log(response)
       return response.json()
