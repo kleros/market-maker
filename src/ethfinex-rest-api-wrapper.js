@@ -65,7 +65,7 @@ module.exports = {
         'bfx-nonce': nonce,
         'bfx-apikey': process.env.ETHFINEX_KEY,
         'bfx-signature': module.exports.getSignatureHash(
-          'v2/auth/r/orders',
+          'v2/auth/w/order/multi',
           {},
           nonce
         )
@@ -84,7 +84,7 @@ module.exports = {
         'bfx-nonce': nonce,
         'bfx-apikey': process.env.ETHFINEX_KEY,
         'bfx-signature': module.exports.getSignatureHash(
-          'v2/auth/r/orders',
+          'v2/auth/w/order/cancel/multi',
           {},
           nonce
         )
