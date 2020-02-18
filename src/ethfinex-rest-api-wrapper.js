@@ -91,7 +91,7 @@ module.exports = {
       },
       json: true,
       method: 'POST',
-      body: JSON.stringify({ all: 1 })
+      body: JSON.stringify({ all: '1' })
     }).then(function(response) {
       return response.json()
     })

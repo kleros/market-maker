@@ -358,6 +358,7 @@ module.exports = {
               } | There are ${openOrders.length} leftover orders, cancelling...`
             )
             openOrders = await module.exports.getOpenOrders()
+            if (openOrders[0] == 'error') console.log(openOrders)
           }
           console.log(
             `${new Date().toISOString()} # ${
