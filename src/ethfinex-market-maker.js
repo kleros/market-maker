@@ -329,7 +329,7 @@ module.exports = {
         utils.logReserve(reserve)
         fs.writeFileSync('ethfinex_reserve.txt', JSON.stringify(reserve))
         const newInvariant = reserve.eth.times(reserve.pnk)
-        const TOLERANCE = 0.9999 // When multiple orders are taken invariant gets lowered a bit, so we need to tolerate tiny amounts.
+        const TOLERANCE = 0.999 // When multiple orders are taken invariant gets lowered a bit, so we need to tolerate tiny amounts.
 
         try {
           assert(
