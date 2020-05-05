@@ -98,6 +98,7 @@ module.exports = {
         console.log('')
       } catch (err) {
         console.log(err)
+        await new Promise(resolve => setTimeout(resolve, 1000)) // Wait 1 seconds on error
       }
     }
   },
