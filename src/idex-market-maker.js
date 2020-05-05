@@ -85,7 +85,7 @@ module.exports = {
 
           assert(typeof nonce.nonce === 'number') // Sanity check. If api returns a fail message, this would not be a number
           assert(typeof openOrder.orderHash === 'string') // Sanity check. If api returns a fail message, this would not be a number
-
+          await new Promise(resolve => setTimeout(resolve, 200)) // Sending querioes too quickly gets rate limited.
           await idexWrapper.cancelOrder(
             IDEX_API_KEY,
             web3,
