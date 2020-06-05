@@ -18,7 +18,7 @@ const fs = require('fs')
 const web3 = new Web3(
   new Web3.providers.HttpProvider(process.env.ETHEREUM_PROVIDER)
 )
-const MIN_ETH_SIZE = new BigNumber(0.35)
+const MIN_ETH_SIZE = new BigNumber(0.5)
 const decimals = new BigNumber('10').pow(new BigNumber('18'))
 
 module.exports = {
