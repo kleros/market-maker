@@ -38,7 +38,7 @@ module.exports = {
   calculateMaximumReserve: function(availableETH, availablePNK, initialPrice) {
     try {
       assert(availableETH.gt(0) && availablePNK.gt(0))
-      assert(initialPrice.gt(0.00001) && initialPrice.lt(0.0004))
+      assert(initialPrice.gt(0.00001) && initialPrice.lt(0.001))
     } catch (err) {
       console.error(err)
       process.exit(module.exports.ExitCodes.UTIL_ASSERTION_FAILED)
