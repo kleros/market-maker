@@ -367,6 +367,8 @@ module.exports = {
             openOrders = await module.exports.getOpenOrders()
             if (openOrders[0] == 'error') console.log(openOrders)
           }
+
+          await new Promise(resolve => setTimeout(resolve, 10000))
           console.log(
             `${new Date().toISOString()} # ${
               MsgCodes.TRADE_EXECUTION_UPDATE
