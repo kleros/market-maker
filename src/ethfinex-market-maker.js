@@ -344,7 +344,7 @@ module.exports = {
         if (!filledPartially) {
           noOfTrades++
           console.log(`Number of trades done: ${noOfTrades}`)
-          if (noOfTrades > 1000) process.exit(utils.ExitCodes.DONT_RESTART)
+          if (noOfTrades > 100) process.exit(utils.ExitCodes.DONT_RESTART)
 
           console.log(
             `${new Date().toISOString()} # tu | Order filled fully. Cancelling orders in order to replace all...`
@@ -397,3 +397,5 @@ module.exports = {
     }
   }
 }
+
+0x7065cb480000000000000000000000000539637082ac79ba945869603417c15ca05b0e3f
