@@ -12,7 +12,7 @@ const ETHFINEX_WEBSOCKET_API = 'wss://api.bitfinex.com/ws/2/'
 BigNumber.config({ EXPONENTIAL_AT: [-30, 40] })
 
 const SYMBOL = 'tPNKETH'
-const MIN_ETH_SIZE = new BigNumber(0.35)
+const MIN_ETH_SIZE = new BigNumber(0.2)
 const HEARTBEAT_TIMEOUT = 90000 // 90 Seconds
 
 let orderGroupID = 0
